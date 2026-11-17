@@ -25,11 +25,30 @@
   </header>
 
   <main class="wrap">
+    <p id="storage-msg" class="msg" role="status" aria-live="polite"></p>
+
+    <section id="customer-view" class="card customer-view" aria-labelledby="cust-view-title">
+      <h2 class="section-title" id="cust-view-title">Customer</h2>
+      <p class="cust-name" id="cust-name">Select a customer</p>
+      <p class="muted small" id="cust-phone">Open a customer from the list to see their ledger.</p>
+      <p class="label">Balance (Rs)</p>
+      <div class="total-row">
+        <div id="cust-balance" class="total" data-balance="0">0</div>
+        <span class="human" id="cust-balance-human">Rs 0</span>
+      </div>
+      <h3 class="sub-title">Entries</h3>
+      <ul id="entries" class="entries"></ul>
+      <p class="empty small" id="entries-empty">No entries yet.</p>
+      <p class="customer-back">
+        <a class="btn ghost" href="./" id="back-to-list">&larr; All customers</a>
+      </p>
+    </section>
+
     <section class="card hero" aria-labelledby="total-label">
       <p class="label" id="total-label">Total outstanding (Rs)</p>
       <div class="total-row">
         <div id="total-outstanding" class="total" data-value="0">0</div>
-        <span class="human total-human">Rs 0</span>
+        <span class="human total-human" id="total-human">Rs 0</span>
       </div>
     </section>
 
@@ -71,6 +90,12 @@
     <section class="card" aria-labelledby="entry-title">
       <h2 class="section-title" id="entry-title">Add entry</h2>
       <form id="entry-form" novalidate>
+        <div class="field">
+          <label for="entry-customer">Customer</label>
+          <select id="entry-customer" name="customer">
+            <option value="">No customers yet</option>
+          </select>
+        </div>
         <div class="field">
           <label for="entry-type">Type</label>
           <select id="entry-type" name="type">

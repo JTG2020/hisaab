@@ -126,3 +126,35 @@ Action: completed the pre-P1 sync. `PRD.md` v1.1 now states fractional machine v
 Evidence: R-ID sync 23 IDs, 0 missing in PLAN/TRACEABILITY; 29/29 contract selectors tested; 0 TBD; E2E-P1-01–05 defined; P0 suite still 23/23 against the unchanged app; no CONTRACT change.
 Result: PASS (pre-P1 sync)
 Next: Coder P1
+
+## 2026-11-17 22:05 — P1 — Coder
+Action: implemented the P1 data core. State in `hisaab.v1` with `localStorage` + in-memory fallback; exact integer-paise parse/render; add customer with 10-digit/duplicate validation; add credit/payment entries with date/note; per-customer balances and signed net total; static customer-view shell with `?customer=`; `?today=` default entry date; row link and basic `a[data-remind]`; non-contract `#entry-customer`, `#storage-msg`, `#entry-msg` and status hooks. P2/P3/P4 features remain inert.
+Evidence: `app/index.html`, `app/styles.css`, `app/app.js`; `node --check` OK; self-check 2 customers + 4 entries → `2410.50`, newest-first order, short/duplicate rejection, reload persistence, forced `setItem` throw keeps `2420.50` with `#storage-msg`, 375 px `scrollWidth` 375, no console errors; P0 suite 23/23.
+Result: PASS (Coder handoff; Tester verification pending)
+Next: Tester P1
+
+## 2026-11-17 22:15 — P1 — Tester
+Action: added `tests/e2e/p1.spec.js` with E2E-P1-01–08; `TEST-CASES.md` v0.6 (82 cases); RUN-4. Verified data core, money parse/render, reload, storage failure/recovery, customer view, `?today`, same-date order, and early 375 px long unicode. No bugs filed.
+Evidence: `cd tests && npx playwright test` → **31/31 passed (13.2s)** (23 P0 regression + 8 P1), re-run independently by the Orchestrator; exact values `2410.50`, `2420.50` after storage failure, `?today=2026-11-15` date, `375/375` scrollWidth, money `12.345`→`12.35`, same-date order.
+Result: PASS (RUN-4)
+Next: Planner sync + Critic G1
+
+## 2026-11-17 22:20 — P1 — Planner
+Action: `TRACEABILITY.md` v1.4 maps E2E-P1-06–08; `IMPLEMENTATION-PLAN.md` v1.4 P1 gate suite cites `E2E-P1-01–08`. No CONTRACT change. Flagged: E2E-P1-06/08 assert the non-contract `#entry-msg`/`#storage-msg` test hooks; they are not contract nodes.
+Evidence: 23 traceability rows, 0 TBD; R-ID sync 23/0/0; 29/29 selectors; headers 4/4.
+Result: PASS (docs)
+Next: Critic G1
+
+## 2026-11-17 22:40 — P1 — Orchestrator — GATE G1
+Action: recorded G1 PASS from the Critic's signed scorecard; P1 data core is complete; committed the P1 build and created gate tag `g1`.
+Evidence: `docs/scorecards.md` GATE G1; RUN-4 (Tester) **31/31**; CRITIC-RUN-2 **31/31**; contract audit **32/32 P1-observable**; doc sync PASS; Vercel readiness PASS; provisional model score **10/100** (up from G0's 5/100; hidden-data 0/60 because import is P2, bonus 0/30 because P4, phone/theme 10/10 provisional with data).
+G1 checklist: Tester RUN-4 present; P1 acceptance 8/8 = 100%; P0 regression 23/23 = 100%; no open P0/P1; contract audit 32/32 P1 scope; doc sync PASS; score 10 >= 5; `Next:` present.
+Notes:
+- F-1: global `[data-balance]` = customers + 1 because `#cust-balance` is contract-mandated to carry `data-balance` (§1.7) while rows carry `[data-balance]` (§1.2). Row-scoped values are exact; any contract change would be a human gate.
+- F-2/F-3: basic reminders already conform, including zero/negative and unicode; P3 must re-verify and add screenshots without regressing them.
+- F-4 resolved by the `g1` commit/tag.
+- F-5: add `E2E-P2-*` case rows before the P2 gate.
+- F-6: import/export/search/lang/overdue/edit-delete/UPI remain deferred to P2/P4 by plan.
+- Non-contract test hooks `#entry-msg` and `#storage-msg` are not contract nodes; no contract change.
+- **Stop at G1.** P2 (the 60-mark import surface) has not started and awaits human go.
+Next: P2 on human go; do not start automatically.

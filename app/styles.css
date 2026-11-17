@@ -339,6 +339,147 @@ input[type="file"]::file-selector-button {
   min-height: 1px;
 }
 
+.msg-warn,
+.msg-error {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+.customer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: start;
+  min-width: 0;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.customer-id {
+  min-width: 0;
+}
+
+.customer-name {
+  display: block;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.customer-phone {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.customer-money {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  min-width: 0;
+}
+
+.customer-balance {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.balance-human {
+  font-size: 13px;
+}
+
+.customer-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.customer-actions .btn {
+  flex: 0 1 auto;
+  font-weight: 600;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: start;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.entry-main {
+  min-width: 0;
+}
+
+.entry-type {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.entry[data-type="payment"] .entry-type {
+  color: var(--positive);
+}
+
+.entry-note {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entry-meta {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  min-width: 0;
+}
+
+.entry-amount {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.entry-amount-human,
+.entry-date {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.customer-back {
+  margin: 0;
+}
+
+@media (max-width: 420px) {
+  .customer-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-money {
+    justify-items: start;
+  }
+
+  .entry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .entry-meta {
+    justify-items: start;
+  }
+}
+
 @media (max-width: 420px) {
   .total {
     font-size: 32px;
