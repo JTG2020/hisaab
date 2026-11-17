@@ -1,10 +1,10 @@
 # IMPLEMENTATION-PLAN — Hisaab
 
-Version: 1.2
+Version: 1.3
 Updated: 2026-11-17
 Owner: Planner
-Supersedes: IMPLEMENTATION-PLAN.md v1.1
-Depends on: `PRD.md` v1.0, `TECH-STACK.md` v1.0, `CONTRACT.md` v1.0
+Supersedes: IMPLEMENTATION-PLAN.md v1.2
+Depends on: `PRD.md` v1.1, `TECH-STACK.md` v1.0, `CONTRACT.md` v1.0
 
 Phases are sequential. No phase starts before the previous gate is recorded in `worklog.md`. E2E runs only at phase gates; every change runs the contract smoke plus the affected unit tests.
 
@@ -38,7 +38,7 @@ Phases are sequential. No phase starts before the previous gate is recorded in `
 - **Selectors:** all of `CONTRACT.md` §1–§5 — `#total-outstanding`, `#customers`, `[data-customer]`, `[data-balance]`, `a[data-remind]`, `#import-box`, `#import-go`, `#import-msg`, `#shot-input`, `#new-name`, `#new-phone`, `#add-customer`, `#entry-form`, `#entry-type`, `#entry-amount`, `#entry-date`, `#entry-note`, `#entry-save`, `#cust-name`, `#cust-balance`, `#entries`, `[data-entry-id]`, `[data-amount]`, `#overdue`, `[data-days]`, `#search`, `#export-csv`, `#lang-switch`, `a[href^="upi://pay?pa="]`, `img[data-shot]`, `?customer=`, `?today=`.
 - **Files allowed:** `app/index.html`, `app/styles.css`, `app/app.js`, `app/assets/*`, optional `app/vercel.json`.
 - **Acceptance:** `#total-outstanding` text is `0`; the customers container and empty-state message exist; import box, import button, import message, shot input, search, export, language switch, overdue section, and both forms are visible or contain visible content; `?today=` and `?customer=` are parsed without behaviour; relative asset paths only; no build step; no console errors; no external network request.
-- **E2E gate suite (gate-only):** `C-01–C-03`, `C-09–C-23`, `C-39`, and `E2E-P0-01–03` as defined in `TEST-CASES.md` v0.4; empty-state assertions, `scrollWidth` baseline at 375 px, dark-scheme baseline, Vercel-shape check (`app/index.html`, relative paths, no auth, no service worker). `C-04–C-08` are data-dependent and are not P0 cases: `C-04–C-06` and `C-08` run at P2, and `C-07` (reminder href) runs at P3.
+- **E2E gate suite (gate-only):** `C-01–C-03`, `C-09–C-23`, `C-39`, and `E2E-P0-01–03` as defined in `TEST-CASES.md` v0.5; empty-state assertions, `scrollWidth` baseline at 375 px, dark-scheme baseline, Vercel-shape check (`app/index.html`, relative paths, no auth, no service worker). `C-04–C-08` are data-dependent and are not P0 cases: `C-04–C-06` and `C-08` run at P2, and `C-07` (reminder href) runs at P3.
 - **Risks:** putting any node behind a modal, tab, or collapsed disclosure; rendering rows only when data exists; absolute or `localhost` asset paths; a web font or CDN on the critical path.
 - **Rollback:** revert `app/` to the previous gate tag; no data migration needed.
 
@@ -49,7 +49,7 @@ Phases are sequential. No phase starts before the previous gate is recorded in `
 - **Selectors:** `[data-customer]`, `[data-balance]`, `#total-outstanding`, `#cust-name`, `#cust-balance`, `#entries`, `[data-entry-id]`, `[data-amount]`, `#new-name`, `#new-phone`, `#add-customer`, `#entry-form`, `#entry-type`, `#entry-amount`, `#entry-date`, `#entry-note`, `#entry-save`, `?customer=`, `?today=`.
 - **Files allowed:** `app/app.js`, `app/index.html` (event wiring only, no selector changes), `app/styles.css` (row and entry styles).
 - **Acceptance:** add a customer with a 10-digit phone; reject a bad phone and a duplicate phone with a visible message; add credit and payment entries; balance = Σ credit − Σ payment in exact paise; total = signed net sum, recomputed on every render; customer view lists that customer's entries newest first with the right name and balance; unknown `?customer=` shows the not-found state; entry default date uses `?today=`; reload preserves everything; storage failure keeps the app alive in memory with a warning; machine nodes match the bare-number shape.
-- **E2E gate suite (gate-only):** add two customers and four entries through the UI; read `[data-balance]` and `#total-outstanding`; reload and re-read; open the customer view through the row link and through `?customer=`; assert integer and fractional rendering; assert the duplicate-phone and bad-phone rejections.
+- **E2E gate suite (gate-only):** `E2E-P1-01–05` as defined in `TEST-CASES.md` v0.5: data core (customers, entries, balances, total), reload and storage failure, the customer view through the row link and direct `?customer=`, `?today=` as the default entry date, and early 375 px with long unicode. Fractional values render with exactly two decimals; whole-rupee values render with no decimals. No P1 case runs before the gate.
 - **Risks:** float money or rupee rounding; caching the total; dropping zero-balance rows; duplicate rows; entry order ties; losing `#shot-input` when the type is credit.
 - **Rollback:** revert `app/app.js` to the gate tag; state shape unchanged from P0, so stored data needs no migration.
 
@@ -110,7 +110,7 @@ Phases are sequential. No phase starts before the previous gate is recorded in `
 
 ### G0 sync note (v1.1)
 
-The Tester's P0 gate suite is now `C-01–C-03`, `C-09–C-23`, `C-39`, and `E2E-P0-01–03` (`TEST-CASES.md` v0.4). The P0 contract smoke covers three things and nothing else: the **19 always-rendered `CONTRACT.md` §2 nodes** each resolve to exactly one visible element at first paint; the **ten data-dependent §1 selectors** have **zero** matches at empty state while `#total-outstanding` is `0`; and the **`?customer=` view** resolves its `#cust-name`, `#cust-balance`, and `#entries` nodes in the not-found state. `C-04–C-08` need data and are therefore not P0 cases: `C-04–C-06` (sample total, row count, balances) and `C-08` (import) are P2 oracles, and `C-07` (reminder href) is a P3 oracle. `C-39` covers console cleanliness (0 console errors, 0 uncaught rejections, 0 failed requests) on the four P0 routes: `/`, `/?customer=9000000101` (customer not-found), `/?today=2026-11-15`, and an invalid `?today`. No phase scope, requirement ID, selector, or gate order changes in this version.
+The Tester's P0 gate suite is now `C-01–C-03`, `C-09–C-23`, `C-39`, and `E2E-P0-01–03` (`TEST-CASES.md` v0.5). The P0 contract smoke covers three things and nothing else: the **19 always-rendered `CONTRACT.md` §2 nodes** each resolve to exactly one visible element at first paint; the **ten data-dependent §1 selectors** have **zero** matches at empty state while `#total-outstanding` is `0`; and the **`?customer=` view** resolves its `#cust-name`, `#cust-balance`, and `#entries` nodes in the not-found state. `C-04–C-08` need data and are therefore not P0 cases: `C-04–C-06` (sample total, row count, balances) and `C-08` (import) are P2 oracles, and `C-07` (reminder href) is a P3 oracle. `C-39` covers console cleanliness (0 console errors, 0 uncaught rejections, 0 failed requests) on the four P0 routes: `/`, `/?customer=9000000101` (customer not-found), `/?today=2026-11-15`, and an invalid `?today`. No phase scope, requirement ID, selector, or gate order changes in this version.
 
 ## 3. Judges' note skeleton (draft, not submitted)
 

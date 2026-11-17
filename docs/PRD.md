@@ -1,10 +1,12 @@
 # PRD — Hisaab
 
-Version: 1.0
+Version: 1.1
 Updated: 2026-11-17
 Owner: Planner
-Supersedes: PRD.md v0.1-draft
+Supersedes: PRD.md v1.0
 Sources: `PROJECT.md`, `WIN-ANALYSIS.md`, `WIN-PLAN.md`, `DESIGN.md`, `sample-data.json`, `sample-expected.json`
+
+v1.1 changes: D4 fractional rendering is stated as exactly two decimals (whole-rupee values still render with no decimals, sample unchanged at `11820`); N1 is clarified to the P0/P1 contract reading (always-rendered §2 nodes present, data-dependent §1 selectors absent at empty state, customer-view nodes resolve on `?customer=`). No requirement ID, selector, or scope changed.
 
 ## 1. Product summary
 
@@ -23,7 +25,7 @@ A digital ledger for a local shop: the notebook a kirana keeps for who owes what
 
 - Money is exact to the **paise** (two decimal places). No value is rounded to the rupee, no value is stored or summed as an inexact fraction, and no sum shows an artefact such as `670.0000000001`.
 - Parsing accepts a JSON number or a string. A string may carry `Rs`, `₹`, spaces, and commas; those are removed before reading. Input with more than two decimal places is rounded to the nearest paise (never to the rupee) and the rounding is logged. Input that is not a finite number becomes `0` with a logged warning and never crashes the app.
-- Machine values (`#total-outstanding`, `[data-balance]`, `#cust-balance`, `[data-amount]`) are **bare numbers**: no `Rs`, `₹`, comma, space, or plus sign. Whole-rupee values render without decimals (`11820`, `670`); fractional values render with up to two decimals (`670.50`, `-250.25`). Negative values keep the minus sign.
+- Machine values (`#total-outstanding`, `[data-balance]`, `#cust-balance`, `[data-amount]`) are **bare numbers**: no `Rs`, `₹`, comma, space, or plus sign. Whole-rupee values render without decimals (`11820`, `670`); fractional values render with exactly two decimals (`670.50`, `-250.25`). Negative values keep the minus sign.
 - Human-readable rupees (`Rs 1,500.50`) appear only in a sibling element a script never reads.
 - The sample shop is unchanged by this rule: all sample amounts are whole rupees, so the expected total stays `11820` and each balance stays an integer.
 
@@ -69,7 +71,7 @@ A digital ledger for a local shop: the notebook a kirana keeps for who owes what
 - Given a customer has credits of 1500 and 420 and a payment of 180, then `[data-balance]` text and attribute are both `1740`.
 - Given a customer overpays, then the balance is negative and renders with a minus sign (e.g. `-250.25`), and it is included in the total.
 - Given the total is computed, then `#total-outstanding` text is the **signed net sum of every customer balance** (D2) rendered as a bare number, and its human sibling shows `Rs ...` or `Advance Rs ...` for a negative total.
-- Given a fractional sum, then the total shows up to two decimals (e.g. `11820.50`); given a whole-rupee total, then it shows no decimals (e.g. `11820`).
+- Given a fractional sum, then the total shows exactly two decimals (e.g. `11820.50`); given a whole-rupee total, then it shows no decimals (e.g. `11820`).
 - Given the sample shop is imported, then the total is `11820` and all eight balances match `sample-expected.json` exactly.
 - Given the shop is empty, then `#total-outstanding` is `0`.
 - Given any mutation (add, edit, delete, import), then the total is recomputed from all balances and never shows a stale or cached value.
@@ -323,10 +325,12 @@ All seven are built. At most six count, so one may fail harmlessly; each is visi
 ## 7. Non-functional requirements
 
 ### N1 — Contract at first paint
-- Given empty storage, when the page is opened, then every selector in `CONTRACT.md` §1–§5 resolves before any interaction, `#total-outstanding` reads `0`, the customers container and empty-state message are visible, and the import box and shot input are usable.
-- Given a script that never waits for data, then no contract node is missing or created later.
+- Given empty storage at first paint, then every always-rendered selector in `CONTRACT.md` §2 (19 nodes) resolves to exactly one visible element, `#total-outstanding` reads `0`, and the empty-state message is visible.
+- Given the same first paint, then every data-dependent `CONTRACT.md` §1 selector has zero matches: no `[data-customer]` row, no `a[data-remind]`, no `img[data-shot]`, no `[data-entry-id]`, no `[data-amount]`, no `[data-days]`, and no row carrying the `data-overdue` attribute.
+- Given `?customer=` with no data, then `#cust-name`, `#cust-balance`, and `#entries` resolve in the not-found state.
+- Given a script that never waits for data, then no always-rendered node is created late.
 
-**Selectors:** all of `CONTRACT.md` §1–§5.
+**Selectors:** `CONTRACT.md` §2 (19 nodes), `[data-customer]`, `a[data-remind]`, `img[data-shot]`, `[data-entry-id]`, `[data-amount]`, `[data-days]`, `#cust-name`, `#cust-balance`, `#entries`, `#total-outstanding`.
 
 ### N2 — No sideways scroll
 - Given 375×812, then `document.documentElement.scrollWidth` is 375 or less with the sample and with adversarial long-unicode content.
@@ -343,7 +347,7 @@ All seven are built. At most six count, so one may fail harmlessly; each is visi
 
 ### N4 — Exact money
 - Given any shop, then balances and the total are exact to the paise and contain no floating-point artifact.
-- Given a whole-rupee value, then machine nodes show no decimals; given a fractional value, then up to two decimals.
+- Given a whole-rupee value, then machine nodes show no decimals; given a fractional value, then exactly two decimals.
 - Given machine nodes, then the text and attribute match the bare-number shape and contain no currency symbol, grouping separator, or space.
 - Given the same shop imported in a different order, then the total is identical.
 

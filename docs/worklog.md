@@ -120,3 +120,9 @@ Evidence: `docs/DECISIONS.md` v1.2 (12/12 accepted, 0 proposed, D1/D11/D12 human
 Scoring priority applied: hidden-data 60 (P2, R-1/D11) > bonus 30 (D12-A preserves B5; D1 overdue; D5 OCR) > phone/theme 10 (R-5 early 375 px; P5 audit).
 Result: PASS (decisions recorded)
 Next: no blocking items; P1 awaits human go. Non-blocking docs nuances to fold into the P1 sync: D4 says "up to two decimals" while CONTRACT §3.3 fixes fractional values at exactly two; PRD N1 over-broad wording; PRD R5 credit-screenshot note. At P4, update C-35 to cover the owner UPI setting, since it is no longer only an import-supplied VPA.
+
+## 2026-11-17 21:35 — pre-P1 — Planner + Tester
+Action: completed the pre-P1 sync. `PRD.md` v1.1 now states fractional machine values render with exactly two decimals (whole values no decimals) and N1 is tightened to the CONTRACT §2/E2E-P0-01 reading. `DECISIONS.md` v1.3 records the D4 wording clarification. `TRACEABILITY.md` v1.3 maps the new P1 cases. `IMPLEMENTATION-PLAN.md` v1.3 cites `E2E-P1-01–05`. `TEST-CASES.md` v0.5 adds planned P1 cases: data core (R1/R2/R3), reload/storage failure (R7/N5), customer view (R4), `?today` default date (R2/§1.6), and early 375 px long-unicode (R9/N2).
+Evidence: R-ID sync 23 IDs, 0 missing in PLAN/TRACEABILITY; 29/29 contract selectors tested; 0 TBD; E2E-P1-01–05 defined; P0 suite still 23/23 against the unchanged app; no CONTRACT change.
+Result: PASS (pre-P1 sync)
+Next: Coder P1
