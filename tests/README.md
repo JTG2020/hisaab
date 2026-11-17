@@ -7,12 +7,13 @@ Owner: Tester. Dev-only. Nothing here ships to `app/`.
 ```
 tests/
   package.json
-  playwright.config.*
+  playwright.config.js
+  support/        # diagnostics (console/request/rejection), contrast maths, preflight
   smoke/          # contract selectors, <10 s, every change
-  unit/           # money, normalise, sort, date
-  integration/    # import, persistence, reminder, screenshot
+  unit/           # money, normalise, sort, date        (planned P1+)
+  integration/    # import, persistence, reminder, screenshot (planned P1+)
   e2e/            # phase gate journeys, only at gates
-  fuzz/           # generated shops + independent oracle
+  fuzz/           # generated shops + independent oracle  (planned P2/P6)
   nonfunctional/  # 375 px, dark, quota
 ```
 
@@ -20,10 +21,14 @@ tests/
 
 ```bash
 cd tests
-npm init -y
-npm i -D playwright
+npm install                  # @playwright/test 1.65.1 (only dev dependency, S10)
 npx playwright install chromium
 ```
+
+`playwright.config.js` pins `workers: 1` and runs `support/preflight.js`, which fails
+fast with a readable message if `http://localhost:4173` is not serving `app/`. No
+`webServer` block: the suite must run against the same server the Coder verifies on
+(the reference server drops concurrent sockets, which would fake N6 console noise).
 
 ## Serve
 

@@ -1,0 +1,15 @@
+{
+  "name": "hisaab-tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dev-only Playwright verification for Hisaab. Never shipped inside app/.",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test smoke",
+    "test:p0": "playwright test smoke e2e nonfunctional",
+    "test:list": "playwright test --list"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}
