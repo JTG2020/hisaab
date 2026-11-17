@@ -148,6 +148,267 @@
     return { paise: total, rounded: rounded, clamped: clamped };
   }
 
+  function normalizeImportPhone(value) {
+    var text = value === null || value === undefined ? '' : String(value).trim();
+    if (text.charAt(0) === '+') {
+      text = text.slice(1);
+    }
+    var digits = text.replace(/[^0-9]/g, '');
+    if (digits.length === 12 && digits.slice(0, 2) === '91') {
+      digits = digits.slice(2);
+    }
+    return digits;
+  }
+
+  function importDisplayName(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (typeof value === 'object') {
+      return '';
+    }
+    return normalizeName(value);
+  }
+
+  function importCountText(count, one, many) {
+    return count + ' ' + (count === 1 ? one : many);
+  }
+
+  function mapImportType(raw, stats) {
+    var text = raw === null || raw === undefined ? '' : String(raw).trim().toLowerCase();
+    if (!text) {
+      stats.missingTypes += 1;
+      return 'credit';
+    }
+    if (
+      text.indexOf('credit') === 0 ||
+      text.indexOf('debit') === 0 ||
+      text === 'gave' ||
+      text === 'udhaar'
+    ) {
+      return 'credit';
+    }
+    if (text.indexOf('payment') === 0 || text.indexOf('paid') === 0 || text === 'received') {
+      return 'payment';
+    }
+    stats.unknownTypes += 1;
+    return 'credit';
+  }
+
+  function importAmount(raw, stats) {
+    var parsed = parseAmount(raw);
+    if (!parsed) {
+      stats.invalidAmounts += 1;
+      return 0;
+    }
+    if (parsed.rounded) {
+      stats.roundedAmounts += 1;
+    }
+    if (parsed.clamped) {
+      stats.clampedAmounts += 1;
+    }
+    return parsed.paise;
+  }
+
+  function importDateValue(raw, stats) {
+    if (raw === null || raw === undefined) {
+      return STATE.today;
+    }
+    var text = String(raw);
+    var trimmed = text.trim();
+    if (!trimmed) {
+      return STATE.today;
+    }
+    if (isIsoShaped(trimmed)) {
+      return trimmed;
+    }
+    stats.invalidDates += 1;
+    return text;
+  }
+
+  function importNoteValue(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (typeof value === 'object') {
+      return '';
+    }
+    var text = String(value);
+    return text.trim() === '' ? '' : text;
+  }
+
+  function buildImportWarnings(stats, duplicatePhones) {
+    var warnings = [];
+    if (stats.missingCustomers) {
+      warnings.push(
+        'Warning: the customers list was missing or not a list, so no customers were imported.'
+      );
+    }
+    if (stats.missingEntries) {
+      warnings.push(
+        'Warning: the entries list was missing or not a list, so no entries were imported.'
+      );
+    }
+    if (stats.invalidCustomers) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.invalidCustomers, 'customer record was', 'customer records were') +
+          ' skipped because no usable phone could be read.'
+      );
+    }
+    if (duplicatePhones.length === 1) {
+      warnings.push(
+        'Warning: duplicate phone ' + duplicatePhones[0] + '; kept the last name for that row.'
+      );
+    } else if (duplicatePhones.length > 1) {
+      warnings.push(
+        'Warning: duplicate phones ' + duplicatePhones.join(', ') + '; kept the last name for each row.'
+      );
+    }
+    if (stats.skippedEntries) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.skippedEntries, 'entry was', 'entries were') +
+          ' skipped because no usable phone could be read.'
+      );
+    }
+    if (stats.missingTypes) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.missingTypes, 'entry had', 'entries had') +
+          ' a missing or empty type; each was treated as credit.'
+      );
+    }
+    if (stats.unknownTypes) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.unknownTypes, 'entry had', 'entries had') +
+          ' an unknown type; each was treated as credit.'
+      );
+    }
+    if (stats.invalidAmounts) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.invalidAmounts, 'entry had', 'entries had') +
+          ' a missing or unreadable amount; each was imported as 0.'
+      );
+    }
+    if (stats.roundedAmounts) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.roundedAmounts, 'amount was', 'amounts were') +
+          ' rounded to the nearest paise.'
+      );
+    }
+    if (stats.clampedAmounts) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.clampedAmounts, 'amount was', 'amounts were') +
+          ' clamped to the supported maximum.'
+      );
+    }
+    if (stats.invalidDates) {
+      console.warn('Hisaab: import kept ' + stats.invalidDates + ' date(s) that were not YYYY-MM-DD');
+      warnings.push(
+        'Warning: ' +
+          importCountText(stats.invalidDates, 'date was', 'dates were') +
+          ' not in YYYY-MM-DD format; kept as text and sorted after ISO dates.'
+      );
+    }
+    return warnings;
+  }
+
+  function buildImportState(root) {
+    var stats = {
+      missingCustomers: false,
+      missingEntries: false,
+      invalidCustomers: 0,
+      skippedEntries: 0,
+      missingTypes: 0,
+      unknownTypes: 0,
+      invalidAmounts: 0,
+      roundedAmounts: 0,
+      clampedAmounts: 0,
+      invalidDates: 0
+    };
+    var customers = [];
+    var entries = [];
+    var phoneIndex = Object.create(null);
+    var duplicateSeen = Object.create(null);
+    var duplicatePhones = [];
+    var shop = typeof root.shop === 'string' ? root.shop : '';
+
+    var sourceCustomers = root.customers;
+    if (!Array.isArray(sourceCustomers)) {
+      stats.missingCustomers = true;
+      sourceCustomers = [];
+    }
+    var index;
+    for (index = 0; index < sourceCustomers.length; index += 1) {
+      var customerRecord = sourceCustomers[index];
+      if (!customerRecord || typeof customerRecord !== 'object' || Array.isArray(customerRecord)) {
+        stats.invalidCustomers += 1;
+        continue;
+      }
+      var phone = normalizeImportPhone(customerRecord.phone);
+      if (!phone) {
+        stats.invalidCustomers += 1;
+        continue;
+      }
+      var name = importDisplayName(customerRecord.name);
+      var existingIndex = phoneIndex[phone];
+      if (existingIndex === undefined) {
+        phoneIndex[phone] = customers.length;
+        customers.push({ name: name, phone: phone });
+      } else if (name) {
+        var existing = customers[existingIndex];
+        if (existing.name && existing.name.toLowerCase() !== name.toLowerCase()) {
+          if (!duplicateSeen[phone]) {
+            duplicateSeen[phone] = true;
+            duplicatePhones.push(phone);
+          }
+        }
+        existing.name = name;
+      }
+    }
+
+    var sourceEntries = root.entries;
+    if (!Array.isArray(sourceEntries)) {
+      stats.missingEntries = true;
+      sourceEntries = [];
+    }
+    var idPrefix = 'e' + Date.now().toString(36);
+    for (index = 0; index < sourceEntries.length; index += 1) {
+      var entryRecord = sourceEntries[index];
+      if (!entryRecord || typeof entryRecord !== 'object' || Array.isArray(entryRecord)) {
+        stats.skippedEntries += 1;
+        continue;
+      }
+      var entryPhone = normalizeImportPhone(entryRecord.phone);
+      if (!entryPhone) {
+        stats.skippedEntries += 1;
+        continue;
+      }
+      if (phoneIndex[entryPhone] === undefined) {
+        phoneIndex[entryPhone] = customers.length;
+        customers.push({ name: 'Customer ' + entryPhone, phone: entryPhone });
+      }
+      entries.push({
+        id: idPrefix + '-' + index,
+        phone: entryPhone,
+        type: mapImportType(entryRecord.type, stats),
+        amountPaise: importAmount(entryRecord.amount, stats),
+        date: importDateValue(entryRecord.date, stats),
+        note: importNoteValue(entryRecord.note)
+      });
+    }
+
+    return {
+      state: { shop: shop, customers: customers, entries: entries },
+      warnings: buildImportWarnings(stats, duplicatePhones)
+    };
+  }
+
   function splitPaise(paise) {
     var value = Math.trunc(Number(paise));
     if (!isFinite(value)) {
@@ -780,6 +1041,88 @@
     setMessage(message, type === 'payment' ? 'Payment saved.' : 'Credit saved.', false);
   }
 
+  function handleImport() {
+    var box = document.querySelector('#import-box');
+    var message = byId('import-msg');
+    var rawText = box ? String(box.value || '') : '';
+    var parsedRoot;
+
+    try {
+      parsedRoot = JSON.parse(rawText);
+    } catch (error) {
+      setMessage(
+        message,
+        'Could not import: the pasted text is not valid JSON. The previous shop is unchanged.',
+        true
+      );
+      return;
+    }
+
+    if (!parsedRoot || typeof parsedRoot !== 'object' || Array.isArray(parsedRoot)) {
+      setMessage(
+        message,
+        'Could not import: the JSON must be an object with shop, customers and entries. The previous shop is unchanged.',
+        true
+      );
+      return;
+    }
+
+    var built;
+    try {
+      built = buildImportState(parsedRoot);
+    } catch (error) {
+      setMessage(
+        message,
+        'Could not import: the shop data could not be read. The previous shop is unchanged.',
+        true
+      );
+      return;
+    }
+
+    var previous = state;
+    state = built.state;
+    try {
+      persist();
+      renderAll();
+    } catch (error) {
+      state = previous;
+      try {
+        persist();
+      } catch (ignoredPersist) {
+        /* storage already reported by persist */
+      }
+      try {
+        renderAll();
+      } catch (ignoredRender) {
+        /* the previous render stays on screen */
+      }
+      setMessage(
+        message,
+        'Could not import: the shop could not be displayed. The previous shop is unchanged.',
+        true
+      );
+      return;
+    }
+
+    var balances = computeBalances();
+    var total = computeTotal(balances);
+    var count = state.customers.length;
+    var success = 'Imported';
+    if (state.shop) {
+      success += ' "' + state.shop + '"';
+    }
+    success +=
+      ': ' +
+      importCountText(count, 'customer', 'customers') +
+      ', total ' +
+      renderMachine(total) +
+      '.';
+    if (built.warnings.length) {
+      success += ' ' + built.warnings.join(' ');
+    }
+    setMessage(message, success, false);
+  }
+
   function navigate(url) {
     if (!url) {
       return;
@@ -850,6 +1193,7 @@
     if (importButton) {
       importButton.addEventListener('click', function (event) {
         event.preventDefault();
+        handleImport();
       });
     }
 

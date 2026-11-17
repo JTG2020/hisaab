@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.5
+Version: 0.6
 Updated: 2026-11-17
 Owner: Tester
-Supersedes: test-results.md v0.4
+Supersedes: test-results.md v0.5
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -255,3 +255,95 @@ Notes:
 - Still not run (later gates): C-04…C-08, C-24…C-38 (P2/P3/P4), U-01…U-14, I-01…I-10, F-01/F-02, N-01…N-04, N-06.
 - Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should now map R1/R2/R3/R4/R7/R9/N4/N5/N2 to E2E-P1-01…08 (P1) and drop those `TBD`s; `worklog.md` needs the RUN-4 line and the P1 gate entry.
 - The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html 669c644fb999…`, `app/app.js c9bf08e289d8…`, `app/styles.css 24239b30acdd…`.
+
+### RUN-5 | 2026-11-17 16:57 EST | phase P2 | gate P2 (pre-gate verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for C-20, E2E-P0-03, E2E-P1-05, E2E-P2-05; light scheme plus emulated `prefers-color-scheme: dark` for C-21/E2E-P0-03; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 7 spec files.
+
+Cases: 37/37 passed | Failing: none
+- P0 regression: 23/23 (C-01–C-03, C-09–C-23, C-39, N-05, E2E-P0-01–03)
+- P1 regression: 8/8 (E2E-P1-01…08)
+- P2 gate: 5/5 (E2E-P2-01, E2E-P2-02, E2E-P2-03, E2E-P2-04, E2E-P2-05) plus **F-01 = 50 datasets, seed `20261117`** (1 test)
+
+Bugs filed: none | Bugs closed: none
+
+Evidence:
+
+```
+$ npx playwright test
+Running 37 tests using 1 worker
+  ✓ 14 [chromium] › e2e/p2.spec.js › E2E-P2-01 (C-04/C-05/C-06/C-34) sample import: 11820, 8 rows, every balance matches sample-expected.json (341ms)
+  ✓ 15 [chromium] › e2e/p2.spec.js › E2E-P2-02 (I-01) a second import replaces the first shop and reload keeps the second (516ms)
+  ✓ 16 [chromium] › e2e/p2.spec.js › E2E-P2-03 (C-33/I-10) malformed JSON keeps state; missing lists warn; empty arrays render an empty shop (471ms)
+  ✓ 17 [chromium] › e2e/p2.spec.js › E2E-P2-04 (I-04/I-05/I-06/I-07/U-02/U-03) dedupe, unknown phone, zero entries, decorated amounts, type casing (356ms)
+  ✓ 18 [chromium] › e2e/p2.spec.js › E2E-P2-05 imported sample at 375x812: no sideways scroll, balances not clipped (447ms)
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"duplicatePhoneShops":21,
+  "negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,
+  "stringAmounts":172,"missingAmounts":31,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,
+  "emptyShops":1}
+  ✓ 19 [chromium] › fuzz/p2-fuzz.spec.js › F-01 50-shop fuzz: every balance and the total equal the independent computation (425ms)
+  ... 23 P0 + 8 P1 green ...
+  37 passed (15.6s)
+
+$ npx playwright test --list | tail -1
+Total: 37 tests in 7 files
+```
+
+Independent oracle values asserted from the spec/sample files (never from `app/`):
+
+```
+sample-data.json + sample-expected.json (oracle files, not constants copied from the app)
+  #total-outstanding text == data-value == "11820"; 8 [data-customer];
+  each [data-balance] text == attribute == String(sample-expected.balances[phone]);
+  sum(expected balances) == 11820; row set == the 8 expected phones; no Rs/₹/,/space in machine text
+
+second shop (credit 1000 / payment 250.50)
+  2 rows; balances "1000" and "-250.50"; total "749.50"; all 8 sample phones absent; reload keeps it
+
+malformed / missing / non-array / empty
+  "{"customers": [" -> #import-msg contains "Could not import", 8 rows and 11820 intact, 9000000101 == "670"
+  [1,2,3]                     -> same refusal, state unchanged
+  {"shop":"Only A Name"}      -> success + Warning, 0 rows, total "0"
+  customers:"nope"/entries:42 -> success + Warning, 0 rows, total "0"
+  {"customers":[],"entries":[]} -> 0 rows, total "0", empty-state text, no crash
+
+dedupe / D4 / D9 / D10 / D11 (one import)
+  5 rows: 9000000101 "Ravi K Sharma", 9000000102, 9000000103, 9000000104 "0", 9000000105 "0",
+          plus auto-created "Customer 9000000109"
+  balances: 101 = 1500+1500-670.50-12.35+5+7 = "2329.15"; 102 = "100" (unknown type -> credit);
+            103 = "10" (missing type -> credit); 104 = "0"; 105 = "250"
+  total "2689.15"; message contains "duplicate" and "9000000101", and both type warnings
+  entries 101 newest-first: 10-08/7, 10-08/5, 10-04/12.35, 10-03/670.50, 10-02/1500, 10-01/1500
+
+375x812 with the sample imported
+  documentElement.scrollWidth 375, body.scrollWidth 375, 8 rows, no clipped balance, right edge <= 376
+```
+
+Non-vacuity checks (mutant copies in `/tmp` served on :4174; the real `app/` was never touched):
+
+```
+mutation: payments add instead of subtract (fuzz)
+  F-01 failed at dataset 0 (seed 20261117): 9000000101 balance text
+  Expected: "-247683.35"   Received: "253683.35"
+
+mutation (P1 pass, re-used as the import regression guard): the same mutation is what the
+  E2E-P1 and E2E-P2 balance assertions compare against, so a money regression cannot pass silently.
+```
+
+Verdict: PASS
+
+Notes:
+
+- **P2 is the 60-mark surface and it is green on the exact sample**: `11820`, 8 rows, every balance byte-equal to `sample-expected.json` in both text and attribute, with the totals independently summed to `11820`.
+- Import reads `#import-box.value` at click time (CONTRACT §1.4): every P2 test and the fuzz set `.value` directly and fire no `input`/`change` events.
+- Replace semantics hold: after the second import no sample phone, balance, or total survives, and reload keeps only the second shop.
+- Dedupe follows D9 exactly: same name+phone collapses with no warning; same phone with a different name keeps the last name and warns with the phone; same name on two phones yields two rows; an entry for an unknown phone auto-creates `Customer <phone>` (D10) and is counted in the total; a customer with no entries renders `0`.
+- `12.345` renders `12.35` (third digit ≥ 5 rounds half away from zero, never to the rupee), `0.05` keeps two paise digits, whole values keep none, and no machine node contains `Rs`, `₹`, `,` or space.
+- The fuzz computes phone/name normalisation, the §3.2 money parse, type mapping, balances, the total and the §3.3 rendering **in the test process** and compares all 50 shops row by row; the summary line above proves the dataset set includes zero-entry customers, negative balances/totals, duplicate phones, unknown-phone entries, string amounts, missing amounts/types/dates, unicode names, same-date ties, and an empty shop. P6 will scale this to 200 datasets (F-02).
+- Console/network/layout: every P2 test asserts no console error, no failed request, no unhandled rejection; the post-import 375 px check passes; C-22 (no external request), C-23 (Vercel shape), C-39 and C-21 remain green, so the import surface added no regression to the P0/P1 contract.
+- `docs/TEST-CASES.md` v0.7 adds E2E-P2-01…05 and the P2 mapping (I-01, C-33, C-08/C-34, I-04–I-07, I-10, U-02/U-03 executed inside the E2E-P2 tests; F-01 = 50 datasets, seed in this RUN). No existing case, ID, or expected value changed.
+- Still not run (later gates): C-07 (P3), C-24–C-32/C-35/C-36/C-38 (P3/P4), U-01/U-04 already covered at P1; I-03/I-08 (P3), I-09 (N5, P1 path), N-01…N-04, N-06, F-02 (P6).
+- Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map R3/R8/N4 to E2E-P2-01…05 + F-01 and drop the P2 `TBD`s; `worklog.md` needs the RUN-5 line and the P2 gate entry.
+- The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html 669c644fb999…`, `app/app.js c5a8ccc60be6…`, `app/styles.css 24239b30acdd…`.

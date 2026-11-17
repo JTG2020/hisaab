@@ -158,3 +158,34 @@ Notes:
 - Non-contract test hooks `#entry-msg` and `#storage-msg` are not contract nodes; no contract change.
 - **Stop at G1.** P2 (the 60-mark import surface) has not started and awaits human go.
 Next: P2 on human go; do not start automatically.
+
+## 2026-11-17 23:05 — P2 — Coder
+Action: wired the P2 import in `app/app.js`: read `#import-box.value` at click time; JSON parse; build a complete replacement state; normalize phones and names; D9 dedupe; D10 unknown-phone auto-create; D11 malformed defaults; exact paise amounts; date defaults/unparseable handling; newest-first sorting; `#import-msg` success/error/warning text; persistence with the existing `#storage-msg` fallback. No P3/P4 features.
+Evidence: sample import `11820`, 8 rows, every `sample-expected.json` balance; second import replaces; reload persists; malformed JSON keeps prior state; self-check 40 random shops matched; existing P0+P1 suite 31/31; no console errors.
+Result: PASS (Coder handoff; Tester verification pending)
+Next: Tester P2
+
+## 2026-11-17 23:15 — P2 — Tester
+Action: added `tests/e2e/p2.spec.js` (E2E-P2-01–05) and `tests/fuzz/p2-fuzz.spec.js` (F-01, 50 shops, seed `20261117`); `TEST-CASES.md` v0.7; RUN-5. Verified sample `11820`/8 rows/balances, replace + reload, malformed/missing/empty, dedupe/unknown/zero/string/type, sample at 375 px, and 50-shop fuzz against an independent oracle. No bugs filed.
+Evidence: `cd tests && npx playwright test` → **37/37 passed (15.9s)** (23 P0 + 8 P1 + 5 P2 + F-01), re-run independently by the Orchestrator; fuzz 50 shops / 160 customers / 297 entries; non-vacuity mutant failed at dataset 0.
+Result: PASS (RUN-5)
+Next: Planner sync + Critic G2
+
+## 2026-11-17 23:20 — P2 — Planner
+Action: `TRACEABILITY.md` v1.5 maps R3/R7/R8/R9/N2/N4 to E2E-P2-01–05 and F-01; `IMPLEMENTATION-PLAN.md` v1.5 P2 gate suite cites them and the sample `11820`/8-row requirement. No CONTRACT change.
+Evidence: 23 traceability rows, 0 TBD; R-ID sync 23/0/0; 29/29 contract selectors; headers 4/4.
+Result: PASS (docs)
+Next: Critic G2
+
+## 2026-11-17 23:40 — P2 — Orchestrator — GATE G2
+Action: recorded G2 PASS from the Critic's signed scorecard; P2 import is complete; committed the P2 build and created gate tag `g2`.
+Evidence: `docs/scorecards.md` GATE G2; RUN-5 (Tester) **37/37**; CRITIC-RUN-3 **37/37**; sample import **11820**, **8 rows**, every balance from `sample-expected.json`; hidden-data **60/60** (Tester fuzz seed `20261117`, 50 shops; Critic fuzz seed `77190345`, 50 shops, 1,077/1,077 assertions); contract audit **37/37 P2-observable**; doc sync PASS; Vercel readiness PASS; provisional model score **70/100** (G0 5, G1 10).
+G2 checklist: Tester RUN-5 present; P2 acceptance 100%; full regression 37/37 = 100%; no open P0/P1; contract audit 37/37; doc sync PASS; score 70 >= 10; `Next:` present.
+Notes:
+- F-1 resolved by the `g2` commit/tag.
+- F-2 (non-blocking edge): a later duplicate record with an empty name keeps the earlier name without a `duplicate` warning. Fix in P3/P6 if desired; the sample and fuzz do not hit it.
+- F-3 global `[data-balance]` = rows + `#cust-balance` (contract-mandated; row-scoped values exact).
+- F-4 `#entry-msg`/`#storage-msg`/`#entry-customer` remain non-contract test/UI hooks.
+- F-5 P3/P4 scope deferred; F-6 auto-created rows count in the success customer count; F-7 `[data-amount]` is unsigned per contract.
+- **Stop at G2.** P3 (reminder + screenshot, B7) has not started and awaits human go.
+Next: P3 on human go; do not start automatically.
