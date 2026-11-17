@@ -6,6 +6,172 @@
   var MAX_PAISE = 9000000000000000;
   var MAX_RUPEES = 90000000000000;
   var WA_PREFIX = 'https://wa.me/91';
+  var UPI_STORE_KEY = 'hisaab.upi.v1';
+  var DEMO_UPI = 'hisaab@upi';
+  var UPI_PREFIX = 'upi://pay?pa=';
+  var OVERDUE_DAYS = 30;
+
+  var I18N = {
+    en: {
+      brandSub: 'Shop ledger',
+      language: 'Language',
+      customerViewTitle: 'Customer',
+      balanceLabel: 'Balance (Rs)',
+      entriesTitle: 'Entries',
+      noEntriesYet: 'No entries yet.',
+      backAll: 'All customers',
+      totalLabel: 'Total outstanding (Rs)',
+      searchLabel: 'Search name or phone',
+      overdueTitle: 'Overdue (30+ days)',
+      overdueEmpty: 'No customers overdue right now.',
+      customersTitle: 'Customers',
+      customersEmpty: 'No customers yet. Add one, or import a shop file.',
+      addCustomerTitle: 'Add customer',
+      nameLabel: 'Name',
+      phoneLabel: 'Phone',
+      addCustomerBtn: 'Add customer',
+      entryAddTitle: 'Add entry',
+      entryEditTitle: 'Edit entry',
+      customerLabel: 'Customer',
+      typeLabel: 'Type',
+      credit: 'Credit',
+      payment: 'Payment',
+      amountLabel: 'Amount (Rs)',
+      dateLabel: 'Date',
+      noteLabel: 'Note',
+      shotLabel: 'Payment screenshot',
+      ocrLabel: 'Read amount from screenshot',
+      save: 'Save',
+      update: 'Update',
+      cancel: 'Cancel',
+      importTitle: 'Import shop JSON',
+      pasteLabel: 'Paste shop JSON',
+      importBtn: 'Import',
+      exportBtn: 'Export CSV',
+      shopUpiTitle: 'Shop UPI ID',
+      shopUpiLabel: 'Your UPI ID (for pay links)',
+      shopUpiPlaceholder: 'yourname@bank',
+      upiDemoNote: 'Demo UPI ID — set your shop UPI ID',
+      payUpi: 'Pay via UPI',
+      edit: 'Edit',
+      delete: 'Delete',
+      remind: 'WhatsApp reminder',
+      open: 'Open',
+      selectCustomer: 'Select a customer',
+      openCustomerHint: 'Open a customer from the list to see their ledger.',
+      notFound: 'Customer not found',
+      nothingShow: 'Nothing to show for this phone.',
+      noCustomerSelected: 'No customer selected.',
+      noCustomersYet: 'No customers yet',
+      phonePrefix: 'Phone: '
+    },
+    hi: {
+      brandSub: 'दुकान का खाता',
+      language: 'भाषा',
+      customerViewTitle: 'ग्राहक',
+      balanceLabel: 'बाकी (रु.)',
+      entriesTitle: 'प्रविष्टियाँ',
+      noEntriesYet: 'अभी कोई प्रविष्टि नहीं।',
+      backAll: 'सभी ग्राहक',
+      totalLabel: 'कुल बकाया (रु.)',
+      searchLabel: 'नाम या फ़ोन खोजें',
+      overdueTitle: 'बकाया — Overdue (30+ days)',
+      overdueEmpty: 'अभी कोई ग्राहक बकाया नहीं है।',
+      customersTitle: 'ग्राहक',
+      customersEmpty: 'अभी कोई ग्राहक नहीं। एक जोड़ें या दुकान फ़ाइल आयात करें।',
+      addCustomerTitle: 'ग्राहक जोड़ें',
+      nameLabel: 'नाम',
+      phoneLabel: 'फ़ोन',
+      addCustomerBtn: 'ग्राहक जोड़ें',
+      entryAddTitle: 'प्रविष्टि जोड़ें',
+      entryEditTitle: 'प्रविष्टि संपादित करें',
+      customerLabel: 'ग्राहक',
+      typeLabel: 'प्रकार',
+      credit: 'उधार',
+      payment: 'भुगतान',
+      amountLabel: 'राशि (रु.)',
+      dateLabel: 'तारीख़',
+      noteLabel: 'टिप्पणी',
+      shotLabel: 'भुगतान का स्क्रीनशॉट',
+      ocrLabel: 'स्क्रीनशॉट से राशि पढ़ें',
+      save: 'सहेजें',
+      update: 'अपडेट करें',
+      cancel: 'रद्द करें',
+      importTitle: 'दुकान JSON आयात करें',
+      pasteLabel: 'दुकान JSON पेस्ट करें',
+      importBtn: 'आयात करें',
+      exportBtn: 'CSV निर्यात करें',
+      shopUpiTitle: 'दुकान UPI ID',
+      shopUpiLabel: 'आपकी UPI ID (भुगतान लिंक के लिए)',
+      shopUpiPlaceholder: 'yourname@bank',
+      upiDemoNote: 'डेमो UPI ID — अपनी दुकान की UPI ID सेट करें',
+      payUpi: 'UPI से भुगतान करें',
+      edit: 'संपादित करें',
+      delete: 'हटाएँ',
+      remind: 'WhatsApp रिमाइंडर',
+      open: 'खोलें',
+      selectCustomer: 'ग्राहक चुनें',
+      openCustomerHint: 'लेखा देखने के लिए सूची से ग्राहक खोलें।',
+      notFound: 'ग्राहक नहीं मिला',
+      nothingShow: 'इस फ़ोन के लिए कुछ नहीं है।',
+      noCustomerSelected: 'कोई ग्राहक चयनित नहीं।',
+      noCustomersYet: 'अभी कोई ग्राहक नहीं',
+      phonePrefix: 'फ़ोन: '
+    },
+    te: {
+      brandSub: 'దుకాణం లెడ్జర్',
+      language: 'భాష',
+      customerViewTitle: 'కస్టమర్',
+      balanceLabel: 'బాకీ (రూ.)',
+      entriesTitle: 'నమోదులు',
+      noEntriesYet: 'ఇంకా నమోదులు లేవు.',
+      backAll: 'అందరు కస్టమర్లు',
+      totalLabel: 'మొత్తం బాకీ (రూ.)',
+      searchLabel: 'పేరు లేదా ఫోన్ వెతకండి',
+      overdueTitle: 'గడువు మీరినవి — Overdue (30+ days)',
+      overdueEmpty: 'ప్రస్తుతం ఎవరూ గడువు మీరలేదు.',
+      customersTitle: 'కస్టమర్లు',
+      customersEmpty: 'ఇంకా కస్టమర్లు లేరు. ఒకరిని జోడించండి లేదా షాప్ ఫైల్ దిగుమతి చేయండి.',
+      addCustomerTitle: 'కస్టమర్‌ను జోడించండి',
+      nameLabel: 'పేరు',
+      phoneLabel: 'ఫోన్',
+      addCustomerBtn: 'కస్టమర్‌ను జోడించండి',
+      entryAddTitle: 'నమోదు జోడించండి',
+      entryEditTitle: 'నమోదును సవరించండి',
+      customerLabel: 'కస్టమర్',
+      typeLabel: 'రకం',
+      credit: 'అప్పు',
+      payment: 'చెల్లింపు',
+      amountLabel: 'మొత్తం (రూ.)',
+      dateLabel: 'తేదీ',
+      noteLabel: 'గమనిక',
+      shotLabel: 'చెల్లింపు స్క్రీన్‌షాట్',
+      ocrLabel: 'స్క్రీన్‌షాట్ నుండి మొత్తం చదవండి',
+      save: 'సేవ్ చేయండి',
+      update: 'అప్‌డేట్ చేయండి',
+      cancel: 'రద్దు చేయండి',
+      importTitle: 'షాప్ JSON దిగుమతి చేయండి',
+      pasteLabel: 'షాప్ JSON పేస్ట్ చేయండి',
+      importBtn: 'దిగుమతి',
+      exportBtn: 'CSV ఎగుమతి',
+      shopUpiTitle: 'షాప్ UPI ID',
+      shopUpiLabel: 'మీ UPI ID (చెల్లింపు లింక్‌ల కోసం)',
+      shopUpiPlaceholder: 'yourname@bank',
+      upiDemoNote: 'డెమో UPI ID — మీ షాప్ UPI ID సెట్ చేయండి',
+      payUpi: 'UPI ద్వారా చెల్లించండి',
+      edit: 'సవరించండి',
+      delete: 'తొలగించండి',
+      remind: 'WhatsApp రిమైండర్',
+      open: 'తెరవండి',
+      selectCustomer: 'కస్టమర్‌ను ఎంచుకోండి',
+      openCustomerHint: 'లెడ్జర్ చూడటానికి జాబితా నుండి కస్టమర్‌ను తెరవండి.',
+      notFound: 'కస్టమర్ కనుగొనబడలేదు',
+      nothingShow: 'ఈ ఫోన్ కోసం చూపించడానికి ఏమీ లేదు.',
+      noCustomerSelected: 'కస్టమర్ ఎంచుకోలేదు.',
+      noCustomersYet: 'ఇంకా కస్టమర్లు లేరు',
+      phonePrefix: 'ఫోన్: '
+    }
+  };
 
   var STORAGE_WARNING =
     'Could not save to browser storage. Your changes are kept in this tab only.';
@@ -45,6 +211,43 @@
       element.textContent = text;
     }
     return element;
+  }
+
+  function t(key) {
+    var table = I18N[LANG] || I18N.en;
+    var value = table[key];
+    if (value === undefined) {
+      value = I18N.en[key];
+    }
+    return value === undefined ? key : value;
+  }
+
+  function applyStaticLabels() {
+    var nodes = document.querySelectorAll('[data-i18n]');
+    var index;
+    for (index = 0; index < nodes.length; index += 1) {
+      var key = nodes[index].getAttribute('data-i18n');
+      if (key) {
+        nodes[index].textContent = t(key);
+      }
+    }
+    var placeholders = document.querySelectorAll('[data-i18n-ph]');
+    for (index = 0; index < placeholders.length; index += 1) {
+      var placeholderKey = placeholders[index].getAttribute('data-i18n-ph');
+      if (placeholderKey) {
+        placeholders[index].setAttribute('placeholder', t(placeholderKey));
+      }
+    }
+  }
+
+  function daysSinceText(days) {
+    if (LANG === 'hi') {
+      return 'पिछले भुगतान से ' + days + ' दिन पहले';
+    }
+    if (LANG === 'te') {
+      return 'చివరి చెల్లింపు నుండి ' + days + ' రోజుల క్రితం';
+    }
+    return days + ' days since last payment';
   }
 
   function normalizeName(value) {
@@ -95,6 +298,27 @@
       probe.getUTCMonth() === month - 1 &&
       probe.getUTCDate() === day
     );
+  }
+
+  function utcDayNumber(isoDate) {
+    return (
+      Date.UTC(
+        Number(isoDate.slice(0, 4)),
+        Number(isoDate.slice(5, 7)) - 1,
+        Number(isoDate.slice(8, 10))
+      ) / 86400000
+    );
+  }
+
+  function dayDifference(todayIso, isoDate) {
+    if (!isValidCalendarDate(todayIso) || !isValidCalendarDate(isoDate)) {
+      return null;
+    }
+    var delta = utcDayNumber(todayIso) - utcDayNumber(isoDate);
+    if (delta < 0) {
+      return 0;
+    }
+    return delta;
   }
 
   function parseAmount(raw) {
@@ -648,6 +872,10 @@
   var state = { shop: '', customers: [], entries: [] };
   var readWarning = '';
   var writeWarning = '';
+  var LANG = 'en';
+  var shopUpi = '';
+  var editingEntryId = null;
+  var editingEntryPhone = null;
 
   function findCustomer(phone) {
     if (!phone) {
@@ -668,6 +896,18 @@
       }
     }
     return false;
+  }
+
+  function indexOfEntry(id) {
+    if (!id) {
+      return -1;
+    }
+    for (var index = 0; index < state.entries.length; index += 1) {
+      if (state.entries[index].id === id) {
+        return index;
+      }
+    }
+    return -1;
   }
 
   function newEntryId() {
@@ -864,6 +1104,58 @@
     return { photoDropped: hadShot };
   }
 
+  function loadShopUpi() {
+    var raw = null;
+    try {
+      raw = window.localStorage.getItem(UPI_STORE_KEY);
+    } catch (error) {
+      raw = null;
+    }
+    shopUpi = typeof raw === 'string' ? raw.trim() : '';
+    var input = byId('shop-upi');
+    if (input) {
+      input.value = shopUpi;
+    }
+  }
+
+  function saveShopUpi() {
+    try {
+      window.localStorage.setItem(UPI_STORE_KEY, shopUpi);
+      setMessage(byId('upi-msg'), '', false);
+    } catch (error) {
+      setMessage(
+        byId('upi-msg'),
+        'Could not save the UPI ID to browser storage; it is used in this tab only.',
+        false
+      );
+    }
+  }
+
+  function renderUpiState() {
+    var note = byId('upi-demo-note');
+    if (!note) {
+      return;
+    }
+    if (shopUpi) {
+      note.setAttribute('hidden', 'hidden');
+    } else {
+      note.removeAttribute('hidden');
+    }
+  }
+
+  function buildUpiHref(customer, balance) {
+    var payee = shopUpi || DEMO_UPI;
+    var amount = renderMachine(balance > 0 ? balance : 0);
+    return (
+      UPI_PREFIX +
+      payee +
+      '&am=' +
+      amount +
+      '&cu=INR&tn=' +
+      encodeURIComponent(customer.name)
+    );
+  }
+
   function ensureEntryCustomers() {
     for (var index = 0; index < state.entries.length; index += 1) {
       var phone = state.entries[index].phone;
@@ -946,13 +1238,17 @@
     money.appendChild(makeElement('span', 'human balance-human', humanMoney(balance)));
 
     var actions = makeElement('div', 'customer-actions');
-    var openLink = makeElement('a', 'btn ghost', 'Open');
+    var openLink = makeElement('a', 'btn ghost', t('open'));
     openLink.setAttribute('href', '?customer=' + customer.phone);
     openLink.setAttribute('data-open-customer', '');
-    var remindLink = makeElement('a', 'btn ghost', 'WhatsApp reminder');
+    var payLink = makeElement('a', 'btn ghost', t('payUpi'));
+    payLink.setAttribute('href', buildUpiHref(customer, balance));
+    payLink.setAttribute('data-upi-pay', '');
+    var remindLink = makeElement('a', 'btn ghost', t('remind'));
     remindLink.setAttribute('data-remind', customer.phone);
     remindLink.setAttribute('href', buildReminderHref(customer, balance));
     actions.appendChild(openLink);
+    actions.appendChild(payLink);
     actions.appendChild(remindLink);
 
     row.appendChild(identity);
@@ -968,7 +1264,7 @@
     }
     container.textContent = '';
     if (state.customers.length === 0) {
-      var empty = makeElement('p', 'empty', 'No customers yet. Add one, or import a shop file.');
+      var empty = makeElement('p', 'empty', t('customersEmpty'));
       empty.id = 'customers-empty';
       container.appendChild(empty);
       return;
@@ -978,6 +1274,42 @@
       fragment.appendChild(buildCustomerRow(state.customers[index], balances));
     }
     container.appendChild(fragment);
+    applySearchFilter();
+  }
+
+  function applySearchFilter() {
+    var input = byId('search');
+    var query = input ? String(input.value || '').trim().toLowerCase() : '';
+    var container = byId('customers');
+    if (!container) {
+      return;
+    }
+    var rows = container.querySelectorAll('[data-customer]');
+    for (var index = 0; index < rows.length; index += 1) {
+      var row = rows[index];
+      var phone = String(row.getAttribute('data-customer') || '').toLowerCase();
+      var nameNode = row.querySelector('.customer-name');
+      var name = nameNode ? String(nameNode.textContent || '').toLowerCase() : '';
+      var matches =
+        query === '' || phone.indexOf(query) !== -1 || name.indexOf(query) !== -1;
+      if (matches) {
+        row.removeAttribute('hidden');
+      } else {
+        row.setAttribute('hidden', 'hidden');
+      }
+    }
+  }
+
+  function compareEntryOrder(left, right) {
+    var leftIso = isIsoShaped(left.entry.date);
+    var rightIso = isIsoShaped(right.entry.date);
+    if (leftIso !== rightIso) {
+      return leftIso ? -1 : 1;
+    }
+    if (leftIso && left.entry.date !== right.entry.date) {
+      return left.entry.date < right.entry.date ? 1 : -1;
+    }
+    return right.index - left.index;
   }
 
   function sortedEntriesFor(phone) {
@@ -988,17 +1320,7 @@
         list.push({ entry: state.entries[index], index: index });
       }
     }
-    list.sort(function (left, right) {
-      var leftIso = isIsoShaped(left.entry.date);
-      var rightIso = isIsoShaped(right.entry.date);
-      if (leftIso !== rightIso) {
-        return leftIso ? -1 : 1;
-      }
-      if (leftIso && left.entry.date !== right.entry.date) {
-        return left.entry.date < right.entry.date ? 1 : -1;
-      }
-      return right.index - left.index;
-    });
+    list.sort(compareEntryOrder);
     return list.map(function (item) {
       return item.entry;
     });
@@ -1013,7 +1335,9 @@
     row.setAttribute('data-date', entry.date);
 
     var main = makeElement('div', 'entry-main');
-    main.appendChild(makeElement('span', 'entry-type', entry.type === 'payment' ? 'Payment' : 'Credit'));
+    main.appendChild(
+      makeElement('span', 'entry-type', entry.type === 'payment' ? t('payment') : t('credit'))
+    );
     main.appendChild(makeElement('span', 'entry-note', entry.note));
 
     var meta = makeElement('div', 'entry-meta');
@@ -1034,6 +1358,17 @@
       shot.setAttribute('loading', 'lazy');
       row.appendChild(shot);
     }
+
+    var entryActions = makeElement('div', 'entry-actions');
+    var editButton = makeElement('button', 'btn ghost entry-action', t('edit'));
+    editButton.setAttribute('type', 'button');
+    editButton.setAttribute('data-edit-entry', '');
+    var deleteButton = makeElement('button', 'btn ghost entry-action', t('delete'));
+    deleteButton.setAttribute('type', 'button');
+    deleteButton.setAttribute('data-delete-entry', '');
+    entryActions.appendChild(editButton);
+    entryActions.appendChild(deleteButton);
+    row.appendChild(entryActions);
     return row;
   }
 
@@ -1050,20 +1385,20 @@
     var name;
     var balance = 0;
     var entries = [];
-    var emptyText = 'No entries yet.';
+    var emptyText = t('noEntriesYet');
     var showEmpty = true;
 
     if (routePhone === null) {
-      name = 'Select a customer';
-      emptyText = 'No customer selected.';
+      name = t('selectCustomer');
+      emptyText = t('noCustomerSelected');
       if (phoneNode) {
-        phoneNode.textContent = 'Open a customer from the list to see their ledger.';
+        phoneNode.textContent = t('openCustomerHint');
       }
     } else if (!customer) {
-      name = 'Customer not found';
-      emptyText = 'Nothing to show for this phone.';
+      name = t('notFound');
+      emptyText = t('nothingShow');
       if (phoneNode) {
-        phoneNode.textContent = 'Phone: ' + routePhone;
+        phoneNode.textContent = t('phonePrefix') + routePhone;
       }
     } else {
       name = customer.name;
@@ -1071,7 +1406,7 @@
       entries = sortedEntriesFor(customer.phone);
       showEmpty = entries.length === 0;
       if (phoneNode) {
-        phoneNode.textContent = 'Phone: ' + customer.phone;
+        phoneNode.textContent = t('phonePrefix') + customer.phone;
       }
     }
 
@@ -1123,7 +1458,7 @@
     select.textContent = '';
     var placeholder = document.createElement('option');
     placeholder.value = '';
-    placeholder.textContent = state.customers.length ? 'Select a customer' : 'No customers yet';
+    placeholder.textContent = state.customers.length ? t('selectCustomer') : t('noCustomersYet');
     select.appendChild(placeholder);
 
     for (var index = 0; index < state.customers.length; index += 1) {
@@ -1141,13 +1476,209 @@
     }
   }
 
+  function latestPaymentDate(phone) {
+    var best = null;
+    for (var index = 0; index < state.entries.length; index += 1) {
+      var entry = state.entries[index];
+      if (entry.phone !== phone || entry.type !== 'payment') {
+        continue;
+      }
+      if (!isValidCalendarDate(entry.date)) {
+        continue;
+      }
+      if (best === null || entry.date > best) {
+        best = entry.date;
+      }
+    }
+    return best;
+  }
+
+  function compareNamesAscending(left, right) {
+    var leftLower = left.toLowerCase();
+    var rightLower = right.toLowerCase();
+    if (leftLower < rightLower) {
+      return -1;
+    }
+    if (leftLower > rightLower) {
+      return 1;
+    }
+    if (left < right) {
+      return -1;
+    }
+    if (left > right) {
+      return 1;
+    }
+    return 0;
+  }
+
+  function renderOverdue(balances) {
+    var list = byId('overdue-list');
+    var empty = byId('overdue-empty');
+    if (!list) {
+      return;
+    }
+    var rows = [];
+    var index;
+    for (index = 0; index < state.customers.length; index += 1) {
+      var customer = state.customers[index];
+      var balance = balances[customer.phone] || 0;
+      if (balance <= 0) {
+        continue;
+      }
+      var lastPayment = latestPaymentDate(customer.phone);
+      if (!lastPayment) {
+        continue;
+      }
+      var days = dayDifference(STATE.today, lastPayment);
+      if (days === null || days < OVERDUE_DAYS) {
+        continue;
+      }
+      rows.push({ customer: customer, days: days });
+    }
+    rows.sort(function (left, right) {
+      if (left.days !== right.days) {
+        return right.days - left.days;
+      }
+      return compareNamesAscending(left.customer.name, right.customer.name);
+    });
+
+    list.textContent = '';
+    if (rows.length === 0) {
+      if (empty) {
+        empty.removeAttribute('hidden');
+      }
+      return;
+    }
+    if (empty) {
+      empty.setAttribute('hidden', 'hidden');
+    }
+    var fragment = document.createDocumentFragment();
+    for (index = 0; index < rows.length; index += 1) {
+      var overdue = rows[index];
+      var row = makeElement('li', 'overdue-row');
+      row.setAttribute('data-overdue', overdue.customer.phone);
+      row.appendChild(makeElement('span', 'overdue-name', overdue.customer.name));
+      row.appendChild(makeElement('span', 'overdue-phone', overdue.customer.phone));
+      var daysNode = makeElement('span', 'overdue-days', String(overdue.days));
+      daysNode.setAttribute('data-days', String(overdue.days));
+      row.appendChild(daysNode);
+      row.appendChild(makeElement('span', 'overdue-days-text', daysSinceText(overdue.days)));
+      fragment.appendChild(row);
+    }
+    list.appendChild(fragment);
+  }
+
+  function csvEscape(value) {
+    var text = value === null || value === undefined ? '' : String(value);
+    if (/[",\r\n]/.test(text)) {
+      return '"' + text.split('"').join('""') + '"';
+    }
+    return text;
+  }
+
+  function csvLine(fields) {
+    var cells = [];
+    for (var index = 0; index < fields.length; index += 1) {
+      cells.push(csvEscape(fields[index]));
+    }
+    return cells.join(',');
+  }
+
+  function buildCustomersCsv() {
+    var totals = Object.create(null);
+    var index;
+    for (index = 0; index < state.entries.length; index += 1) {
+      var entry = state.entries[index];
+      var bucket = totals[entry.phone];
+      if (!bucket) {
+        bucket = { credit: 0, payment: 0 };
+        totals[entry.phone] = bucket;
+      }
+      if (entry.type === 'payment') {
+        bucket.payment += entry.amountPaise;
+      } else {
+        bucket.credit += entry.amountPaise;
+      }
+    }
+    var lines = ['phone,name,credit,payment,balance'];
+    for (index = 0; index < state.customers.length; index += 1) {
+      var customer = state.customers[index];
+      var sum = totals[customer.phone] || { credit: 0, payment: 0 };
+      lines.push(
+        csvLine([
+          customer.phone,
+          customer.name,
+          renderMachine(sum.credit),
+          renderMachine(sum.payment),
+          renderMachine(sum.credit - sum.payment)
+        ])
+      );
+    }
+    return lines.join('\r\n') + '\r\n';
+  }
+
+  function buildEntriesCsv() {
+    var ordered = [];
+    var index;
+    for (index = 0; index < state.entries.length; index += 1) {
+      ordered.push({ entry: state.entries[index], index: index });
+    }
+    ordered.sort(compareEntryOrder);
+    var lines = ['phone,type,amount,date,note'];
+    for (index = 0; index < ordered.length; index += 1) {
+      var entry = ordered[index].entry;
+      lines.push(
+        csvLine([
+          entry.phone,
+          entry.type,
+          renderMachine(entry.amountPaise),
+          entry.date,
+          entry.note
+        ])
+      );
+    }
+    return lines.join('\r\n') + '\r\n';
+  }
+
+  function downloadTextFile(filename, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.setAttribute('rel', 'noopener');
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(function () {
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+      try {
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        /* revoking the blob URL is best effort */
+      }
+    }, 10000);
+  }
+
+  function handleExportCsv() {
+    var message = byId('export-msg');
+    downloadTextFile('customers.csv', buildCustomersCsv());
+    downloadTextFile('entries.csv', buildEntriesCsv());
+    setMessage(message, 'Exported customers.csv and entries.csv.', false);
+  }
+
   function renderAll() {
     var balances = computeBalances();
     renderStorageMessage();
     renderTotal(balances);
     renderCustomers(balances);
+    renderOverdue(balances);
     renderCustomerView(balances);
     renderEntryCustomerSelect();
+    renderUpiState();
+    updateEditModeUi();
   }
 
   function setMessage(element, text, isError) {
@@ -1195,6 +1726,9 @@
   }
 
   function selectedEntryPhone() {
+    if (editingEntryId && editingEntryPhone) {
+      return editingEntryPhone;
+    }
     if (STATE.customerPhone !== null) {
       return findCustomer(STATE.customerPhone) ? STATE.customerPhone : null;
     }
@@ -1222,14 +1756,146 @@
     }
   }
 
-  function finishSavedEntry(entry, imageWarning) {
+  function updateEditModeUi() {
+    var saveButton = byId('entry-save');
+    if (saveButton) {
+      saveButton.textContent = editingEntryId ? t('update') : t('save');
+    }
+    var title = byId('entry-title');
+    if (title) {
+      title.textContent = editingEntryId ? t('entryEditTitle') : t('entryAddTitle');
+    }
+    var cancelButton = byId('entry-cancel');
+    if (cancelButton) {
+      if (editingEntryId) {
+        cancelButton.removeAttribute('hidden');
+      } else {
+        cancelButton.setAttribute('hidden', 'hidden');
+      }
+    }
+  }
+
+  function endEdit(clearFields) {
+    editingEntryId = null;
+    editingEntryPhone = null;
+    if (clearFields) {
+      var amountInput = byId('entry-amount');
+      if (amountInput) {
+        amountInput.value = '';
+      }
+      var noteInput = byId('entry-note');
+      if (noteInput) {
+        noteInput.value = '';
+      }
+      var shotInput = byId('shot-input');
+      if (shotInput) {
+        try {
+          shotInput.value = '';
+        } catch (error) {
+          /* clearing a file input is best effort; the node itself never moves */
+        }
+      }
+    }
+    updateEditModeUi();
+    setMessage(byId('entry-msg'), '', false);
+  }
+
+  function startEditEntry(id) {
+    var index = indexOfEntry(id);
+    if (index === -1) {
+      return;
+    }
+    var entry = state.entries[index];
+    editingEntryId = entry.id;
+    editingEntryPhone = entry.phone;
+
+    if (STATE.customerPhone !== null && STATE.customerPhone !== entry.phone) {
+      navigate('?customer=' + encodeURIComponent(entry.phone));
+    }
+    var select = byId('entry-customer');
+    if (select) {
+      select.value = entry.phone;
+    }
+
+    var typeInput = byId('entry-type');
+    if (typeInput) {
+      typeInput.value = entry.type;
+    }
+    var amountInput = byId('entry-amount');
+    if (amountInput) {
+      amountInput.value = renderMachine(entry.amountPaise);
+    }
+    var dateInput = byId('entry-date');
+    if (dateInput) {
+      dateInput.value = isValidCalendarDate(entry.date) ? entry.date : '';
+    }
+    var noteInput = byId('entry-note');
+    if (noteInput) {
+      noteInput.value = entry.note || '';
+    }
+    var shotInput = byId('shot-input');
+    if (shotInput) {
+      try {
+        shotInput.value = '';
+      } catch (error) {
+        /* clearing a file input is best effort; the node itself never moves */
+      }
+    }
+
+    updateEditModeUi();
+    setMessage(byId('entry-msg'), 'Editing an entry. Save to update it.', false);
+    var form = byId('entry-form');
+    if (form && form.scrollIntoView) {
+      try {
+        form.scrollIntoView({ block: 'start' });
+      } catch (error) {
+        form.scrollIntoView();
+      }
+    }
+  }
+
+  function deleteEntry(id) {
+    var index = indexOfEntry(id);
+    if (index === -1) {
+      return;
+    }
+    state.entries.splice(index, 1);
+    var wasEditing = editingEntryId === id;
+    if (wasEditing) {
+      editingEntryId = null;
+      editingEntryPhone = null;
+      updateEditModeUi();
+      var dateInput = byId('entry-date');
+      if (dateInput) {
+        dateInput.value = STATE.today;
+      }
+    }
+    persist();
+    renderAll();
+    setMessage(byId('entry-msg'), 'Entry deleted.', false);
+  }
+
+  function commitSavedEntry(entry, isUpdate, imageWarning) {
     var message = byId('entry-msg');
-    state.entries.push(entry);
+    if (!isUpdate) {
+      state.entries.push(entry);
+    }
     var outcome = persistEntryWithShot(entry);
     renderAll();
     resetEntryFormAfterSave();
+    if (isUpdate) {
+      endEdit(false);
+      var dateInput = byId('entry-date');
+      if (dateInput) {
+        dateInput.value = STATE.today;
+      }
+      var typeInput = byId('entry-type');
+      if (typeInput) {
+        typeInput.value = 'credit';
+      }
+    }
 
-    var text = entry.type === 'payment' ? 'Payment saved.' : 'Credit saved.';
+    var text = isUpdate ? 'Entry updated.' : entry.type === 'payment' ? 'Payment saved.' : 'Credit saved.';
     if (imageWarning) {
       text += ' ' + imageWarning;
     }
@@ -1237,6 +1903,10 @@
       text += ' ' + PHOTO_WARNING;
     }
     setMessage(message, text, false);
+  }
+
+  function finishSavedEntry(entry, imageWarning) {
+    commitSavedEntry(entry, false, imageWarning);
   }
 
   function saveEntryWithoutImage(entry) {
@@ -1314,6 +1984,54 @@
     var noteInput = byId('entry-note');
     var note = noteInput ? String(noteInput.value || '') : '';
 
+    var shotInput = byId('shot-input');
+    var file = null;
+    if (type === 'payment' && shotInput && shotInput.files && shotInput.files.length) {
+      file = shotInput.files[0];
+    }
+
+    var editingIndex = editingEntryId ? indexOfEntry(editingEntryId) : -1;
+    if (editingIndex !== -1) {
+      var existing = state.entries[editingIndex];
+      existing.type = type;
+      existing.amountPaise = parsed.paise;
+      existing.date = date;
+      existing.note = note;
+      if (type !== 'payment') {
+        delete existing.shot;
+      }
+      if (!file) {
+        commitSavedEntry(existing, true, '');
+        return;
+      }
+      savingEntry = true;
+      setMessage(message, 'Saving the payment and its screenshot\u2026', false);
+      withTimeout(processShotFile(file), SHOT_TIMEOUT_MS, { error: 'timeout' }).then(
+        function (result) {
+          savingEntry = false;
+          try {
+            if (result && result.dataUrl) {
+              existing.shot = result.dataUrl;
+              commitSavedEntry(existing, true, '');
+            } else {
+              commitSavedEntry(existing, true, shotWarningFor(result ? result.error : 'unreadable'));
+            }
+          } catch (error) {
+            setMessage(message, 'Could not finish saving this entry. Please try again.', true);
+          }
+        },
+        function () {
+          savingEntry = false;
+          try {
+            commitSavedEntry(existing, true, shotWarningFor('unreadable'));
+          } catch (error) {
+            setMessage(message, 'Could not finish saving this entry. Please try again.', true);
+          }
+        }
+      );
+      return;
+    }
+
     var entry = {
       id: newEntryId(),
       phone: phone,
@@ -1323,11 +2041,6 @@
       note: note
     };
 
-    var shotInput = byId('shot-input');
-    var file = null;
-    if (type === 'payment' && shotInput && shotInput.files && shotInput.files.length) {
-      file = shotInput.files[0];
-    }
     if (!file) {
       saveEntryWithoutImage(entry);
       return;
@@ -1400,6 +2113,12 @@
       return;
     }
 
+    endEdit(true);
+    var importedDate = byId('entry-date');
+    if (importedDate) {
+      importedDate.value = STATE.today;
+    }
+
     var balances = computeBalances();
     var total = computeTotal(balances);
     var count = state.customers.length;
@@ -1430,6 +2149,10 @@
       return;
     }
     STATE = readRoute();
+    if (editingEntryId && STATE.customerPhone !== editingEntryPhone) {
+      editingEntryId = null;
+      editingEntryPhone = null;
+    }
     renderAll();
     var view = byId('customer-view');
     if (view && view.scrollIntoView) {
@@ -1485,6 +2208,79 @@
       });
     }
 
+    var entryCancel = byId('entry-cancel');
+    if (entryCancel) {
+      entryCancel.addEventListener('click', function (event) {
+        event.preventDefault();
+        endEdit(true);
+        var dateInput = byId('entry-date');
+        if (dateInput) {
+          dateInput.value = STATE.today;
+        }
+      });
+    }
+
+    var entriesList = byId('entries');
+    if (entriesList) {
+      entriesList.addEventListener('click', function (event) {
+        var target = event.target;
+        if (!target || !target.closest) {
+          return;
+        }
+        var editButton = target.closest('button[data-edit-entry]');
+        if (editButton) {
+          event.preventDefault();
+          var editRow = editButton.closest('[data-entry-id]');
+          if (editRow) {
+            startEditEntry(editRow.getAttribute('data-entry-id'));
+          }
+          return;
+        }
+        var deleteButton = target.closest('button[data-delete-entry]');
+        if (deleteButton) {
+          event.preventDefault();
+          var deleteRow = deleteButton.closest('[data-entry-id]');
+          if (deleteRow) {
+            deleteEntry(deleteRow.getAttribute('data-entry-id'));
+          }
+        }
+      });
+    }
+
+    var searchInput = byId('search');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        applySearchFilter();
+      });
+    }
+
+    var exportButton = byId('export-csv');
+    if (exportButton) {
+      exportButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        handleExportCsv();
+      });
+    }
+
+    var shopUpiInput = byId('shop-upi');
+    if (shopUpiInput) {
+      shopUpiInput.addEventListener('input', function () {
+        shopUpi = String(shopUpiInput.value || '').trim();
+        saveShopUpi();
+        renderAll();
+      });
+    }
+
+    var langSwitch = byId('lang-switch');
+    if (langSwitch) {
+      langSwitch.addEventListener('change', function () {
+        var value = String(langSwitch.value || 'en');
+        LANG = value === 'hi' || value === 'te' ? value : 'en';
+        applyStaticLabels();
+        renderAll();
+      });
+    }
+
     var importButton = byId('import-go');
     if (importButton) {
       importButton.addEventListener('click', function (event) {
@@ -1521,17 +2317,28 @@
 
     window.addEventListener('popstate', function () {
       STATE = readRoute();
+      if (editingEntryId && STATE.customerPhone !== editingEntryPhone) {
+        editingEntryId = null;
+        editingEntryPhone = null;
+      }
       renderAll();
     });
   }
 
   function boot() {
+    LANG = 'en';
+    var langSwitch = byId('lang-switch');
+    if (langSwitch) {
+      langSwitch.value = 'en';
+    }
     loadState();
+    loadShopUpi();
     ensureEntryCustomers();
     var dateInput = byId('entry-date');
     if (dateInput && !dateInput.value) {
       dateInput.value = STATE.today;
     }
+    applyStaticLabels();
     renderAll();
     wireEvents();
   }

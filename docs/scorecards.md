@@ -1,6 +1,6 @@
 # SCORECARDS — Hisaab
 
-Version: 0.5
+Version: 0.6
 Updated: 2026-11-17
 Owner: Critic
 Supersedes: none
@@ -1237,3 +1237,428 @@ The 10 phone/theme marks are earned provisionally with the graded flow plus a th
 - The real tester's **upload mechanics** are the largest unknown: `setInputFiles` with a JPEG, a text file and an undecodable PNG is covered; a drag-and-drop, a camera-capture stream, or a path typed into the input is not modelled.
 - **B7 is the least certain number here**: the brief's bonus is "reading the amount from the payment screenshot"; only the screenshot save/thumbnail path exists, so the 5 is provisional and the OCR prefill is P4. The 70/100 floor is the number I would defend without that provisional credit.
 - D4's exact-paise rendering and D10's `Customer <phone>` rows remain the highest-impact accepted choices for the hidden-data block; neither is exercised differently by P3.
+
+### GATE G4 | 2026-11-17 | phase P4
+
+Build: uncommitted working tree at `/Users/akanse/Documents/FWAIProjects/batch10/hisaasb`, served by `python3 -m http.server 4173 --directory app` (PID 65074) from that directory; SHA-256 `app/index.html bd38d3cedfef…` (7,794 B), `app/styles.css 196813901119…` (8,705 B), `app/app.js b8d2194ea4f5…` (71,079 B); deployable total **87,578 B**; mtimes 17:57–18:06. These are exactly RUN-7/RUN-8's handoff checksums, so the audited build is the tested build. Git HEAD is `87c99ee` ("feat: P3 reminder and screenshot, G3 gate", tag `g3`), `app/*` are modified against it and `tests/e2e/p4.spec.js` is untracked, so the P4 build is uncommitted and untagged — the checksums pin it (F-1).
+Runs cited: RUN-7, RUN-8 (Tester), **CRITIC-RUN-5** (full-suite re-run), **CRITIC-ADV-12…24** (13 independent batches, `/tmp/hisaab-g4/*.js` plus the G2/G3 fuzz and P3 batches re-executed on this build). No script imports `app/**` or any `tests/**` helper; every expected value is computed in the script from `sample-data.json`, `sample-expected.json` and `CONTRACT.md` §1.2/§1.8/§3.3/§4/§5.
+Hidden-data: **60/60** | Bonus: **30/30** (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 **0** — the six best count, so the block is 30 either way) | Phone/theme: **10/10** (provisional; P5 still owes the 200-row/adversarial/tap-target/full-dark sweep)
+MODEL SCORE: **100/100** (provisional; up from G0 5, G1 10, G2 70, G3 75 → "not lower than the previous gate" holds. G4 does **not** require the final ≥95, but the build meets it provisionally; P5/P6 must not regress it)
+Deductions:
+- Hidden-data: **none.** No failed assertion in the 49-case suite or the 1,077-assertion independent fuzz (seed `77190345`, 50 shops). Of the 432 new adversarial assertions, 430 pass; the only two red lines are the B6 **placeholder** checks, recorded as F-2, which are not contract assertions and cost no hidden-data marks. `60 × 0/total = 0`.
+- Bonus: **none.** B1–B6 each earn 5 on a scripted, DOM-read check. **B7 is 0, declared failed, not faked:** no OCR engine ships (D5), so the amount is never read from the screenshot; the PRD/D5 manual fallback is verified (upload never blocks or overwrites, save works, zero console errors) but the brief's bonus is *reading the amount*, and I do not award 5 for the fallback. Because six of seven count, B7's 0 costs nothing: best six = B1–B6 = 30/30. (Under the alternative reading — PRD B7's "or the entry saves with the manually entered value" clause makes the fallback sufficient — B7 would be 5 and B1–B6 would still be the counted six; the bonus block is 30/30 either way.)
+- Phone/theme: **none at G4**, provisional. 375×812 `scrollWidth` is 375 with the sample and with long-unicode names + 100-char unbroken notes + `250000.50`; dark contrast is body 17.10, total 15.73, balance/name/overdue-days 14.40, labels/demo note 6.78 (all ≥ 4.5:1 text / 3:1 label). P5 must still audit 200 rows, tap targets, clipping and the sticky bar.
+Contract audit: **59/59 P4-observable items pass**, 0 `CONTRACT-<n>` deviations (table below). No §1/§2 node was moved, renamed, hidden, duplicated or re-rendered late; the 19 §2 nodes still resolve exactly once and visibly at first paint in every language. P5/P6 items are named as deferred, not G4 failures.
+Doc sync: **PASS** — literal `R-` check vacuous (0/0/0), corrected `[RNB][0-9]+` **23 IDs, 0 missing / 0 extra** in PLAN and TRACEABILITY, **29/29** contract selector tokens tested, **0** `TBD`/`TODO`/`(Planner)`, **23/23** traceability rows phased, **E2E-P4-01…07 7/7 defined + 7/7 cited + 7/7 implemented**, B7 fallback noted in TRACEABILITY and PLAN, **99 cited case IDs ↔ 99 defined, 0 undefined / 0 uncited**, headers **4/4** on all six docs, versions PRD **1.1** / TECH-STACK **1.0** / CONTRACT **1.0 FROZEN** / DECISIONS **1.3** / PLAN **1.7** / TRACEABILITY **1.7**, TEST-CASES **0.9**, results RUN-7/RUN-8. No removed R-ID is referenced.
+Vercel readiness: **PASS** — `app/` is exactly `index.html` + `styles.css` + `app.js` (87,578 B); every `src`/`href` is `./…`, `./`, `data:,` or an outbound `https://wa.me/…`/`upi://` link; no localhost/absolute path, build file, package manifest, `vercel.json`, service worker, cookie, password field, analytics, `fetch` or `XMLHttpRequest`; `/`, `/index.html`, `/?customer=…`, `/?today=…`, `/?today=not-a-date` all 200; 0 SW registrations, `document.cookie` empty, 0 console/page errors, 0 failed and 0 external requests in every fresh context.
+Score risks: WIN-ANALYSIS §4 (13 rows) → **PASS 13** (item 9 "`?today=` ignored" is now **closed** — overdue days/order verified; item 10 stays provisional for 200 rows). WIN-PLAN §4 (18 rows) → **PASS 18** (the last deferred row, `?today=2026-11-15` overdue/days-since, is green). WIN-PLAN §11 (8 rows) → **PASS 8** (item 7 provisional for 200 rows, P5).
+Verdict: **PASS**
+Required before re-gate: see "Required before P5" below.
+Confidence / unknown about the real tester: (1) The P4 surfaces are backed by 1,743 independent assertions on this exact build (432 new + 1,077 fuzz + 198 + 36 re-run) plus the 49-case suite; a false PASS would need every oracle to share a wrong reading of §5.2/§5.3/§5.4/§5.5. (2) What cannot be known is **how strictly B6 is screenshot-diffed**: all `<label>` elements, headings, buttons, empty states and `#upi-demo-note` translate, but input **placeholders** stay English (F-2); a grader that compares every visible string could call B6 partial (2–3 marks → 97–98/100, still above the final 95 floor). (3) **B7 is scored 0**, so the bonus total does not depend on whether the hidden tester scripts the prefill or accepts the fallback; if it requires prefill, nothing changes because B7 is already the dropped seventh. (4) The D1 no-payment exclusion and D2 signed-net total remain the hidden-data assumptions most likely to differ from an independent grader; both are stated in the visible overdue label and the judges' note.
+
+#### CRITIC-RUN-5 — independent re-execution of the full suite
+
+Command: `cd tests && npx playwright test` (config `workers: 1`, `retries: 0`, base `http://localhost:4173`, Chromium via `@playwright/test` 1.65.1, default 1280×800, 375×812 where a case sets it, locale `en-IN`, `Asia/Kolkata`).
+
+```
+$ cd tests && npx playwright test
+Running 49 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/p0-gate.spec.js:59:1 › C-23 Vercel shape: app/index.html, relative assets, no build step, no service worker (319ms)
+  ✓   2 [chromium] › e2e/p0-gate.spec.js:95:1 › N-05 no service worker, cookie gate, password field, analytics, or third-party origin (248ms)
+  ✓   3 [chromium] › e2e/p0-gate.spec.js:121:1 › E2E-P0-01 first paint: 19 §2 nodes resolve, data selectors are empty, customer view resolves (462ms)
+  ✓   4 [chromium] › e2e/p0-gate.spec.js:148:1 › E2E-P0-02 all query-string routes render the same first paint (1.0s)
+  ✓   5 [chromium] › e2e/p0-gate.spec.js:176:1 › E2E-P0-03 phone + theme baseline and offline-safe load (416ms)
+  ✓   6 [chromium] › e2e/p1.spec.js:66:1 › E2E-P1-01 add customers and four entries: exact paise balances, total, amounts, rejections (578ms)
+  ✓   7 [chromium] › e2e/p1.spec.js:161:1 › E2E-P1-02 reload keeps everything; a storage failure keeps the save in memory with a visible warning (520ms)
+  ✓   8 [chromium] › e2e/p1.spec.js:211:1 › E2E-P1-03 row link and direct ?customer= both open the same correct view (559ms)
+  ✓   9 [chromium] › e2e/p1.spec.js:249:1 › E2E-P1-04 ?today=2026-11-15 sets the default entry date and the saved data-date (353ms)
+  ✓  10 [chromium] › e2e/p1.spec.js:270:1 › E2E-P1-05 375x812 with long unicode name, long unicode note, and a fractional amount (348ms)
+  ✓  11 [chromium] › e2e/p1.spec.js:325:1 › E2E-P1-06 money parsing and rendering through the entry form (D4, N4) (587ms)
+  ✓  12 [chromium] › e2e/p1.spec.js:384:1 › E2E-P1-07 entries with equal dates keep the newest-saved first (R4, U-04) (417ms)
+  ✓  13 [chromium] › e2e/p1.spec.js:413:1 › E2E-P1-08 a later successful save clears the storage warning and persists (N5) (550ms)
+  ✓  14 [chromium] › e2e/p2.spec.js:52:1 › E2E-P2-01 (C-04/C-05/C-06/C-34) sample import: 11820, 8 rows, every balance matches sample-expected.json (331ms)
+  ✓  15 [chromium] › e2e/p2.spec.js:100:1 › E2E-P2-02 (I-01) a second import replaces the first shop and reload keeps the second (500ms)
+  ✓  16 [chromium] › e2e/p2.spec.js:144:1 › E2E-P2-03 (C-33/I-10) malformed JSON keeps state; missing lists warn; empty arrays render an empty shop (446ms)
+  ✓  17 [chromium] › e2e/p2.spec.js:191:1 › E2E-P2-04 (I-04/I-05/I-06/I-07/U-02/U-03) dedupe, unknown phone, zero entries, decorated amounts, type casing (335ms)
+  ✓  18 [chromium] › e2e/p2.spec.js:282:1 › E2E-P2-05 imported sample at 375x812: no sideways scroll, balances not clipped (437ms)
+  ✓  19 [chromium] › e2e/p3.spec.js:69:1 › E2E-P3-01 (C-07) reminder href for normal, &, +/%, Telugu, Devanagari, zero and negative balances (331ms)
+E2E-P3-02 image sizes: original 5280583 bytes, stored 157319 chars
+  ✓  20 [chromium] › e2e/p3.spec.js:138:1 › E2E-P3-02 (I-03/N-03) payment with a 3 MB+ image: thumbnail in the right entry, stored under 200 KB, survives reload (979ms)
+  ✓  21 [chromium] › e2e/p3.spec.js:195:1 › E2E-P3-03 credit with an image and payment without one both save with no img[data-shot] (437ms)
+  ✓  22 [chromium] › e2e/p3.spec.js:232:1 › E2E-P3-04 (I-08/N-03) quota failure saves the payment without the image and warns; a later save persists (696ms)
+  ✓  23 [chromium] › e2e/p3.spec.js:290:1 › E2E-P3-05 a non-image file and an undecodable image save the entry without a photo and warn (385ms)
+  ✓  24 [chromium] › e2e/p4.spec.js:131:1 › E2E-P4-01 (C-14/C-28) overdue: 4 sample rows in day order, bare data-days, no data-customer, no-payment excluded, empty state (485ms)
+  ✓  25 [chromium] › e2e/p4.spec.js:208:1 › E2E-P4-02 (C-36) edit 500->800 and delete: amounts, balances, total, id, image, reload, other customer untouched (722ms)
+  ✓  26 [chromium] › e2e/p4.spec.js:288:1 › E2E-P4-03 (C-29) CSV export: exact headers, one row each, newest-first entries, RFC-4180 quoting, current state (387ms)
+  ✓  27 [chromium] › e2e/p4.spec.js:370:1 › E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, restores on clear and reload (502ms)
+  ✓  28 [chromium] › e2e/p4.spec.js:410:1 › E2E-P4-05 (C-35) UPI pay links: one per row, am = max(balance,0), cu=INR once, tn decodes, default and shop VPA (381ms)
+  ✓  29 [chromium] › e2e/p4.spec.js:475:1 › E2E-P4-06 (C-13/N-06) language switch translates labels and leaves every id, attribute, name, date, money text and href byte-identical (594ms)
+  ✓  30 [chromium] › e2e/p4.spec.js:599:1 › E2E-P4-07 (C-38) OCR fallback: upload does not block or overwrite; manual amount saves (3.5s)
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"duplicatePhoneShops":21,"negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,"stringAmounts":172,"missingAmounts":31,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,"emptyShops":1}
+  ✓  31 [chromium] › fuzz/p2-fuzz.spec.js:210:1 › F-01 50-shop fuzz: every balance and the total equal the independent computation (397ms)
+  ✓  32 [chromium] › nonfunctional/p0.spec.js:10:3 › 375x812 viewport › C-20 document scrollWidth is 375 or less at empty state (214ms)
+  ✓  33 [chromium] › nonfunctional/p0.spec.js:30:3 › prefers-color-scheme: dark › C-21 dark baseline keeps key nodes visible and text at >= 4.5:1 (248ms)
+  ✓  34 [chromium] › nonfunctional/p0.spec.js:63:1 › C-22 no external network request on load (same-origin or data: only) (577ms)
+  ✓  35 [chromium] › smoke/contract.spec.js:45:1 › C-01 #total-outstanding resolves on load with text 0 (254ms)
+  ✓  36 [chromium] › smoke/contract.spec.js:54:1 › C-02 #import-box and #import-go are visible at first paint (266ms)
+  ✓  37 [chromium] › smoke/contract.spec.js:61:1 › C-03 #shot-input exists inside the payment form at first paint (248ms)
+  ✓  38 [chromium] › smoke/contract.spec.js:68:1 › C-09 every CONTRACT §2 node resolves and is visible before interaction (247ms)
+  ✓  39 [chromium] › smoke/contract.spec.js:91:1 › C-10 #total-outstanding text and data-value are exactly 0 (bare), Rs lives in a sibling (248ms)
+  ✓  40 [chromium] › smoke/contract.spec.js:114:1 › C-11 #import-box is a textarea, #import-go a button, #shot-input a file input accepting image/* (244ms)
+  ✓  41 [chromium] › smoke/contract.spec.js:141:1 › C-12 #entry-type options are exactly credit and payment (266ms)
+  ✓  42 [chromium] › smoke/contract.spec.js:153:1 › C-13 #lang-switch is a select with exactly en, hi, te and defaults to en (264ms)
+  ✓  43 [chromium] › smoke/contract.spec.js:175:1 › C-14 #overdue heading contains Overdue and 30+ days, with an empty-state line (262ms)
+  ✓  44 [chromium] › smoke/contract.spec.js:194:1 › C-15 #customers shows a visible empty-state message and no rows (263ms)
+  ✓  45 [chromium] › smoke/contract.spec.js:205:1 › C-16 empty storage renders zero data-dependent nodes (267ms)
+  ✓  46 [chromium] › smoke/contract.spec.js:216:1 › C-39 first paint raises no console error, failed request, or rejection (829ms)
+  ✓  47 [chromium] › smoke/routes.spec.js:28:1 › C-17 ?customer=unknown renders the not-found view and keeps every list node (263ms)
+  ✓  48 [chromium] › smoke/routes.spec.js:54:1 › C-18 ?today=2026-11-15 loads cleanly with the full empty-state contract (261ms)
+  ✓  49 [chromium] › smoke/routes.spec.js:66:1 › C-19 invalid ?today values load cleanly and do not crash (449ms)
+
+  49 passed (24.5s)
+```
+
+`49 = 23 P0 + 8 P1 + 5 P2 + 5 P3 + 7 P4 + F-01`. The count and every pass/fail match RUN-7/RUN-8. The P4 cases are not vacuous: RUN-7 records mutants (overdue threshold 30→45, CSV header typo, `am` = raw balance) that each fail the matching E2E-P4 case, and RUN-8 records the pre-fix `#upi-demo-note` mutant failing E2E-P4-06.
+
+#### CRITIC-ADV-12 — B1 overdue (25/25)
+
+`node /tmp/hisaab-g4/b1.js` — oracle computed in-script from `sample-data.json` (balance > 0; latest **payment** ≥ 30 days before `?today`; no-payment excluded; ties by name ascending).
+
+```
+--- B1 OVERDUE ---
+NOTE sample rows: 9000000105/61 "Prakash Rao", 9000000104/44 "Anjali Reddy", 9000000108/43 "Kavitha S", 9000000102/42 "Sunita Devi"
+B1 OVERDUE: 25/25 assertions passed
+```
+
+- `/?today=2026-11-15` with the sample → exactly **4** `li[data-overdue]`, order `9000000105/61, 9000000104/44, 9000000108/43, 9000000102/42`, identical to the independent calendar oracle.
+- Every `[data-days]` is `^\d+$` and its **text equals its attribute**; heading text contains `Overdue` and `30+ days`; **0** `#overdue [data-customer]`; `#overdue-empty` hidden with rows, visible with text when empty; no reminder/UPI controls inside `#overdue`.
+- List identical after reload (persistence + `?today`), and stable across a re-read.
+- Boundary shop under the same `?today`: a payment on `2026-10-16` (**30** days) is listed; `2026-10-17` (**29**) is not; a customer with credit only (no payment) is not; a zero balance and a future-dated payment are not.
+- Tie probe: three customers at the same day count → `alpha, Beta, Zebra` (name ascending, case-insensitive).
+- Empty storage at first paint → 0 rows and a visible `#overdue-empty`; heading still `Overdue (30+ days)`.
+
+#### CRITIC-ADV-13 — B2 edit/delete (36/36)
+
+`node /tmp/hisaab-g4/b2.js` — two customers, a payment of 500 with a real uploaded screenshot, and a credit of 200 for the other customer.
+
+- `button[data-edit-entry]` and `button[data-delete-entry]` exist **inside** the entry row; edit pre-fills amount `500`, date `2026-10-10`, note `first note`.
+- Edit to `800` / `2026-10-20` / `edited note`: `[data-amount]` text **and** attribute `800`; `data-date` `2026-10-20`; note text `edited note`; `data-entry-id` **unchanged**; the stored `img[data-shot]` stays inside that entry; row `[data-balance]` text **and** attribute `-800`; `#cust-balance` text **and** attribute `-800`; `#total-outstanding` text **and** attribute `-600`; the other customer stays `200` on the customer route and in the list.
+- Reload keeps all of it (amount, id, screenshot, total `-600`); the list view shows `-800 / 200`.
+- Delete: entry and its `img[data-shot]` gone, `#cust-balance` `0`, row balance `0`, total `200`, other customer `200`; reload keeps the deleted state.
+- Two-entry shop: deleting the first leaves the survivor with its own id and value, balance/total `150`. Customer→credit type change drops the image (§1.5, CRITIC-ADV-23).
+
+#### CRITIC-ADV-14 — B3 CSV (27/27)
+
+`node /tmp/hisaab-g4/b3.js` — imports the sample first, then a `CSV Shop`; captures both downloads with `page.on('download')` and parses them with an RFC-4180 parser written in the script.
+
+```
+NOTE customers.csv:
+phone,name,credit,payment,balance
+9000000401,Plain Person,1500,250.50,1249.50
+9000000402,"Doe, Jane",670.50,0,670.50
+9000000403,"Quote ""Q"" Person",0,100,-100
+
+NOTE entries.csv:
+phone,type,amount,date,note
+9000000403,payment,100,2026-10-05,"paid, on UPI"
+9000000402,credit,670.50,2026-10-05,"said ""thanks"""
+9000000401,credit,1500,2026-10-05,plain credit
+9000000401,payment,250.50,2026-10-01,"line one
+line two"
+
+B3 CSV: 27/27 assertions passed
+```
+
+- Both files download from `#export-csv`; headers exactly `phone,name,credit,payment,balance` and `phone,type,amount,date,note`; one row per customer row (3) and per entry (4).
+- `credit/payment/balance` semantics exact (`1500 - 250.50 = 1249.50`; `-100` signed); every numeric cell matches `^-?(0|[1-9][0-9]*)(\.[0-9]{2})?$`, fractional values two decimals, whole values none, **no** `Rs`/`₹`/`,`/space.
+- Entries newest-first, equal dates newest-insertion-first (`403, 402, 401`, then the older `2026-10-01`).
+- Comma names, doubled quotes, comma notes, quote notes and an **embedded newline** all round-trip through the parser; CRLF terminators.
+- **No sample phone** appears in either file after the second import; an empty shop exports headers only (current state, never cached); `#export-msg` visible.
+- After an edit the CSV shows the edited amount and recomputed credit/payment/balance; export while `#search` filters leaves all 8 customers in the file (state, not visible rows).
+
+#### CRITIC-ADV-15 — B4 search (29/29)
+
+`node /tmp/hisaab-g4/b4.js` — sample shop.
+
+- `#search` empty at load, 8 rows in the DOM, all 8 visible, total `11820`.
+- `sunita` / `SUNITA` / `SuNiTa` → only `9000000102` visible; `0104` → only `9000000104`; full-phone query → exactly that row.
+- Total text/attribute stay `11820` while filtered; `#import-box` and `#import-go` stay visible; **8 rows remain in the DOM** (0 removed) with a no-match query (`zzz-no-match` → 0 visible, 8 in DOM, total `11820`).
+- Clearing restores all 8; typing then reload → `#search` empty, all 8 visible, 8 in the DOM, total `11820`.
+- On `?customer=9000000102`: searching does not remove `#cust-name` or change it (`Sunita Devi`), still filters the list, clearing restores 8.
+
+#### CRITIC-ADV-16 — B5 UPI (75/75)
+
+`node /tmp/hisaab-g4/b5.js` — 6 customers: balance `670`, `0` (paid exactly), `-250.25`, `42`, `1500.50`, `670.50`; names `Ravi Kumar`, `Zero Balance`, `Minus Person`, `Anna & Sons`, `రవి కుమార్`, `Fractional Person`.
+
+```
+NOTE default hrefs: 9000000501 upi://pay?pa=hisaab@upi&am=670&cu=INR&tn=Ravi%20Kumar | 9000000502 ...am=0... | 9000000503 ...am=0... | 9000000504 ...am=42...&tn=Anna%20%26%20Sons | 9000000505 ...am=1500.50...&tn=%E0%B0%B0... | 9000000506 ...am=670.50...
+B5 UPI: 75/75 assertions passed
+```
+
+- Exactly **one** `a[href^="upi://pay?pa="]` in each row (6/6; global count 6); href starts `upi://pay?pa=`; parameter order `pa, am, cu, tn`.
+- Default `pa=hisaab@upi`; `am` = `max(balance, 0)` rendered bare (`670`, `0`, `0`, `42`, `1500.50`, `670.50`) and equal to the row's positive `[data-balance]`; `cu=INR` occurs exactly **once**; `tn` decodes byte-identically to the full name, including `Anna%20%26%20Sons` → `Anna & Sons` and percent-encoded Telugu.
+- `#upi-demo-note` visible while the demo VPA is in use.
+- Setting `#shop-upi` to `myshop@bank` switches **every** link's `pa`, leaves `am` unchanged and hides the demo note; clearing it restores `hisaab@upi` and the note; the shop VPA survives reload.
+- A `shop_upi`/`upi` field inside the imported JSON is ignored (D12: import schema unchanged; `pa` stays the owner value).
+- Fresh storage → demo note visible at first paint.
+
+#### CRITIC-ADV-17 — B6 language (63/65; 2 documented placeholder misses)
+
+`node /tmp/hisaab-g4/b6.js` — sample imported, `?customer=9000000101`, `#import-box` sentinel; full snapshot of ids, every `data-*` attribute, every `href`, option values, totals, rows, entries, customer view, import box, taken in `en`, `hi`, `te`.
+
+```
+NOTE hi labels: {"overdueTitle":"बकाया — Overdue (30+ days)","addCustomer":"ग्राहक जोड़ें","save":"सहेजें","search":"नाम या फ़ोन खोजें","searchPlaceholder":"Search name or phone","demoNote":"डेमो UPI ID — अपनी दुकान की UPI ID सेट करें","totalLabel":"कुल बकाया (रु.)","importBtn":"आयात करें","remindFirst":"WhatsApp रिमाइंडर","customersTitle":"ग्राहक",...}
+NOTE te labels: {"overdueTitle":"గడువు మీరినవి — Overdue (30+ days)","addCustomer":"కస్టమర్‌ను జోడించండి","save":"సేవ్ చేయండి","search":"పేరు లేదా ఫోన్ వెతకండి","demoNote":"డెమో UPI ID — మీ షాప్ UPI ID సెట్ చేయండి",...}
+NOTE placeholders in the current language: {"search":"Search name or phone","new-name":"Full name","new-phone":"10-digit phone","entry-amount":"0","entry-note":"Optional note","import-box":"Paste shop JSON","shop-upi":"yourname@bank"}
+FAIL hi search placeholder translates :: "Search name or phone"
+FAIL te search placeholder translates :: "Search name or phone"
+B6 LANGUAGE: 63/65 assertions passed
+```
+
+- `#lang-switch` is a `select` with exactly `en, hi, te`, value `en` at load; reload resets to `en` and English labels.
+- `#overdue-title`, `#add-customer`, `#entry-save`, the search `<label>`, the total label, the import button and the row reminder label all translate in `hi` and `te`; the heading still contains `Overdue` and `30+ days`; `#upi-demo-note` translates (**BUG-1 closed**).
+- In `hi` and `te` the snapshot is **byte-identical** to English: all element ids, every `data-*` attribute (including `data-balance`, `data-entry-id`, `data-date`, `data-amount`, `data-customer`), every `href` (reminder, UPI, `?customer=`), `#entry-type`/`#entry-customer`/`#lang-switch` option values, `#import-box` content, `#cust-name`, `#cust-balance` text+attribute, every row and entry.
+- `#total-outstanding` and every `[data-balance]` stay bare (`BARE`, text = attribute) in all three languages; empty shop total stays `0` in `hi`.
+- The only misses are input **placeholders** (`#search`, `#new-name`, `#new-phone`, `#entry-note`, `#import-box`, `#shop-upi`), which stay English. They are not `<label>`s; CONTRACT §5.5 scopes translation to "visible UI labels". Recorded as **F-2** with the score risk stated above.
+
+#### CRITIC-ADV-18 — B7 fallback (20/20)
+
+`node /tmp/hisaab-g4/b7.js` — clear 900×400 JPEG reading `1500`, customer view open.
+
+```
+--- B7 OCR FALLBACK ---
+NOTE after upload #entry-amount = "" -> OCR UNAVAILABLE (empty, allowed)
+B7 OCR FALLBACK: 20/20 assertions passed
+```
+
+- The visible label `#shot-ocr-hint` reads `Read amount from screenshot` next to a real `input[type=file][accept=image/*]`.
+- Upload + 1.6 s wait → `#entry-amount` stays **empty** (no engine; permitted by PRD B7/D5); `#entry-save` stays enabled and visible; the selected file is retained.
+- Typed `1500` survives a second upload unchanged.
+- Typing `999` and saving **immediately** after choosing a file: save is never blocked; one payment entry with `[data-amount]` text and attribute `999`, screenshot present, form reset.
+- Empty amount is rejected with a visible message and no second entry; entry + amount + image survive reload; **0 console errors / 0 page errors / 0 failed requests / 0 external requests** (so no OCR asset is fetched and no failure path leaks an error).
+- **Recorded, not faked:** OCR is unavailable in P4, so B7 earns 0. The manual fallback works.
+
+#### CRITIC-ADV-19 — P0–P3 regression, 375 px, dark, Vercel shape (69/69)
+
+`node /tmp/hisaab-g4/context.js`:
+
+- First paint (fresh profile, empty storage): the 19 §2 nodes each resolve **exactly once** and are visible; `#total-outstanding` `0`; the customers empty-state message is visible; **0** matches for all seven data-dependent selectors; `#overdue-empty` visible; 0 console/page errors.
+- `?customer=9000009999` → `Customer not found`, `0`, list nodes still in the DOM.
+- Sample import → `11820` (text = `data-value`), exactly 8 rows, every balance text = attribute = `sample-expected.json`; one reminder per row; `9000000101` href byte-exact (`Namaste Ravi Kumar, your balance is Rs 670.`); `#import-msg` reports the shop, 8 customers and `11820`.
+- Second import replaces (1 row, `-250.50`, no sample phone), survives reload; malformed JSON → `Could not import`, previous row and total intact.
+- 375×812 with the sample: `documentElement.scrollWidth` **375**, body 375, no element past the viewport. 375×812 with long unicode names, a 100-char unbroken note and `250000.50`: `scrollWidth` 375, no overflow, balance still exactly `250000.50`; `#overdue` and `#upi-demo-note` fit. Screenshots: `/tmp/hisaab-g4/artifacts/375-sample.png`, `375-adversarial.png`.
+- Dark scheme with the sample: body 17.10; total 15.73; balance 14.40; customer name 14.40; label 6.78; overdue title 15.73; overdue days 14.40; demo note 6.78; search input 15.73; import box 15.73. `color-scheme` includes `dark`. Screenshot `dark-sample.png`.
+- Vercel shape: `app/` is exactly the three files; every `src`/`href` is `./styles.css`, `./app.js`, `./` or `data:,`; no localhost/absolute path, build file, manifest, `vercel.json`, service worker, cookie/auth/analytics/fetch/XHR; `/`, `/index.html`, `/?customer=`, `/?today=`, `/?today=not-a-date` → 200; 0 SW registrations, empty `document.cookie`, 0 password fields; 0 console/page/failed/external requests.
+
+#### CRITIC-ADV-20 — P4 contract audit probes (27/27)
+
+`node /tmp/hisaab-g4/audit.js`: no duplicate element ids in empty, sample, customer-view or `te` states; `#export-csv` is a `button`; `#overdue` rows carry `data-overdue` (not `data-customer`) and are unique per phone; same-date entries render `third, second, first, older` (newest insertion first); every `[data-amount]` is a bare unsigned magnitude, text = attribute; every `data-date` is ISO; every entry row carries both action buttons; `#cust-balance` text = attribute = `55`; CSV after an edit shows `60, 99, -39` and reflects edits/deletes; export while filtered keeps every customer; search still works in `te` and export still downloads both files; no duplicate ids in `te`; 0 console/page/failed/external.
+
+#### CRITIC-ADV-21 — cross-feature integration (25/25)
+
+`node /tmp/hisaab-g4/integration.js`: editing a payment amount updates the entry, row balance and **UPI `am`**; editing the last payment's date to today **removes** that customer from `#overdue`; deleting a customer's only payment removes them from `#overdue` (D1) and shows the empty state; deleting the payment zeroes the payment column in `customers.csv`; type change payment→credit recomputes balance and `am`; edits keep `data-entry-id` after reload; import replaces rows, overdue list, total and UPI `am`; 0 console/page/failed/external.
+
+#### CRITIC-ADV-22 — contract probes (21/21)
+
+`node /tmp/hisaab-g4/contract.js`: exactly one `[data-balance]`, one `a[data-remind="<phone>"]`, one `a[href="?customer=<phone>"]` and one UPI link per row; `#import-msg` reads `Imported "Lakshmi Provision Store (fictional)": 8 customers, total 11820.`; duplicate phone → one row, last name, warning contains `duplicate`; unknown phone → `Customer 9000000962` and its money in the total; `?today=` sets the default entry date and the saved `data-date`; empty note is blank (never `undefined`/`null`/`NaN`); empty machine nodes are bare zeros with `Rs` only in the human sibling.
+
+#### CRITIC-ADV-23 — edge sequences (13/13)
+
+`node /tmp/hisaab-g4/edge.js` (5/5): importing while an entry is being edited exits edit mode, keeps the imported shop's total and rejects the stale save with a visible message — no orphan entry, no lost money. `node /tmp/hisaab-g4/edge2.js` (8/8): editing a payment to a credit drops its `img[data-shot]` (§1.5), balance `+120`, image absent after reload; deleting the only entry leaves `#entries` empty and `#cust-balance` `0`.
+
+#### CRITIC-ADV-24 — independent fuzz + prior P2/P3 batches re-run on the P4 build
+
+```
+$ node /tmp/hisaab-critic/fuzz-p2.js        # P4 build
+FUZZ seed 77190345 datasets 50
+FUZZ ASSERTIONS: 1077/1077 passed across 50 shops
+
+$ node /tmp/hisaab-critic/adv-p3.js         # P3 batch on the P4 build
+ADVERSARIAL P3 CHECKS: 198/198 passed
+
+$ node /tmp/hisaab-critic/extra-p3.js       # P3 angles on the P4 build
+EXTRA P3 CHECKS: 36/36 passed
+```
+
+The P4 build does not move parse/normalise/balance/render, reminder encoding or the image pipeline: the independent fuzz (different generator and oracle from F-01), the 198-assertion reminder/image/quota batch and the 36-assertion P3 angle batch are all green.
+
+#### Contract audit — P4 scope (59/59)
+
+| # | CONTRACT rule | Result | Evidence |
+|---|---|---|---|
+| CA-P4-01 | `#search` is an `input`, empty at load (§5.1) | PASS | `['INPUT','']` empty state; ADV-19 |
+| CA-P4-02 | Filters `[data-customer]` rows by full name substring, case-insensitive (§5.1) | PASS | `sunita`/`SUNITA`/`SuNiTa` → 9000000102 only |
+| CA-P4-03 | Filters by phone substring (§5.1) | PASS | `0104`, `9000000102` |
+| CA-P4-04 | Filtering mutates no state; clearing restores every row (§5.1) | PASS | 8 in DOM while filtered/no-match; clear → 8 |
+| CA-P4-05 | Never changes `#total-outstanding`, never removes the import section (§5.1) | PASS | total `11820` throughout; `#import-box`/`#import-go` visible |
+| CA-P4-06 | Reload restores all rows (§5.1) | PASS | query not persisted; 8 visible, 8 in DOM |
+| CA-P4-07 | `#overdue` section with heading containing `Overdue` and `30+ days` (§5.2) | PASS | `Overdue (30+ days)`; hi/te keep both tokens |
+| CA-P4-08 | Rows are `li[data-overdue="<phone>"]`, one per qualifying customer (§5.2) | PASS | 4 sample rows; unique phones; 0 inside `#overdue` with `data-customer` |
+| CA-P4-09 | `[data-days]` bare integer, text = attribute (§5.2) | PASS | `61/44/43/42`, `^\d+$`, identical strings |
+| CA-P4-10 | Order days descending; ties by name ascending (§5.2) | PASS | 61,44,43,42; tie probe `alpha,Beta,Zebra` |
+| CA-P4-11 | Only positive balance with a last payment; no payment at all never listed (§5.2, D1) | PASS | boundary shop: 30 days in, 29 out, no-payment/zero/future excluded |
+| CA-P4-12 | Visible empty-state line when nobody is overdue (§5.2) | PASS | `#overdue-empty` visible + non-empty text |
+| CA-P4-13 | Nothing inside `#overdue` carries `data-customer` (§5.2) | PASS | 4 `[data-overdue]`, 0 `[data-customer]` |
+| CA-P4-14 | `?today=` drives membership and day counts (§1.6, §5.2) | PASS | 2026-11-15 oracle; boundary 30/29; reload stable |
+| CA-P4-15 | `#export-csv` is a `button` at load (§5.3) | PASS | `BUTTON`, visible (C-09) |
+| CA-P4-16 | Downloads `customers.csv` with header exactly `phone,name,credit,payment,balance` (§5.3) | PASS | captured file, exact header |
+| CA-P4-17 | Downloads `entries.csv` with header exactly `phone,type,amount,date,note` (§5.3) | PASS | captured file, exact header |
+| CA-P4-18 | One row per customer row and per entry (§5.3) | PASS | 3 and 4; 8 after sample; headers-only on empty |
+| CA-P4-19 | `credit`/`payment` totals and signed `balance` per customer (§5.3) | PASS | `1500,250.50,1249.50`; `0,100,-100`; after edit `60,99,-39` |
+| CA-P4-20 | Entries newest-first, equal dates newest insertion first (§1.8, §5.3) | PASS | `403,402,401` then older; `third,second,first,older` |
+| CA-P4-21 | RFC-4180 quoting, embedded quotes doubled (§5.3) | PASS | `"Doe, Jane"`, `"Quote ""Q"" Person"`, `"said ""thanks"""`, `"line one\nline two"` |
+| CA-P4-22 | No currency/grouping in numeric cells; fractional two decimals, whole none (§5.3, §3.3) | PASS | every numeric cell `BARE`, no `Rs/₹/,/space` |
+| CA-P4-23 | Built from current state, never the sample (§5.3) | PASS | second import, no sample phone; empty shop headers only |
+| CA-P4-24 | CSV reflects edits and deletes (§5.3) | PASS | edited amount/credit/payment/balance in both files |
+| CA-P4-25 | Export is state, not visible rows (§5.3) | PASS | filtered export still 8 customers |
+| CA-P4-26 | Exactly one `a[href^="upi://pay?pa="]` per row (§5.4) | PASS | 6/6 rows, global 6 |
+| CA-P4-27 | `href` = `upi://pay?pa=<payee>&am=<amount>&cu=INR&tn=<encoded name>` (§5.4) | PASS | prefix; param order `pa,am,cu,tn` |
+| CA-P4-28 | `am` = §3.3 rendering of `max(balance, 0)` (§5.4) | PASS | `670,0,0,42,1500.50,670.50`; never negative |
+| CA-P4-29 | `cu=INR` literal and exactly once (§5.4) | PASS | one occurrence per href |
+| CA-P4-30 | `tn` percent-encoded full name; `&` and unicode round-trip (§5.4) | PASS | `Anna%20%26%20Sons` → `Anna & Sons`; Telugu decodes exactly |
+| CA-P4-31 | No shop VPA → documented default `hisaab@upi` (§5.4, D12) | PASS | all default rows |
+| CA-P4-32 | Shop VPA replaces the default; demo note visible only while unset (§5.4, D12) | PASS | `myshop@bank` on all links; note hides/returns |
+| CA-P4-33 | Shop VPA local-only; import JSON VPA ignored (§5.4, D12) | PASS | persists reload; imported `upi` field ignored |
+| CA-P4-34 | `#lang-switch` is a `select` with values exactly `en,hi,te`, default `en` (§5.5) | PASS | option values; `en` at load and after reload |
+| CA-P4-35 | `hi`/`te` translate visible labels (§5.5) | PASS | heading/title/buttons/`<label>`s/empty states; hi/te strings differ |
+| CA-P4-36 | `#upi-demo-note` translates (BUG-1) (§5.5) | PASS | `डेमो UPI ID — …` / `డెమో UPI ID — …`; E2E-P4-06 regression |
+| CA-P4-37 | Ids, attributes, `data-*`, names, dates, money text, hrefs, `#import-box`, option values byte-identical (§5.5) | PASS | full snapshot equality in `en`/`hi`/`te` |
+| CA-P4-38 | Machine nodes stay bare in every language (§5.5, §3.3) | PASS | `#total` `11820`, balances bare, text = attribute |
+| CA-P4-39 | Reload may reset the switch to `en` (§5.5) | PASS | `en` + English labels after reload |
+| CA-P4-40 | OCR prefill only when `#entry-amount` is empty at resolve time (§5.6) | PASS | no engine → stays empty (allowed); no wrong value |
+| CA-P4-41 | OCR never overwrites typed input (§5.6) | PASS | typed `1500` survives a second upload |
+| CA-P4-42 | Save never waits for OCR; `#entry-save` stays usable (§5.6, §1.9) | PASS | immediate save with a file → one entry, `999` |
+| CA-P4-43 | No OCR failure produces a console error or clears the file silently (§5.6) | PASS | 0 console/page errors; file retained |
+| CA-P4-44 | `button[data-edit-entry]` and `button[data-delete-entry]` inside every entry row (§1.8) | PASS | 2 controls per row, all 4 rows |
+| CA-P4-45 | Edit recomputes `[data-amount]`, row `[data-balance]`, `#cust-balance`, `#total-outstanding` (§1.8, B2) | PASS | `800`, `-800`, `-800`, `-600` (text = attribute) |
+| CA-P4-46 | `data-entry-id` stable across edits (§1.8) | PASS | same id before/after edit and after reload |
+| CA-P4-47 | Delete removes the entry, recomputes and persists (§1.8, B2) | PASS | 0 entries, balance `0`, total `200`, reload |
+| CA-P4-48 | Edit/delete never changes another customer's balance (§1.8, B2) | PASS | other row `200` throughout |
+| CA-P4-49 | Screenshot preserved on amount/date/note edit; dropped when type becomes credit (§1.5) | PASS | `img[data-shot]` kept; type-change probe 0 images |
+| CA-P4-50 | 19 §2 nodes resolve exactly once, visible, at first paint (§2) | PASS | ADV-19 19/19; C-09/E2E-P0-01 |
+| CA-P4-51 | 7 data-dependent selectors have 0 matches at empty state (§1, §2, N1) | PASS | `[data-customer]`, `[data-remind]`, `img[data-shot]`, `[data-entry-id]`, `[data-amount]`, `[data-days]`, `[data-overdue]` |
+| CA-P4-52 | No contract node moved, renamed, duplicated or conditionally rendered (§1–§2) | PASS | unique ids in 4 states; same node counts; bonus UI adds only non-contract nodes |
+| CA-P4-53 | Bonus hooks present at load, not behind a modal/tab/`<details>` (§5) | PASS | `#search`, `#export-csv`, `#lang-switch`, `#overdue`, `#upi-demo-note` visible |
+| CA-P4-54 | Search hides rows only while its value is non-empty (§1.2, §5.1) | PASS | empty-at-load 8 visible; clear restores; hidden attr only while typed |
+| CA-P4-55 | `#import-box`, `#import-go`, `#shot-input`, `#total-outstanding`, `[data-customer]`, `[data-balance]`, `a[data-remind]` never hidden by bonus UI (AGENTS §5) | PASS | all present and visible in every P4 state; customer route keeps them |
+| CA-P4-56 | Per-customer reminder and `?customer=` links unchanged by P4 (§1.2, §1.3) | PASS | one each per row; hrefs byte-identical across languages |
+| CA-P4-57 | Machine nodes bare after add/edit/delete/import/type change (§3.3, N4) | PASS | `800`, `-800`, `11820`, `12.34`, `-250.50`, `250000.50` |
+| CA-P4-58 | Import replaces all P4 derived views (§4) | PASS | rows, overdue, total, UPI, CSV after replace |
+| CA-P4-59 | No network request on the P4 critical path (§6) | PASS | 0 external requests in every context (CSV uses Blob, UPI is an href) |
+
+**`CONTRACT-<n>` deviations at P4: none.** Deferred by plan and therefore not G4 failures:
+
+- **P5:** 200-row and long-unicode responsive audit, tap targets ≥ 40 px, clipping, sticky-bar overlap, full dark sweep.
+- **P6:** 200-shop fuzz (F-02), storage-cleared/double-import hardening pass, judges' note, gallery screenshots.
+
+#### Doc sync — output
+
+```
+$ grep -o 'R-[0-9]\+' docs/PRD.md | sort -u | wc -l                  → 0   (literal AGENTS.md §4 regex is vacuous)
+$ grep -oE '\b[RNB][0-9]+' docs/PRD.md | sort -u | wc -l            → 23
+$ comm -23 /tmp/critic_g4_r /tmp/critic_g4_p   (PRD IDs missing from PLAN) → (empty)  0
+$ comm -23 /tmp/critic_g4_r /tmp/critic_g4_t   (PRD IDs missing from TRACE) → (empty)  0
+$ comm -13 /tmp/critic_g4_r /tmp/critic_g4_p ; comm -13 /tmp/critic_g4_r /tmp/critic_g4_t → (empty)  0 extra
+$ grep -o '`[#\[][^`]*`' docs/CONTRACT.md | tr -d '`' | sort -u | wc -l → 29
+$ while read -r sel; do grep -qF "$sel" docs/TEST-CASES.md || echo "UNTESTED: $sel"; done < /tmp/critic_g4_sels
+                                                                      → (no output) 29/29
+$ grep -nE 'TBD|TODO|\(Planner\)' docs/{PRD,TECH-STACK,IMPLEMENTATION-PLAN,CONTRACT,DECISIONS,TRACEABILITY,TEST-CASES}.md
+                                                                      → none
+traceability rows                                                     → rows=23, with_phase=23, bad=none
+E2E-P4-01…07                                                          → 7/7 defined in TEST-CASES.md v0.9,
+                                                                        7/7 cited in TRACEABILITY.md v1.7,
+                                                                        7/7 implemented in tests/e2e/p4.spec.js,
+                                                                        PLAN v1.7 cites the range `E2E-P4-01–07`
+B7 fallback                                                           → TRACEABILITY Notes: C-38 and E2E-P4-07 exercise the
+                                                                        D5 manual fallback; PLAN P4: "OCR engine unavailable,
+                                                                        declared failed, not faked"
+case IDs                                                              → 99 cited, 99 defined, 0 undefined, 0 uncited
+                                                                        (104 definition+mapping rows; 5 IDs also appear in the
+                                                                        P3 gate-mapping table — not duplicate definitions)
+headers                                                               → 4/4 (Version, Updated, Owner, Supersedes) on all six docs
+removed-ID scan (R11+/B8+/N7+)                                        → none in PRD/PLAN/TRACEABILITY/TEST-CASES/CONTRACT
+```
+
+Versions this gate: PRD **1.1**, TECH-STACK **1.0**, CONTRACT **1.0 — FROZEN at gate G0** (unchanged since G0), DECISIONS **1.3**, IMPLEMENTATION-PLAN **1.7**, TRACEABILITY **1.7**; all `Updated: 2026-11-17`. TEST-CASES **0.9**, test-results RUN-7/RUN-8. No CONTRACT change, so no human gate was triggered.
+
+#### Vercel readiness — PASS
+
+- Deployable set is exactly `app/index.html` (7,794 B), `app/styles.css` (8,705 B), `app/app.js` (71,079 B) — **87,578 B** total. No `package.json`, lockfile, manifest, bundler config, `dist/`, `build/`, `assets/`, or `vercel.json` in `app/`; no build step.
+- Every `src`/`href` is `./styles.css`, `./app.js`, `./` or `data:,`; 0 absolute or `localhost` paths. The only absolute URLs are outbound `https://wa.me/…` reminders and `upi://` pay links, which produce no request.
+- No service worker (0 registrations at runtime), no `document.cookie`, no password input, no auth gate, no analytics, no `fetch`, no `XMLHttpRequest` in `app/`.
+- Direct loads `/`, `/index.html`, `/?customer=…`, `/?today=…`, `/?today=not-a-date` → 200; the import, edit/delete, CSV, search, UPI, language and screenshot flows all work from a cold direct load in fresh contexts.
+- Every fresh context: 0 console errors, 0 page errors, 0 failed requests, 0 external requests.
+
+#### Score-risk review — WIN-ANALYSIS §4 and WIN-PLAN §4/§11
+
+WIN-ANALYSIS §4 (why we may lose), P4 build:
+
+| # | Failure mode | Status | Evidence |
+|---|---|---|---|
+| 1 | Selector missing / renamed / conditional | **PASS** | 19/19 §2 nodes; all P4 hooks present |
+| 2 | Tester reads before first paint | **PASS** | first paint has every §2 node and the bonus shells |
+| 3 | `.value` set without events; app reads state | **PASS** | every import in ADV-12…24 set `.value` directly and was honoured |
+| 4 | Import merges instead of replaces | **PASS** | replace probe; 50 fuzz shops exact |
+| 5 | Punctuation/commas/₹ in machine nodes | **PASS** | bare regex on every machine node, all languages |
+| 6 | Zero-balance / unknown-phone rows dropped | **PASS** | zero rows keep UPI `am=0` and reminders; `Customer <phone>` rows counted |
+| 7 | Float money | **PASS** | `250000.50`, `1500.50`, `-250.25`, `670.50`, `12.34` exact; integer oracle |
+| 8 | Screenshot quota loses the save | **PASS (closed at P3)** | P3 batch re-run 198/198 on this build |
+| 9 | `?today=` ignored → overdue days wrong | **PASS (closed at P4)** | 61/44/43/42 vs independent calendar; 30/29 boundary |
+| 10 | Sideways scroll / unreadable dark | **PASS, provisional** | 375/375 sample + long unicode; dark ≥ 6.78 on sampled text; 200-row audit is P5 |
+| 11 | `[data-customer]` count ≠ customer count | **PASS** | rows = keys at load; search returns all on clear/reload |
+| 12 | Virtualised / paginated list | **PASS** | every row in `#customers`, 8 in DOM while filtered |
+| 13 | No harness | **PASS** | 49-test suite + 1,743 independent assertions |
+
+WIN-PLAN §4 edge-case matrix — **PASS 18/18**: zero-entry customer; overpayment → negative; same name/different phones; duplicate phone; unknown phone; `"1,500"`/`Rs 1500`; `type` casing; same-date entries; future-dated entry; empty note; large numbers; unicode names; `entries: []`; malformed JSON; import twice; reload after import; `?today=2026-11-15` overdue/days-since; 3 MB screenshot.
+
+WIN-PLAN §11 (if we lose), P4 build:
+
+| # | Cause | P4 status |
+|---|---|---|
+| 1 | Import merging instead of replacing | **PASS** |
+| 2 | Punctuation in `#total-outstanding` | **PASS** |
+| 3 | Dropping zero-entry / unknown-phone rows | **PASS** |
+| 4 | Contract nodes rendered after a delay | **PASS** |
+| 5 | Float money | **PASS** |
+| 6 | Screenshot upload fails on quota | **PASS (closed)** |
+| 7 | Sideways scroll at 375 from a table/long name/image | **PASS with sample, long unicode and thumbnail**; 200-row pass is P5 |
+| 8 | No harness | **PASS** |
+
+The 10 phone/theme marks are earned provisionally with the graded flows at 375×812 in light and dark. P5 must still audit 200 rows, tap targets, clipping and the full dark sweep before the final gate.
+
+#### G4 gate checklist (PLAN §4)
+
+- [x] **Tester RUN id present with commands and evidence** — RUN-8: `cd tests && npx playwright test` → 49/49, the seven P4 cases with exact expectations, screenshots and CSV artifacts, BUG-1 closed with a pre-fix regression mutant, and the RUN-7 non-vacuity mutants.
+- [x] **Phase acceptance 100%, regression 100%** — E2E-P4-01…07 7/7 green in RUN-8 and CRITIC-RUN-5; P0 23/23, P1 8/8, P2 5/5 + F-01, P3 5/5 in the same run; every PLAN P4 acceptance bullet independently reproduced (B1 order/days/exclusions/empty, B2 edit+delete/id/screenshot/persist, B3 both files/headers/quoting/current state, B4 substring+case+restore, B5 one link/`am`/`cu`/`tn`/VPA, B6 labels+machine identity+reload, B7 fallback non-blocking).
+- [x] **No open P0/P1** — none filed in RUN-1…8 and none found by 1,743 independent assertions. BUG-1 (P2) is closed; no P2 is open.
+- [x] **Contract audit 100%** — 59/59 P4-observable items; 0 `CONTRACT-<n>`; deferred P5/P6 items named and owned.
+- [x] **Doc sync check passes** — output pasted above: 23/0/0 IDs, 29/29 selectors, 0 TBD, 23/23 rows phased, E2E-P4 7/7 defined+cited, 99/99 case IDs, B7 fallback noted, headers 4/4, versions as required.
+- [x] **Critic scorecard written; model score not lower than the previous gate** — **100/100** vs 75/100 at G3 (floor 97/100 if B6 is read strictly and 95/100 if both B6 and an audit item were discounted — still ≥ the final 95 threshold).
+- [x] **`worklog.md` entry with `Next:`** — the latest entry (01:30, Planner) ends `Next: Critic G4`; the Orchestrator must append the G4 gate entry ending `Next: P5 — Coder` after this scorecard is recorded.
+
+**Verdict: PASS.**
+
+#### Findings / notes (none blocks G4; no veto raised)
+
+- **F-1 [process]** The P4 build is uncommitted: HEAD is `87c99ee` (tag `g3`), `app/*` are modified, and `tests/e2e/p4.spec.js` is untracked. The Orchestrator should commit and tag `g4` so the graded build is reproducible; the three checksums above pin it for this scorecard.
+- **F-2 [residual i18n gap, non-blocking]** Input **placeholders** stay English in `hi`/`te` (`#search` "Search name or phone", `#new-name`, `#new-phone`, `#entry-note`, `#import-box`, `#shop-upi`). Every `<label>`, heading, button, empty state and `#upi-demo-note` translates. CONTRACT §5.5 scopes translation to "visible UI labels", so B6 is credited 5; a screenshot grader that diffs every visible string could call B6 partial (2–3), which would put the model score at 97–98/100 — above the final 95 floor. Optional P5 fix: add `data-i18n-ph` keys for the placeholders.
+- **F-3 [doc note]** TRACEABILITY keeps citing cross-gate cases by owning phase (B7 → E2E-P3-* plus E2E-P4-07; R7 → E2E-P3-02). Pre-existing pattern; not a sync failure.
+- **F-4 [non-contract hooks]** `#shop-upi`, `#upi-msg`, `#upi-demo-note`, `#export-msg`, `#shot-ocr-hint`, `#entry-msg`, `#storage-msg`, `#overdue-list`, `#overdue-empty`, `#customers-empty`, `#entries-empty`, `#entry-cancel`, `#cust-phone`, `#total-human`, `#cust-balance-human` are Coder UI/test hooks, not contract nodes. No contract node was moved to make them fit.
+- **F-5 [scope, by plan]** P5 (responsive/theme) and P6 (200-shop fuzz, quota/reload hardening, judges' note) remain. Deferred, not G4 failures.
+- **F-6 [behaviour confirmed]** `#shop-upi` is stored under `hisaab.upi.v1`, separate from `hisaab.v1`; import does not reset it and a VPA inside the shop JSON is ignored (D12). Verified across reload and re-import.
+
+#### Required before P5
+
+1. Orchestrator: append the G4 gate entry to `worklog.md` with `Next: P5 — Coder`; commit and tag the P4 build (`bd38d3ce…`, `19681390…`, `b8d2194e…`).
+2. Coder (P5): responsive/theme work only — 200 rows, 40-char unicode names, 100-char unbroken notes, `250000.50`, thumbnails; tap targets ≥ 40 px; no clipping/abbreviation; sticky bar must not cover rows or `#import-box`; full light/dark contrast sweep; no `overflow-x: hidden` masking. Do not rename, move or hide a contract node.
+3. Tester (P5): E2E-P5 gate suite (viewport audit, contrast audit, tap targets, clipping, sticky overlap), full regression (49 + new) and the 200-row adversarial shop; file any P0/P1 before the gate.
+4. Keep the P4 guarantees green: 4 overdue rows `61/44/43/42`, edit/delete with a stable `data-entry-id`, both CSVs with exact headers and current-state data, search restore, UPI `am`/`cu`/`tn`, byte-identical machine state across `en`/`hi`/`te`, and the B7 fallback that never blocks save.
+5. Optional (P5/P6): translate the input placeholders (F-2); keep B7 declared failed unless a self-hosted OCR asset is approved (human gate).
+
+#### Confidence / unknown about the real tester
+
+- The P4 surfaces are backed by 1,743 independent assertions on this exact build (432 new, 1,077 fuzz, 198 + 36 re-run) plus the 49-case suite, all reading the DOM and computing expectations outside `app/`. A false PASS would need every oracle to share a wrong reading of §5.2–§5.5.
+- What cannot be known is **how strictly B6 is screenshot-diffed**: labels, headings, buttons, empty states and the demo note translate, but placeholders stay English (F-2). This is the single most likely way to lose 2–3 bonus marks; it cannot take the score below 95.
+- **B7 is scored 0** and is the dropped seventh item, so the bonus block does not depend on whether the hidden tester scripts the prefill or accepts the manual fallback. The earlier provisional B7 credit at G3 is now resolved to 0, not carried forward.
+- D1's no-payment exclusion and D2's signed-net total remain the hidden-data assumptions most likely to differ from an independent grader; both are stated in the visible overdue label and must be repeated in the judges' note at P6.

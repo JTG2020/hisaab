@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.7
+Version: 0.9
 Updated: 2026-11-17
 Owner: Tester
-Supersedes: test-results.md v0.6
+Supersedes: test-results.md v0.8
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -423,3 +423,151 @@ Notes:
 - P0–P2 regression is untouched and green (37/37 within the 42), including the sample import, the 50-shop fuzz, no console errors, no external requests, Vercel shape (C-23), dark contrast (C-21) and 375 px (C-20).
 - Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map R5/R6 to E2E-P3-01…05 (and C-07/I-03/I-08/N-03 to them) and drop those `TBD`s; `worklog.md` needs the RUN-6 line and the P3 gate entry.
 - The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html 669c644fb999…`, `app/app.js 3049401a8749…`, `app/styles.css 291bc99cf82a…`.
+
+### RUN-7 | 2026-11-17 18:04 EST | phase P4 | gate P4 (pre-gate verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for C-20, E2E-P0-03, E2E-P1-05, E2E-P2-05; light scheme plus emulated `prefers-color-scheme: dark` for C-21/E2E-P0-03; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 9 spec files.
+
+Cases: 49/49 passed | Failing: none
+- P0 regression: 23/23
+- P1 regression: 8/8
+- P2 regression: 5/5 + **F-01** (50 datasets, seed `20261117`) green
+- P3 regression: 5/5
+- **P4 gate: 7/7** — E2E-P4-01 (B1), E2E-P4-02 (B2), E2E-P4-03 (B3), E2E-P4-04 (B4), E2E-P4-05 (B5), E2E-P4-06 (B6), E2E-P4-07 (B7 fallback)
+
+Bugs filed: **BUG-1 (P2, open)** — one untranslated visible label; see below. No P0/P1. Bugs closed: none.
+
+Evidence:
+
+```
+$ npx playwright test
+Running 49 tests using 1 worker
+  ✓ 24 › E2E-P4-01 (C-14/C-28) overdue: 4 sample rows in day order, bare data-days, no data-customer, no-payment excluded, empty state
+  ✓ 25 › E2E-P4-02 (C-36) edit 500->800 and delete: amounts, balances, total, id, image, reload, other customer untouched
+  ✓ 26 › E2E-P4-03 (C-29) CSV export: exact headers, one row each, newest-first entries, RFC-4180 quoting, current state
+  ✓ 27 › E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, restores on clear and reload
+  ✓ 28 › E2E-P4-05 (C-35) UPI pay links: one per row, am = max(balance,0), cu=INR once, tn decodes, default and shop VPA
+  ✓ 29 › E2E-P4-06 (C-13/N-06) language switch translates labels and leaves every id, attribute, name, date, money text and href byte-identical
+  ✓ 30 › E2E-P4-07 (C-38) OCR fallback: upload does not block or overwrite; manual amount saves
+  ... 42 P0–P3 + F-01 green ...
+  49 passed (24.6s)
+
+$ npx playwright test --list | tail -1
+Total: 49 tests in 9 files
+```
+
+P4 results against the spec:
+
+```
+B1  ?today=2026-11-15, sample: 4 rows in order 9000000105/61, 9000000104/44, 9000000108/43, 9000000102/42
+    [data-days] text == attribute, heading "Overdue (30+ days)", 0 [data-customer] inside #overdue,
+    no-payment customer excluded, 2026-09-10 payment listed as 66, empty state when nobody is overdue
+B2  payment 500 -> edit to 800 (date 2026-10-20, note changed): [data-amount] "800", id unchanged,
+    [data-balance]/#cust-balance "-800", total "-600", stored img[data-shot] kept; reload identical;
+    delete -> 0 entries, balance "0", total "200"; other customer stayed "200" throughout
+B3  customers.csv: phone,name,credit,payment,balance + 3 rows (1249.50 / 670.50 / -100)
+    entries.csv: phone,type,amount,date,note + 4 rows newest-first;
+    "Doe, Jane", "said ""thanks""", "paid, on UPI", embedded newline all RFC-4180 quoted; no sample data
+B4  "sunita"/"SUNITA" -> 9000000102 only; "0104" -> 9000000104 only; no-match -> 0 visible, 8 in DOM;
+    total stays 11820; clear and reload restore all 8
+B5  pa=hisaab@upi, am=670 / 0 / 0 (never negative), cu=INR once, tn="Anna & Sons" decodes;
+    #shop-upi=myshop@bank -> every link pa=myshop@bank and the demo note hides
+B6  en/hi/te: #overdue-title, #add-customer, #entry-save and the search label all translate;
+    the machine snapshot (total, balances, ids, attrs, names, dates, amounts, notes, reminder/UPI/?customer= hrefs,
+    option values, #import-box content, 19 §2 ids) is byte-identical across languages; reload resets to en
+B7  no OCR engine (D5): after upload #entry-amount stayed "" (allowed), #entry-save never blocked,
+    typed 999 survived a second upload, payment saved with [data-amount] "999"; no console error
+```
+
+Screenshots and text evidence saved under `tests/artifacts/` (gitignored):
+
+```
+p4-overdue.png         33 KB  overdue heading, label and the four ordered rows
+p4-csv.png             81 KB  page after #export-csv with #export-msg
+p4-customers.csv      164 B   exported current-state customers file
+p4-entries.csv        237 B   exported current-state entries file (newest first)
+p4-upi.png             36 KB  customer list with the UPI pay links
+p4-upi-hrefs.txt      164 B   upi://pay?pa=hisaab@upi&am=670&cu=INR&tn=Ravi%20Kumar …
+p4-lang-hi.png         48 KB  Hindi labels
+p4-lang-te.png         61 KB  Telugu labels
+p4-lang-labels.txt    574 B   en/hi/te label strings
+p4-ocr-fallback.png    45 KB  upload selected, typed manual amount, save enabled
+p4-ocr-fallback.txt   128 B   recorded empty prefill, preserved "999", no engine
+```
+
+Non-vacuity checks (mutant copy in `/tmp` served on :4174; the real `app/` was never touched):
+
+```
+overdue threshold 30 -> 45   E2E-P4-01 failed (only 1 row instead of 4)
+CSV header credits typo      E2E-P4-03 failed on the exact header row
+UPI am = raw balance         E2E-P4-05 failed: Expected "0", Received "-250.25"
+```
+
+Verdict: PASS (one open P2, BUG-1; no P0/P1)
+
+Notes:
+
+- **BUG-1 | severity P2 | phase P4 | E2E-P4-06**
+  Expected: after selecting `hi` or `te`, visible UI labels translate (PRD B6; CONTRACT §5.5).
+  Actual: `#upi-demo-note` keeps the English text `Demo UPI ID — set your shop UPI ID` in both `hi` and `te`; every other sampled label translates (search label, `#overdue-title`, `#add-customer`, `#entry-save`, `#customers` and `#entries` empty states, `#overdue` day text).
+  Repro: `python3 -m http.server 4173 --directory app` → open `/` → select `hi` in `#lang-switch` → read `#upi-demo-note`.
+  Evidence: `tests/artifacts/p4-lang-hi.png`, `p4-lang-labels.txt`; console audit printed `UPI_NOTE_HI: "Demo UPI ID — set your shop UPI ID"`.
+  Suspected layer: render/i18n (the node has no `data-i18n` key).
+  Root cause: stated, not guessed — `#upi-demo-note` is the one visible label in the sample that carries no `data-i18n` attribute, so `applyStaticLabels()` never rewrites it.
+  Contract impact: none on machine nodes; B6 is a bonus item, so this is P2 and needs a Critic waiver, not a gate block. B6's scripted checks (known labels + byte-identical machine state) still pass.
+- B7 is the **D5 manual fallback only**: no OCR engine ships in P4. The test records that the amount stayed empty after upload (permitted), that typing is never overwritten, and that the entry saves with the manual amount. This is not a P0/P1 defect; OCR remains a P4/P6 judgement call for the Planner.
+- `#overdue` day math, ordering and D1 exclusions match an independent calendar computation under `?today=2026-11-15`; `data-days` is bare in text and attribute.
+- CSV files come from current state, not the sample (no sample phone appears after a second import), with exact D8 headers and RFC-4180 quoting verified by a parser written in the test.
+- Search hides rows with the `hidden` attribute (0 removed from the DOM) and never touches the total or the import section; reload restores everything.
+- UPI links use `max(balance,0)`, `cu=INR` exactly once, and the name percent-encoded; `#shop-upi` replaces the default `hisaab@upi` and hides the demo note.
+- Language switching changes no id, attribute, `data-*` value, customer name, date, machine money text, href, option value or `#import-box` content. The `/` placeholder `Select a customer` does translate — that is UI text, not data — so the test asserts machine identity on a real customer view (`?customer=9000000101`).
+- P0–P3 regression untouched and green (42/42 within the 49), including sample import, 50-shop fuzz, reminder/image/quota paths, 375 px, dark contrast, Vercel shape, no console errors and no external requests.
+- `docs/TEST-CASES.md` v0.9 adds E2E-P4-01…07 and the P4 mapping (C-14/C-28, C-36, C-29, C-30, C-35, C-13/N-06 and C-38 executed inside those tests; Coder-reported non-contract hooks listed). No existing case, ID, or expected value changed.
+- Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map B1–B7 to E2E-P4-01…07 and drop those `TBD`s; `worklog.md` needs the RUN-7 line and the P4 gate entry with the BUG-1 waiver decision.
+- The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html b6f58e9d03dc…`, `app/app.js 15ea8cfd1d6e…`, `app/styles.css 196813901119…`.
+
+### RUN-8 | 2026-11-17 18:07 EST | phase P4 | gate P4 (BUG-1 re-verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for C-20, E2E-P0-03, E2E-P1-05, E2E-P2-05; light scheme plus emulated `prefers-color-scheme: dark` for C-21/E2E-P0-03; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 9 spec files.
+
+Cases: 49/49 passed | Failing: none
+- P0 23/23, P1 8/8, P2 5/5 + F-01 (50 datasets, seed `20261117`), P3 5/5, **P4 7/7** — unchanged in scope or expected values from RUN-7.
+
+Bugs filed: none | **Bugs closed: BUG-1 (P2, `#upi-demo-note` untranslated)**
+
+Evidence:
+
+```
+$ npx playwright test
+Running 49 tests using 1 worker
+  ✓ 29 [chromium] › e2e/p4.spec.js:475:1 › E2E-P4-06 (C-13/N-06) language switch translates labels and leaves every id, attribute, name, date, money text and href byte-identical (627ms)
+  ... all other 48 P0–P4 + F-01 cases green ...
+  49 passed (24.6s)
+
+$ npx playwright test --list | tail -1
+Total: 49 tests in 9 files
+```
+
+BUG-1 repro re-run (the exact steps recorded in RUN-7), reading `#upi-demo-note` after each switch:
+
+```
+en: "Demo UPI ID — set your shop UPI ID"
+hi: "डेमो UPI ID — अपनी दुकान की UPI ID सेट करें"
+te: "డెమో UPI ID — మీ షాప్ UPI ID సెట్ చేయండి"
+```
+
+Verdict: PASS — **BUG-1 closed**
+
+Notes:
+
+- **New assertion (E2E-P4-06, same test, no new test added):** `#upi-demo-note` must be visible and its text must be exactly `Demo UPI ID — set your shop UPI ID` on `en`; in `hi` and `te` its text must be non-empty and different from the English string. Every existing B6 assertion is untouched: label translation for `#overdue-title`/`#add-customer`/`#entry-save`/search, the full machine snapshot (`#total-outstanding` text + `data-value`, every row's `[data-balance]` text/attribute, `[data-customer]` keys, reminder/UPI/`?customer=` hrefs, entry id/type/date/amount/note, `#cust-name`, `#cust-balance` text/attribute, `#entry-type` and `#entry-customer` option values, `#import-box` content, the 19 §2 ids, `#lang-switch` option values), and the reload reset to `en`. Nothing was weakened or removed.
+- **Regression proof:** the added assertion was run against a copy of `app/` in `/tmp` with the pre-fix markup restored (no `data-i18n` on `#upi-demo-note`, served on :4174). E2E-P4-06 failed with `hi demo UPI note must translate (BUG-1 regression)` / `Expected: not "Demo UPI ID — set your shop UPI ID"`, so the case genuinely catches BUG-1 rather than passing vacuously. The real `app/` was not touched.
+- English is byte-identical to the pre-fix string (same em dash, same wording), so no other test or artifact changed.
+- **`docs/TEST-CASES.md` stays v0.9** with no edits: B6's acceptance already covers "visible labels translate", and the demo note is one of them, so no case ID or expected value needed to change. The regression lives in E2E-P4-06 per the "no case weakened" rule.
+- Screenshots from RUN-7 (`tests/artifacts/p4-lang-hi.png`, `p4-lang-te.png`, `p4-lang-labels.txt`) were regenerated by this run and now show the translated demo note.
+- Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-8 line and the BUG-1 closure; `TRACEABILITY.md` still needs the B1–B7 → E2E-P4-01…07 mapping.
+- The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html bd38d3cedfef…`, `app/app.js b8d2194ea4f5…`, `app/styles.css 196813901119…`.

@@ -219,3 +219,32 @@ Notes:
 - F-5: OCR, edit/delete, CSV, search, overdue, UPI, and language remain P4.
 - **Stop at G3.** P4 (bonuses B1–B6 + OCR for B7) has not started and awaits human go.
 Next: P4 on human go; do not start automatically.
+
+## 2026-11-18 01:10 — P4 — Coder
+Action: implemented the bonuses. B1 `#overdue` rows/days/order/no-payment/empty; B2 edit/delete with recalculated balances/total and stable `data-entry-id`; B3 two CSVs from current state with exact headers/RFC-4180; B4 `#search` name/phone filtering without state/total changes; B5 `a[href^="upi://pay?pa="]` with `am`/`cu`/`tn`, owner `#shop-upi` setting and demo fallback; B6 `#lang-switch` en/hi/te labels with machine values unchanged; B7 OCR manual fallback and label. Fixed BUG-1 (`#upi-demo-note` translation).
+Evidence: `app/index.html`, `app/app.js`, `app/styles.css`; `node --check`; 49/49 suite; 67 scratch checks; CSV downloads; screenshots; no console/network errors.
+Result: PASS (Coder handoff; Tester verification)
+Next: Tester P4
+
+## 2026-11-18 01:25 — P4 — Tester
+Action: added `tests/e2e/p4.spec.js` (E2E-P4-01–07); `TEST-CASES.md` v0.9; RUN-7 (49/49) with BUG-1 P2; after the fix, E2E-P4-06 asserts the demo note translates in hi/te; RUN-8 (49/49), BUG-1 closed. Screenshots for overdue, CSV, UPI, language, OCR fallback.
+Evidence: `cd tests && npx playwright test` → **49/49 passed (24.4s)** (23 P0 + 8 P1 + 5 P2 + 5 P3 + 7 P4 + F-01 50 shops), re-run independently by the Orchestrator; B1 four rows `61/44/43/42`; B2 edit/delete; B3 CSVs; B4 search; B5 UPI; B6 hi/te; B7 fallback.
+Result: PASS (RUN-8; BUG-1 closed)
+Next: Planner sync + Critic G4
+
+## 2026-11-18 01:30 — P4 — Planner
+Action: `TRACEABILITY.md` v1.7 maps B1–B7 to E2E-P4-01–07 (B7 manual fallback noted); `IMPLEMENTATION-PLAN.md` v1.7 P4 gate suite cites them. No CONTRACT change.
+Evidence: 23 rows, 0 TBD; 23/0/0; 29/29 selectors; headers 4/4.
+Result: PASS (docs)
+Next: Critic G4
+
+## 2026-11-18 02:05 — P4 — Orchestrator — GATE G4
+Action: recorded G4 PASS from the Critic's signed scorecard; P4 bonuses complete; committed the P4 build and created gate tag `g4`.
+Evidence: `docs/scorecards.md` GATE G4; RUN-8 (Tester) **49/49**; CRITIC-RUN-5 **49/49**; B1 overdue 4 rows `61/44/43/42`; B2 edit/delete; B3 two CSVs; B4 search; B5 UPI; B6 hi/te labels (BUG-1 closed); B7 manual fallback (OCR unavailable, **B7 scored 0, not faked**); hidden-data **60/60**; bonus **30/30** via best 6 (B1–B6 5 each); phone/theme **10/10**; contract audit **59/59 P4-observable**; doc sync PASS; Vercel PASS; provisional model score **100/100** (floor 97 if B6 placeholders are read as labels).
+G4 checklist: Tester RUN-8 present; P4 acceptance; full regression 49/49; no open P0/P1 (BUG-1 closed); contract audit 59/59; doc sync PASS; score 100 >= 75; `Next:` present.
+Notes:
+- F-1 resolved by the `g4` commit/tag.
+- F-2: input placeholders remain English in hi/te because B6 requires attributes to be byte-identical; only a strict reading that treats placeholders as labels gives the 97 floor.
+- F-3 cross-gate traceability citations are by owning phase; F-4 non-contract hooks only; F-5 P5/P6 deferred; F-6 `#shop-upi` is stored separately and import ignores a JSON VPA (D12).
+- **Stop at G4.** P5 (responsive/theme re-audit) and P6 (200-shop fuzz, hardening, final judges' note) remain.
+Next: P5 on human go; do not start automatically.

@@ -12,10 +12,10 @@
   <header class="topbar">
     <div class="brand">
       <h1 class="brand-name">Hisaab</h1>
-      <p class="brand-sub">Shop ledger</p>
+      <p class="brand-sub" data-i18n="brandSub">Shop ledger</p>
     </div>
     <div class="lang">
-      <label for="lang-switch" class="visually-hidden">Language</label>
+      <label for="lang-switch" class="visually-hidden" data-i18n="language">Language</label>
       <select id="lang-switch" name="language">
         <option value="en" selected>English</option>
         <option value="hi">हिंदी</option>
@@ -28,24 +28,24 @@
     <p id="storage-msg" class="msg" role="status" aria-live="polite"></p>
 
     <section id="customer-view" class="card customer-view" aria-labelledby="cust-view-title">
-      <h2 class="section-title" id="cust-view-title">Customer</h2>
+      <h2 class="section-title" id="cust-view-title" data-i18n="customerViewTitle">Customer</h2>
       <p class="cust-name" id="cust-name">Select a customer</p>
       <p class="muted small" id="cust-phone">Open a customer from the list to see their ledger.</p>
-      <p class="label">Balance (Rs)</p>
+      <p class="label" data-i18n="balanceLabel">Balance (Rs)</p>
       <div class="total-row">
         <div id="cust-balance" class="total" data-balance="0">0</div>
         <span class="human" id="cust-balance-human">Rs 0</span>
       </div>
-      <h3 class="sub-title">Entries</h3>
+      <h3 class="sub-title" data-i18n="entriesTitle">Entries</h3>
       <ul id="entries" class="entries"></ul>
       <p class="empty small" id="entries-empty">No entries yet.</p>
       <p class="customer-back">
-        <a class="btn ghost" href="./" id="back-to-list">&larr; All customers</a>
+        <a class="btn ghost" href="./" id="back-to-list"><span aria-hidden="true">&larr;</span> <span data-i18n="backAll">All customers</span></a>
       </p>
     </section>
 
     <section class="card hero" aria-labelledby="total-label">
-      <p class="label" id="total-label">Total outstanding (Rs)</p>
+      <p class="label" id="total-label" data-i18n="totalLabel">Total outstanding (Rs)</p>
       <div class="total-row">
         <div id="total-outstanding" class="total" data-value="0">0</div>
         <span class="human total-human" id="total-human">Rs 0</span>
@@ -53,35 +53,36 @@
     </section>
 
     <section class="card search-bar" aria-label="Search customers">
-      <label for="search" class="visually-hidden">Search name or phone</label>
+      <label class="search-label" for="search" data-i18n="searchLabel">Search name or phone</label>
       <input id="search" type="search" placeholder="Search name or phone" autocomplete="off" spellcheck="false">
     </section>
 
     <section id="overdue" class="card" aria-labelledby="overdue-title">
-      <h2 class="section-title" id="overdue-title">Overdue (30+ days)</h2>
-      <p class="empty small">No customers overdue right now.</p>
+      <h2 class="section-title" id="overdue-title" data-i18n="overdueTitle">Overdue (30+ days)</h2>
+      <ul id="overdue-list" class="overdue-list"></ul>
+      <p class="empty small" id="overdue-empty" data-i18n="overdueEmpty">No customers overdue right now.</p>
     </section>
 
     <section class="card" aria-labelledby="customers-title">
-      <h2 class="section-title" id="customers-title">Customers</h2>
+      <h2 class="section-title" id="customers-title" data-i18n="customersTitle">Customers</h2>
       <div id="customers" class="customers">
         <p class="empty" id="customers-empty">No customers yet. Add one, or import a shop file.</p>
       </div>
     </section>
 
     <section class="card" aria-labelledby="new-customer-title">
-      <h2 class="section-title" id="new-customer-title">Add customer</h2>
+      <h2 class="section-title" id="new-customer-title" data-i18n="addCustomerTitle">Add customer</h2>
       <form id="new-customer" novalidate>
         <div class="field">
-          <label for="new-name">Name</label>
+          <label for="new-name" data-i18n="nameLabel">Name</label>
           <input id="new-name" name="name" type="text" autocomplete="off" placeholder="Full name">
         </div>
         <div class="field">
-          <label for="new-phone">Phone</label>
+          <label for="new-phone" data-i18n="phoneLabel">Phone</label>
           <input id="new-phone" name="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="10-digit phone">
         </div>
         <div class="row-actions">
-          <button id="add-customer" type="button" class="btn primary">Add customer</button>
+          <button id="add-customer" type="button" class="btn primary" data-i18n="addCustomerBtn">Add customer</button>
         </div>
         <p class="msg" id="new-customer-msg" role="status" aria-live="polite"></p>
       </form>
@@ -91,54 +92,67 @@
       <h2 class="section-title" id="entry-title">Add entry</h2>
       <form id="entry-form" novalidate>
         <div class="field">
-          <label for="entry-customer">Customer</label>
+          <label for="entry-customer" data-i18n="customerLabel">Customer</label>
           <select id="entry-customer" name="customer">
             <option value="">No customers yet</option>
           </select>
         </div>
         <div class="field">
-          <label for="entry-type">Type</label>
+          <label for="entry-type" data-i18n="typeLabel">Type</label>
           <select id="entry-type" name="type">
-            <option value="credit" selected>Credit</option>
-            <option value="payment">Payment</option>
+            <option value="credit" selected data-i18n="credit">Credit</option>
+            <option value="payment" data-i18n="payment">Payment</option>
           </select>
         </div>
         <div class="field">
-          <label for="entry-amount">Amount (Rs)</label>
+          <label for="entry-amount" data-i18n="amountLabel">Amount (Rs)</label>
           <input id="entry-amount" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
         </div>
         <div class="field">
-          <label for="entry-date">Date</label>
+          <label for="entry-date" data-i18n="dateLabel">Date</label>
           <input id="entry-date" name="date" type="date">
         </div>
         <div class="field">
-          <label for="entry-note">Note</label>
+          <label for="entry-note" data-i18n="noteLabel">Note</label>
           <input id="entry-note" name="note" type="text" autocomplete="off" placeholder="Optional note">
         </div>
         <div class="field">
-          <label for="shot-input">Payment screenshot</label>
+          <label for="shot-input" data-i18n="shotLabel">Payment screenshot</label>
           <input id="shot-input" name="shot" type="file" accept="image/*">
+          <span class="small muted ocr-hint" id="shot-ocr-hint" data-i18n="ocrLabel">Read amount from screenshot</span>
         </div>
         <div class="row-actions">
           <button id="entry-save" type="submit" class="btn primary">Save</button>
+          <button id="entry-cancel" type="button" class="btn ghost" data-i18n="cancel" hidden>Cancel</button>
         </div>
         <p class="msg" id="entry-msg" role="status" aria-live="polite"></p>
       </form>
     </section>
 
     <section class="card" aria-labelledby="import-title">
-      <h2 class="section-title" id="import-title">Import shop JSON</h2>
+      <h2 class="section-title" id="import-title" data-i18n="importTitle">Import shop JSON</h2>
       <form class="import-form" novalidate>
         <div class="field">
-          <label for="import-box">Paste shop JSON</label>
+          <label for="import-box" data-i18n="pasteLabel">Paste shop JSON</label>
           <textarea id="import-box" placeholder="Paste shop JSON" spellcheck="false"></textarea>
         </div>
         <div class="row-actions">
-          <button id="import-go" type="button" class="btn primary">Import</button>
-          <button id="export-csv" type="button" class="btn">Export CSV</button>
+          <button id="import-go" type="button" class="btn primary" data-i18n="importBtn">Import</button>
+          <button id="export-csv" type="button" class="btn" data-i18n="exportBtn">Export CSV</button>
         </div>
         <p id="import-msg" class="msg" role="status" aria-live="polite"></p>
+        <p id="export-msg" class="msg" role="status" aria-live="polite"></p>
       </form>
+    </section>
+
+    <section class="card" aria-labelledby="upi-title">
+      <h2 class="section-title" id="upi-title" data-i18n="shopUpiTitle">Shop UPI ID</h2>
+      <div class="field">
+        <label for="shop-upi" data-i18n="shopUpiLabel">Your UPI ID (for pay links)</label>
+        <input id="shop-upi" name="upi" type="text" autocomplete="off" spellcheck="false" placeholder="yourname@bank" data-i18n-ph="shopUpiPlaceholder">
+      </div>
+      <p class="small muted" id="upi-demo-note" data-i18n="upiDemoNote">Demo UPI ID — set your shop UPI ID</p>
+      <p class="msg" id="upi-msg" role="status" aria-live="polite"></p>
     </section>
   </main>
 

@@ -71,6 +71,10 @@ a {
   outline-offset: 2px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -197,6 +201,13 @@ a {
 
 .search-bar {
   padding: 12px;
+}
+
+.search-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 form {
@@ -471,6 +482,78 @@ input[type="file"]::file-selector-button {
   border: 1px solid var(--border);
   border-radius: 8px;
   object-fit: contain;
+}
+
+.entry-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 6px;
+}
+
+.entry-action {
+  flex: 0 1 auto;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ocr-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.overdue-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.overdue-list:empty {
+  display: none;
+}
+
+.overdue-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.overdue-name {
+  flex: 1 1 60%;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.overdue-phone {
+  font-size: 14px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.overdue-days {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.overdue-days-text {
+  flex: 1 1 100%;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .customer-back {
