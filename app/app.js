@@ -7,6 +7,23 @@
   var MAX_RUPEES = 90000000000000;
   var WA_PREFIX = 'https://wa.me/91';
 
+  var STORAGE_WARNING =
+    'Could not save to browser storage. Your changes are kept in this tab only.';
+  var PHOTO_WARNING =
+    'The payment screenshot could not be stored; the entry was saved without the photo.';
+
+  var SHOT_ATTEMPTS = [
+    { edge: 800, quality: 0.7 },
+    { edge: 800, quality: 0.6 },
+    { edge: 800, quality: 0.5 },
+    { edge: 800, quality: 0.4 },
+    { edge: 600, quality: 0.5 },
+    { edge: 400, quality: 0.5 }
+  ];
+  var SHOT_TARGET_CHARS = 200 * 1024;
+  var SHOT_LOAD_MAX_CHARS = 1536 * 1024;
+  var SHOT_TIMEOUT_MS = 8000;
+
   function pad2(value) {
     return value < 10 ? '0' + value : String(value);
   }
@@ -460,6 +477,151 @@
     return (parts.negative ? 'Advance Rs ' : 'Rs ') + text;
   }
 
+  function readFileDataUrl(file) {
+    return new Promise(function (resolve, reject) {
+      var reader;
+      try {
+        reader = new FileReader();
+      } catch (error) {
+        reject(error);
+        return;
+      }
+      reader.onload = function () {
+        resolve(String(reader.result || ''));
+      };
+      reader.onerror = function () {
+        reject(reader.error || new Error('The file could not be read.'));
+      };
+      reader.onabort = function () {
+        reject(new Error('The file read was cancelled.'));
+      };
+      try {
+        reader.readAsDataURL(file);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function loadImageFromDataUrl(dataUrl) {
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      image.onload = function () {
+        resolve(image);
+      };
+      image.onerror = function () {
+        reject(new Error('The image could not be decoded.'));
+      };
+      try {
+        image.src = dataUrl;
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function encodeJpeg(image, maxEdge, quality) {
+    var width = image.naturalWidth || image.width;
+    var height = image.naturalHeight || image.height;
+    if (!width || !height) {
+      throw new Error('The image has no pixels.');
+    }
+    var scale = Math.min(1, maxEdge / Math.max(width, height));
+    var outWidth = Math.max(1, Math.round(width * scale));
+    var outHeight = Math.max(1, Math.round(height * scale));
+    var canvas = document.createElement('canvas');
+    canvas.width = outWidth;
+    canvas.height = outHeight;
+    var context = canvas.getContext ? canvas.getContext('2d') : null;
+    if (!context) {
+      throw new Error('Canvas is unavailable.');
+    }
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(0, 0, outWidth, outHeight);
+    if ('imageSmoothingEnabled' in context) {
+      context.imageSmoothingEnabled = true;
+    }
+    if ('imageSmoothingQuality' in context) {
+      context.imageSmoothingQuality = 'high';
+    }
+    context.drawImage(image, 0, 0, outWidth, outHeight);
+    return canvas.toDataURL('image/jpeg', quality);
+  }
+
+  function processShotFile(file) {
+    if (!file) {
+      return Promise.resolve({ error: 'none' });
+    }
+    if (typeof file.type === 'string' && file.type && !/^image\//i.test(file.type)) {
+      return Promise.resolve({ error: 'unsupported' });
+    }
+    return readFileDataUrl(file)
+      .then(loadImageFromDataUrl)
+      .then(function (image) {
+        for (var index = 0; index < SHOT_ATTEMPTS.length; index += 1) {
+          var attempt = SHOT_ATTEMPTS[index];
+          var candidate = '';
+          try {
+            candidate = encodeJpeg(image, attempt.edge, attempt.quality);
+          } catch (error) {
+            candidate = '';
+          }
+          if (
+            typeof candidate === 'string' &&
+            candidate.indexOf('data:image/jpeg') === 0 &&
+            candidate.length <= SHOT_TARGET_CHARS
+          ) {
+            return { dataUrl: candidate };
+          }
+        }
+        return { error: 'too-large' };
+      })
+      .catch(function () {
+        return { error: 'unreadable' };
+      });
+  }
+
+  function withTimeout(promise, milliseconds, fallback) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      var timer = setTimeout(function () {
+        if (!settled) {
+          settled = true;
+          resolve(fallback);
+        }
+      }, milliseconds);
+      promise.then(
+        function (value) {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve(value);
+          }
+        },
+        function () {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve(fallback);
+          }
+        }
+      );
+    });
+  }
+
+  function shotWarningFor(error) {
+    if (error === 'unsupported') {
+      return 'That file is not an image, so the payment was saved without a screenshot.';
+    }
+    if (error === 'too-large') {
+      return 'The screenshot could not be stored small enough, so the payment was saved without it.';
+    }
+    if (error === 'timeout') {
+      return 'The screenshot took too long to process, so the payment was saved without it.';
+    }
+    return 'The selected image could not be read, so the payment was saved without a screenshot.';
+  }
+
   function readRoute() {
     var search = '';
     try {
@@ -526,6 +688,14 @@
     return String(value).replace(/[^0-9]/g, '');
   }
 
+  function usableShot(value) {
+    return (
+      typeof value === 'string' &&
+      value.indexOf('data:image/') === 0 &&
+      value.length <= SHOT_LOAD_MAX_CHARS
+    );
+  }
+
   function coerceLoadedState(parsed) {
     var customers = [];
     var entries = [];
@@ -574,14 +744,18 @@
         }
       }
       usedIds[id] = true;
-      entries.push({
+      var loadedEntry = {
         id: id,
         phone: entryPhone,
         type: entry.type === 'payment' ? 'payment' : 'credit',
         amountPaise: amount,
         date: typeof entry.date === 'string' ? entry.date : '',
         note: typeof entry.note === 'string' ? entry.note : ''
-      });
+      };
+      if (entry.type === 'payment' && usableShot(entry.shot)) {
+        loadedEntry.shot = entry.shot;
+      }
+      entries.push(loadedEntry);
     }
     return { customers: customers, entries: entries };
   }
@@ -627,7 +801,7 @@
         return { name: customer.name, phone: customer.phone };
       }),
       entries: state.entries.map(function (entry) {
-        return {
+        var stored = {
           id: entry.id,
           phone: entry.phone,
           type: entry.type,
@@ -635,30 +809,59 @@
           date: entry.date,
           note: entry.note
         };
+        if (entry.type === 'payment' && usableShot(entry.shot)) {
+          stored.shot = entry.shot;
+        }
+        return stored;
       })
     });
   }
 
-  function persist() {
+  function tryWriteState() {
     var payload;
     try {
       payload = serialiseState();
     } catch (error) {
-      payload = null;
-    }
-    if (payload === null) {
-      writeWarning = 'Could not save to browser storage. Your changes are kept in this tab only.';
-      renderStorageMessage();
-      return;
+      return false;
     }
     try {
       window.localStorage.setItem(STORAGE_KEY, payload);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function persist() {
+    if (tryWriteState()) {
       writeWarning = '';
       readWarning = '';
-    } catch (error) {
-      writeWarning = 'Could not save to browser storage. Your changes are kept in this tab only.';
+    } else {
+      writeWarning = STORAGE_WARNING;
     }
     renderStorageMessage();
+  }
+
+  function persistEntryWithShot(entry) {
+    if (tryWriteState()) {
+      writeWarning = '';
+      readWarning = '';
+      renderStorageMessage();
+      return { photoDropped: false };
+    }
+    var hadShot = !!(entry && entry.type === 'payment' && usableShot(entry.shot));
+    if (hadShot) {
+      delete entry.shot;
+      if (tryWriteState()) {
+        writeWarning = PHOTO_WARNING;
+        readWarning = '';
+        renderStorageMessage();
+        return { photoDropped: true };
+      }
+    }
+    writeWarning = hadShot ? STORAGE_WARNING + ' ' + PHOTO_WARNING : STORAGE_WARNING;
+    renderStorageMessage();
+    return { photoDropped: hadShot };
   }
 
   function ensureEntryCustomers() {
@@ -822,6 +1025,15 @@
 
     row.appendChild(main);
     row.appendChild(meta);
+
+    if (entry.type === 'payment' && usableShot(entry.shot)) {
+      var shot = makeElement('img', 'entry-shot');
+      shot.setAttribute('data-shot', '');
+      shot.setAttribute('src', entry.shot);
+      shot.setAttribute('alt', 'Payment screenshot');
+      shot.setAttribute('loading', 'lazy');
+      row.appendChild(shot);
+    }
     return row;
   }
 
@@ -991,9 +1203,90 @@
     return value && findCustomer(value) ? value : null;
   }
 
+  function resetEntryFormAfterSave() {
+    var amountInput = byId('entry-amount');
+    if (amountInput) {
+      amountInput.value = '';
+    }
+    var noteInput = byId('entry-note');
+    if (noteInput) {
+      noteInput.value = '';
+    }
+    var shotInput = byId('shot-input');
+    if (shotInput) {
+      try {
+        shotInput.value = '';
+      } catch (error) {
+        /* clearing a file input is best effort; the node itself never moves */
+      }
+    }
+  }
+
+  function finishSavedEntry(entry, imageWarning) {
+    var message = byId('entry-msg');
+    state.entries.push(entry);
+    var outcome = persistEntryWithShot(entry);
+    renderAll();
+    resetEntryFormAfterSave();
+
+    var text = entry.type === 'payment' ? 'Payment saved.' : 'Credit saved.';
+    if (imageWarning) {
+      text += ' ' + imageWarning;
+    }
+    if (outcome.photoDropped) {
+      text += ' ' + PHOTO_WARNING;
+    }
+    setMessage(message, text, false);
+  }
+
+  function saveEntryWithoutImage(entry) {
+    finishSavedEntry(entry, '');
+  }
+
+  function saveEntryWithImage(entry, file) {
+    var message = byId('entry-msg');
+    setMessage(message, 'Saving the payment and its screenshot\u2026', false);
+    withTimeout(processShotFile(file), SHOT_TIMEOUT_MS, { error: 'timeout' }).then(
+      function (result) {
+        savingEntry = false;
+        try {
+          if (result && result.dataUrl) {
+            entry.shot = result.dataUrl;
+            finishSavedEntry(entry, '');
+          } else {
+            finishSavedEntry(entry, shotWarningFor(result ? result.error : 'unreadable'));
+          }
+        } catch (error) {
+          setMessage(
+            message,
+            'Could not finish saving this entry. Please try again.',
+            true
+          );
+        }
+      },
+      function () {
+        savingEntry = false;
+        try {
+          finishSavedEntry(entry, shotWarningFor('unreadable'));
+        } catch (error) {
+          setMessage(
+            message,
+            'Could not finish saving this entry. Please try again.',
+            true
+          );
+        }
+      }
+    );
+  }
+
+  var savingEntry = false;
+
   function handleSaveEntry(event) {
     if (event) {
       event.preventDefault();
+    }
+    if (savingEntry) {
+      return;
     }
     var message = byId('entry-msg');
     var phone = selectedEntryPhone();
@@ -1021,24 +1314,27 @@
     var noteInput = byId('entry-note');
     var note = noteInput ? String(noteInput.value || '') : '';
 
-    state.entries.push({
+    var entry = {
       id: newEntryId(),
       phone: phone,
       type: type,
       amountPaise: parsed.paise,
       date: date,
       note: note
-    });
-    persist();
-    renderAll();
+    };
 
-    if (amountInput) {
-      amountInput.value = '';
+    var shotInput = byId('shot-input');
+    var file = null;
+    if (type === 'payment' && shotInput && shotInput.files && shotInput.files.length) {
+      file = shotInput.files[0];
     }
-    if (noteInput) {
-      noteInput.value = '';
+    if (!file) {
+      saveEntryWithoutImage(entry);
+      return;
     }
-    setMessage(message, type === 'payment' ? 'Payment saved.' : 'Credit saved.', false);
+
+    savingEntry = true;
+    saveEntryWithImage(entry, file);
   }
 
   function handleImport() {

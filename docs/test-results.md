@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.6
+Version: 0.7
 Updated: 2026-11-17
 Owner: Tester
-Supersedes: test-results.md v0.5
+Supersedes: test-results.md v0.6
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -347,3 +347,79 @@ Notes:
 - Still not run (later gates): C-07 (P3), C-24–C-32/C-35/C-36/C-38 (P3/P4), U-01/U-04 already covered at P1; I-03/I-08 (P3), I-09 (N5, P1 path), N-01…N-04, N-06, F-02 (P6).
 - Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map R3/R8/N4 to E2E-P2-01…05 + F-01 and drop the P2 `TBD`s; `worklog.md` needs the RUN-5 line and the P2 gate entry.
 - The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html 669c644fb999…`, `app/app.js c5a8ccc60be6…`, `app/styles.css 24239b30acdd…`.
+
+### RUN-6 | 2026-11-17 17:29 EST | phase P3 | gate P3 (pre-gate verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for C-20, E2E-P0-03, E2E-P1-05, E2E-P2-05; light scheme plus emulated `prefers-color-scheme: dark` for C-21/E2E-P0-03; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 8 spec files.
+
+Cases: 42/42 passed | Failing: none
+- P0 regression: 23/23 (C-01–C-03, C-09–C-23, C-39, N-05, E2E-P0-01–03)
+- P1 regression: 8/8 (E2E-P1-01…08)
+- P2 regression: 5/5 (E2E-P2-01…05) + **F-01** 50 datasets, seed `20261117`, green
+- P3 gate: 5/5 (E2E-P3-01, E2E-P3-02, E2E-P3-03, E2E-P3-04, E2E-P3-05)
+
+Bugs filed: none | Bugs closed: none
+
+Evidence:
+
+```
+$ npx playwright test
+Running 42 tests using 1 worker
+  ✓ 19 [chromium] › e2e/p3.spec.js › E2E-P3-01 (C-07) reminder href for normal, &, +/%, Telugu, Devanagari, zero and negative balances (329ms)
+E2E-P3-02 image sizes: original 5280583 bytes, stored 157319 chars
+  ✓ 20 [chromium] › e2e/p3.spec.js › E2E-P3-02 (I-03/N-03) payment with a 3 MB+ image: thumbnail in the right entry, stored under 200 KB, survives reload (942ms)
+  ✓ 21 [chromium] › e2e/p3.spec.js › E2E-P3-03 credit with an image and payment without one both save with no img[data-shot] (393ms)
+  ✓ 22 [chromium] › e2e/p3.spec.js › E2E-P3-04 (I-08/N-03) quota failure saves the payment without the image and warns; a later save persists (696ms)
+  ✓ 23 [chromium] › e2e/p3.spec.js › E2E-P3-05 a non-image file and an undecodable image save the entry without a photo and warn (387ms)
+  ... 23 P0 + 8 P1 + 5 P2 + F-01 green ...
+  42 passed (17.5s)
+
+$ npx playwright test --list | tail -1
+Total: 42 tests in 8 files
+```
+
+Image sizes (measured, not asserted from the app):
+
+```
+generated original : 5,280,583 bytes (5.03 MB) decodable JPEG, 2600x2000, canvas in the page
+stored data URL    : 157,319 characters (153.6 KB)  ->  under the 204,800-character (200 KB) budget
+thumbnail src      : data:image/... on exactly one img[data-shot], inside the payment's own li[data-entry-id]
+after reload       : same entry, byte-identical src
+```
+
+Reminder cases asserted by E2E-P3-01 (5 rows, `#entries` imported via `#import-box`):
+
+```
+9000000101  "Ravi Kumar"            balance "670"       -> contains "Ravi Kumar" and "Rs 670"
+9000000102  "Anna & Sons"           balance "0"         -> "&" encoded as %26, no raw & in href
+9000000103  "Plus + Percent %"      balance "-250.25"   -> "+"/"%" encoded as %2B/%25, negative rendered
+9000000104  "రవి కుమార్"             balance "1500.50"   -> unicode round-trips, "Rs 1500.50"
+9000000105  "रवि कुमार"              balance "42"        -> Devanagari round-trips, "Rs 42"
+each: exactly one a[data-remind="<phone>"], href == "https://wa.me/91" + phone + "?text=" + encodeURIComponent(message),
+      no extra query parameter, encodeURIComponent(decoded) === encoded
+```
+
+Non-vacuity check (mutant copy in `/tmp` served on :4174; the real `app/` was never touched): the reminder message was left unencoded and the original image was stored instead of the downscaled JPEG. The P3 suite failed 3/5 with exact mismatches:
+
+```
+E2E-P3-01: Error: 9000000101 encoding must round-trip exactly
+           Expected: "Namaste Ravi Kumar, your balance is Rs 670."
+           Received: "Namaste%20Ravi%20Kumar%2C%20your%20balance%20is%20Rs%20670."
+E2E-P3-02: img[data-shot] Expected 1, Received 0 (oversized original dropped on render)
+E2E-P3-04: #entry-msg expected /screenshot|photo|image/i, received "Payment saved."
+```
+
+Verdict: PASS
+
+Notes:
+
+- **Reminder (R6) is exact**: one link per row, the literal `https://wa.me/91<phone>?text=` prefix, no extra query parameter, and `encodeURIComponent(decoded) === encoded` proves the message is encoded once and correctly for `&`, `+`, `%`, Telugu and Devanagari. Zero and negative balances still link and carry `Rs 0` / `Rs -250.25`.
+- **Screenshot (R5)**: a 5.0 MB JPEG is stored as a 153.6 KB data URL, renders as exactly one `img[data-shot]` inside the payment's own `li[data-entry-id]`, survives reload with a byte-identical `src`, and never appears on a credit entry or a payment saved without a file. `#shot-input` stays static inside `#entry-form` throughout.
+- **Quota (N5/I-08)**: with `Storage.prototype.setItem` throwing, the payment is still saved (2 entries, balance `700`), the image is dropped, `#storage-msg` and `#entry-msg` both warn, and after restoring storage the next save persists the whole in-memory state (3 entries, balance/total `650` after reload).
+- **Bad files**: a `text/plain` file and an undecodable `image/png` both save the entry without a photo, with a readable warning, no console error and a still-enabled `#entry-save`.
+- **C-38 (OCR) is P4** (D5) and deliberately not exercised at P3; only `#shot-input`/`#entry-save` availability is asserted here. `docs/TEST-CASES.md` v0.8 adds E2E-P3-01…05 and the P3 mapping (C-07 → E2E-P3-01, I-03 → E2E-P3-02, I-08 → E2E-P3-04, N-03 → E2E-P3-02/04, C-38 → P4). No existing case, ID, or expected value changed.
+- P0–P2 regression is untouched and green (37/37 within the 42), including the sample import, the 50-shop fuzz, no console errors, no external requests, Vercel shape (C-23), dark contrast (C-21) and 375 px (C-20).
+- Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map R5/R6 to E2E-P3-01…05 (and C-07/I-03/I-08/N-03 to them) and drop those `TBD`s; `worklog.md` needs the RUN-6 line and the P3 gate entry.
+- The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html 669c644fb999…`, `app/app.js 3049401a8749…`, `app/styles.css 291bc99cf82a…`.

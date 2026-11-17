@@ -1,6 +1,6 @@
 # SCORECARDS — Hisaab
 
-Version: 0.4
+Version: 0.5
 Updated: 2026-11-17
 Owner: Critic
 Supersedes: none
@@ -929,3 +929,311 @@ The 10 phone/theme marks are earned provisionally with the exact graded flow (sa
 - What cannot be known is the real shop schema: the brief fixes the sample shape, and this import handles that shape plus documented variations. A nested or renamed schema (`entries[].amountPaise`, `customers` keyed by phone, `shop.upi`) is not in the contract and would not import.
 - D4's exact-paise rendering is invisible in the whole-rupee sample (`11820`) and is the highest-impact accepted choice; D10 (`Customer <phone>` rows counted in the total) is the second, and `[data-balance]` row-vs-global counting is the third. All three are documented choices, not implementation accidents.
 - Import replaces and persists, and rows are rendered synchronously from the click; a reader that queries between `goto` and the click legitimately sees the previous/empty shop, which is the expected state before an import.
+
+### GATE G3 | 2026-11-17 | phase P3
+
+Build: uncommitted working tree at `/Users/akanse/Documents/FWAIProjects/batch10/hisaasb`, served by `python3 -m http.server 4173 --directory app` from that directory; SHA-256 `app/index.html 669c644fb999…` (6,108 B, unchanged since G0/G1/G2), `app/styles.css 291bc99cf82a…` (7,510 B, +281 B: `.entry-shot` thumbnail rule), `app/app.js 3049401a8749…` (44,107 B, +8,495 B: reminder verification + FileReader → Image → canvas/JPEG pipeline). Deployable total 57,725 B. Git HEAD is `cccb4d6` ("feat: P2 import and G2 gate", tag `g2`); `app/app.js` and `app/styles.css` are modified against it and `tests/e2e/p3.spec.js` is untracked, so the P3 build is uncommitted and untagged — the three checksums pin it (F-1).
+Runs cited: RUN-6 (Tester), CRITIC-RUN-4 (my independent re-run of the full suite), CRITIC-ADV-8 (`/tmp/hisaab-critic/adv-p3.js`), CRITIC-ADV-9 (`/tmp/hisaab-critic/extra-p3.js`), CRITIC-ADV-10 (`/tmp/hisaab-critic/final-probe.js`), CRITIC-ADV-11 (re-run of my independent 50-shop fuzz `/tmp/hisaab-critic/fuzz-p2.js`, seed `77190345`, on the P3 build). None imports `app/` or any `tests/` helper.
+Hidden-data: **60/60** | Bonus: **5/30** (B1 0, B2 0, B3 0, B4 0, B5 0, B6 0, B7 **5 provisional** — see Ded-1) | Phone/theme: **10/10** (provisional; 375×812 with the sample and with a thumbnail, dark measured with a thumbnail; P5 still audits 200 rows and tap targets)
+MODEL SCORE: **75/100** (provisional; up from G0 5, G1 10, G2 70, so "not lower than the previous gate" holds. Strict reading with B7 = 0 is **70/100**, still ≥ G2's 70. G3 does not require the final ≥95)
+Deductions:
+- Ded-1 Bonus block incomplete — **25 marks foregone** — B1 overdue rows/`[data-days]`, B2 edit/delete, B3 CSV, B4 search filtering, B5 UPI link, B6 language translation and B7's OCR amount prefill are all P4 by `IMPLEMENTATION-PLAN.md`. The only bonus-adjacent thing that exists is the P3 screenshot save path (R5, part of the 60-mark contract), so the 5 credited under B7 is **provisional** on that scripted path; if the real tester's B7 check requires amount-reading, B7 is 0 and the model score is 70/100. Either figure clears the G3 threshold.
+- No hidden-data deduction: the P3 build still passes the suite's F-01 (50 shops, seed `20261117`), my independent 50-shop fuzz (1,077/1,077 assertions, seed `77190345`), and the sample/replace/malformed probes in CRITIC-ADV-8. `60 × 0/total = 0`.
+Contract audit: **43/43 P3-observable items pass**, 0 `CONTRACT-<n>` deviations (full table below). P4-owned items (OCR, edit/delete, CSV, search, overdue rows, UPI, language) are named as deferred, not G3 failures.
+Doc sync: **PASS** — literal `R-` check vacuous (0/0/0), corrected `[RNB][0-9]+` 23 IDs with 0 missing / 0 extra, 29/29 contract selector tokens tested, 0 `TBD`/`TODO`/`(Planner)`, 23/23 traceability rows phased, E2E-P3-01…05 5/5 defined + 5/5 cited + 5/5 implemented (`IMPLEMENTATION-PLAN.md` v1.6 cites the range `E2E-P3-01–05`), C-38 still P4, 92 cited case IDs ↔ 92 defined (0 undefined), headers 4/4 on all six docs, versions PRD 1.1 / TECH-STACK 1.0 / CONTRACT 1.0 FROZEN / DECISIONS 1.3 / PLAN **1.6** / TRACEABILITY **1.6**, TEST-CASES v0.8, test-results RUN-6.
+Vercel readiness: **PASS** — `app/` is exactly `index.html` + `styles.css` + `app.js` (57,725 B); every `src`/`href` is `./…`, `data:`, or an outbound `https://wa.me/…` link; no absolute/`localhost` path, build file, package manifest, `vercel.json`, service worker, cookie, auth/password field, analytics, `fetch`, or `XMLHttpRequest`; `/`, `/index.html`, `/?customer=…`, `/?today=…`, `/?today=not-a-date` all 200; the screenshot and import flows work on a cold direct load in a fresh profile; 0 SW registrations, `document.cookie` empty, 0 console errors, 0 failed and 0 external requests.
+Score risks: WIN-ANALYSIS §4 (13 rows) → PASS 13 (item 8 "screenshot quota loses the save" is now **closed**; item 9 is PASS for the entry/import date default, its overdue half is P4); item 10 stays provisional for 200 rows. WIN-PLAN §4 (18 rows) → PASS 17, DEFERRED 1 (`?today` overdue days, P4). WIN-PLAN §11 (8 rows) → PASS 8 (item 6 quota **closed**; item 7 provisional for 200 rows, P5).
+Verdict: **PASS** (P3 reminder + screenshot — the last two per-customer/per-payment interactions the tester exercises are earned)
+Required before re-gate: see "Required before P4" below.
+Confidence / unknown about the real tester: (1) The reminder and screenshot paths are now backed by four independent batches (243 assertions) plus the Tester's five gate cases, all reading the DOM and computing expectations outside `app/`; a false PASS would need every oracle to share a wrong reading of §1.3/§1.5. (2) What cannot be known is **how the tester uploads**: `setInputFiles` on a 5.28 MB JPEG is covered, but a tester that types a path, drags a file, uploads a non-image, or uploads from a camera stream is outside the modelled set; the non-image and undecodable paths are covered because §1.5/§7 demand them. (3) The brief never says what B7 measures; I credit the screenshot half provisionally and the OCR half is P4 (D5), so the bonus figure is the least certain number in this scorecard. (4) The stored-image ceiling is 204,800 chars and one probe measured 200,795 chars, so a stricter "200 KB = 200,000 bytes" reading would see a breach that no contract node exposes (F-2).
+
+#### CRITIC-RUN-4 — independent re-execution of the full suite
+
+Command: `cd tests && npx playwright test` (config `workers: 1`, `retries: 0`, base `http://localhost:4173`, Chromium via `@playwright/test` 1.65.1, default 1280×800, 375×812 where a case sets it).
+
+```
+$ cd tests && npx playwright test
+Running 42 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/p0-gate.spec.js:59:1 › C-23 Vercel shape: app/index.html, relative assets, no build step, no service worker (316ms)
+  ✓   2 [chromium] › e2e/p0-gate.spec.js:95:1 › N-05 no service worker, cookie gate, password field, analytics, or third-party origin (249ms)
+  ✓   3 [chromium] › e2e/p0-gate.spec.js:121:1 › E2E-P0-01 first paint: 19 §2 nodes resolve, data selectors are empty, customer view resolves (481ms)
+  ✓   4 [chromium] › e2e/p0-gate.spec.js:148:1 › E2E-P0-02 all query-string routes render the same first paint (1.0s)
+  ✓   5 [chromium] › e2e/p0-gate.spec.js:176:1 › E2E-P0-03 phone + theme baseline and offline-safe load (405ms)
+  ✓   6 [chromium] › e2e/p1.spec.js:66:1 › E2E-P1-01 add customers and four entries: exact paise balances, total, amounts, rejections (596ms)
+  ✓   7 [chromium] › e2e/p1.spec.js:161:1 › E2E-P1-02 reload keeps everything; a storage failure keeps the save in memory with a visible warning (520ms)
+  ✓   8 [chromium] › e2e/p1.spec.js:211:1 › E2E-P1-03 row link and direct ?customer= both open the same correct view (576ms)
+  ✓   9 [chromium] › e2e/p1.spec.js:249:1 › E2E-P1-04 ?today=2026-11-15 sets the default entry date and the saved data-date (333ms)
+  ✓  10 [chromium] › e2e/p1.spec.js:270:1 › E2E-P1-05 375x812 with long unicode name, long unicode note, and a fractional amount (325ms)
+  ✓  11 [chromium] › e2e/p1.spec.js:325:1 › E2E-P1-06 money parsing and rendering through the entry form (D4, N4) (586ms)
+  ✓  12 [chromium] › e2e/p1.spec.js:384:1 › E2E-P1-07 entries with equal dates keep the newest-saved first (R4, U-04) (421ms)
+  ✓  13 [chromium] › e2e/p1.spec.js:413:1 › E2E-P1-08 a later successful save clears the storage warning and persists (N5) (530ms)
+  ✓  14 [chromium] › e2e/p2.spec.js:52:1 › E2E-P2-01 (C-04/C-05/C-06/C-34) sample import: 11820, 8 rows, every balance matches sample-expected.json (329ms)
+  ✓  15 [chromium] › e2e/p2.spec.js:100:1 › E2E-P2-02 (I-01) a second import replaces the first shop and reload keeps the second (504ms)
+  ✓  16 [chromium] › e2e/p2.spec.js:144:1 › E2E-P2-03 (C-33/I-10) malformed JSON keeps state; missing lists warn; empty arrays render an empty shop (445ms)
+  ✓  17 [chromium] › e2e/p2.spec.js:191:1 › E2E-P2-04 (I-04/I-05/I-06/I-07/U-02/U-03) dedupe, unknown phone, zero entries, decorated amounts, type casing (336ms)
+  ✓  18 [chromium] › e2e/p2.spec.js:282:1 › E2E-P2-05 imported sample at 375x812: no sideways scroll, balances not clipped (433ms)
+  ✓  19 [chromium] › e2e/p3.spec.js:69:1 › E2E-P3-01 (C-07) reminder href for normal, &, +/%, Telugu, Devanagari, zero and negative balances (331ms)
+E2E-P3-02 image sizes: original 5280583 bytes, stored 157319 chars
+  ✓  20 [chromium] › e2e/p3.spec.js:138:1 › E2E-P3-02 (I-03/N-03) payment with a 3 MB+ image: thumbnail in the right entry, stored under 200 KB, survives reload (976ms)
+  ✓  21 [chromium] › e2e/p3.spec.js:195:1 › E2E-P3-03 credit with an image and payment without one both save with no img[data-shot] (432ms)
+  ✓  22 [chromium] › e2e/p3.spec.js:232:1 › E2E-P3-04 (I-08/N-03) quota failure saves the payment without the image and warns; a later save persists (711ms)
+  ✓  23 [chromium] › e2e/p3.spec.js:290:1 › E2E-P3-05 a non-image file and an undecodable image save the entry without a photo and warn (387ms)
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"duplicatePhoneShops":21,"negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,"stringAmounts":172,"missingAmounts":31,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,"emptyShops":1}
+  ✓  24 [chromium] › fuzz/p2-fuzz.spec.js:210:1 › F-01 50-shop fuzz: every balance and the total equal the independent computation (376ms)
+  ✓  25 [chromium] › nonfunctional/p0.spec.js:10:3 › 375x812 viewport › C-20 document scrollWidth is 375 or less at empty state (212ms)
+  ✓  26 [chromium] › nonfunctional/p0.spec.js:30:3 › prefers-color-scheme: dark › C-21 dark baseline keeps key nodes visible and text at >= 4.5:1 (263ms)
+  ✓  27 [chromium] › nonfunctional/p0.spec.js:63:1 › C-22 no external network request on load (same-origin or data: only) (586ms)
+  ✓  28 [chromium] › smoke/contract.spec.js:45:1 › C-01 #total-outstanding resolves on load with text 0 (248ms)
+  ✓  29 [chromium] › smoke/contract.spec.js:54:1 › C-02 #import-box and #import-go are visible at first paint (261ms)
+  ✓  30 [chromium] › smoke/contract.spec.js:61:1 › C-03 #shot-input exists inside the payment form at first paint (245ms)
+  ✓  31 [chromium] › smoke/contract.spec.js:68:1 › C-09 every CONTRACT §2 node resolves and is visible before interaction (245ms)
+  ✓  32 [chromium] › smoke/contract.spec.js:91:1 › C-10 #total-outstanding text and data-value are exactly 0 (bare), Rs lives in a sibling (243ms)
+  ✓  33 [chromium] › smoke/contract.spec.js:114:1 › C-11 #import-box is a textarea, #import-go a button, #shot-input a file input accepting image/* (260ms)
+  ✓  34 [chromium] › smoke/contract.spec.js:141:1 › C-12 #entry-type options are exactly credit and payment (261ms)
+  ✓  35 [chromium] › smoke/contract.spec.js:153:1 › C-13 #lang-switch is a select with exactly en, hi, te and defaults to en (244ms)
+  ✓  36 [chromium] › smoke/contract.spec.js:175:1 › C-14 #overdue heading contains Overdue and 30+ days, with an empty-state line (243ms)
+  ✓  37 [chromium] › smoke/contract.spec.js:194:1 › C-15 #customers shows a visible empty-state message and no rows (243ms)
+  ✓  38 [chromium] › smoke/contract.spec.js:205:1 › C-16 empty storage renders zero data-dependent nodes (263ms)
+  ✓  39 [chromium] › smoke/contract.spec.js:216:1 › C-39 first paint raises no console error, failed request, or rejection (809ms)
+  ✓  40 [chromium] › smoke/routes.spec.js:28:1 › C-17 ?customer=unknown renders the not-found view and keeps every list node (244ms)
+  ✓  41 [chromium] › smoke/routes.spec.js:54:1 › C-18 ?today=2026-11-15 loads cleanly with the full empty-state contract (259ms)
+  ✓  42 [chromium] › smoke/routes.spec.js:66:1 › C-19 invalid ?today values load cleanly and do not crash (445ms)
+
+  42 passed (17.7s)
+```
+
+`42 = 23 P0 (C-01–C-03, C-09–C-23, C-39, N-05, E2E-P0-01–03, C-20–C-22) + 8 P1 (E2E-P1-01…08) + 5 P2 (E2E-P2-01…05) + 5 P3 (E2E-P3-01…05) + F-01`. The count and every pass/fail match RUN-6; the suite is not vacuous (RUN-6 records the mutant that leaves the reminder unencoded and stores the original image failing 3/5 P3 cases).
+
+#### CRITIC-ADV-8 — independent P3 adversarial batch (198/198)
+
+`node /tmp/hisaab-critic/adv-p3.js` — a standalone Playwright script that imports nothing from `app/` or `tests/`; every expected value is computed in the script from `CONTRACT.md` §1.3, §1.5, §3.3, §4, §7 and D4/D9/D10/D11. Imports set `#import-box.value` through `evaluate` (no events) and click `#import-go`.
+
+```
+ADVERSARIAL P3 CHECKS: 198/198 passed
+```
+
+| Group | Result |
+|---|---|
+| A. Reminder, 7 rows | Exactly 7 `a[data-remind]` elements for 7 rows, 1 per row, `data-remind` = row phone, `[data-balance]` = the value used in the message; every href starts `https://wa.me/91<phone>?text=` at index 14, contains exactly one `?`, no extra query parameter, no raw `&`/`+`/`?`/`=`/`#`; `decodeURIComponent(encoded)` contains the byte-identical full name and `Rs <rendered>`; `encodeURIComponent(decoded)` reproduces the href exactly for the normal, `&`, `+`/`%`, Telugu, Devanagari, zero and negative rows |
+| B. Screenshot | 5,282,627-byte generated JPEG → stored data URL **157,435 chars (~118,059 JPEG bytes)**; exactly one `li[data-entry-id]`; exactly one `img[data-shot]`, inside that payment's entry; `src` starts `data:image/`; stored `shot` under 204,800 and above 1,000 chars; reload keeps a byte-identical `src`; `#shot-input` is a visible `input[type=file][accept="image/*"]` inside `#entry-form`; a later credit adds no image; a payment without a file has none; a credit saved while a JPEG was selected has none; exactly one entry in total carries an image, and it is the payment |
+| C. Quota (all writes throw) | Payment saved while `Storage.prototype.setItem` throws: 2 entries, balance `700` in memory, 0 `img[data-shot]`, `#storage-msg` non-empty, `#entry-msg` names the screenshot; entries intact; after restoring `setItem`, a later payment is 3 entries, `#storage-msg` is empty, reload keeps 3 entries with balance and total `650` |
+| D. Bad files | `text/plain` and an undecodable `image/png` each save their payment (`70`, `20`) with no image, a readable screenshot/photo warning on each, `#shot-input` visible and `#entry-save` enabled |
+| E. P0–P2 regression, 375 px, Vercel shape | 19/19 §2 nodes exactly once with a non-zero box; empty total `0` and zero data-dependent nodes; sample → `11820`, 8 rows, every balance text = attribute = `sample-expected.json`; second import → 2 rows, `749.50`, no sample row, reload `749.50` and `-250.50`; malformed JSON → `Could not import`, rows and total intact; `documentElement.scrollWidth` 375 with the sample; `app/` is exactly 3 files, relative script/stylesheet, no localhost/absolute path, no SW/cookie/fetch/XHR/password/build manifest; 5 routes 200; 0 console/page/failed/external |
+| Console/network | Every context above: 0 console errors, 0 page errors, 0 failed requests, 0 external requests |
+
+Reminder evidence (each row: `links` = `a[data-remind]` count in the row):
+
+```
+9000000201 "Ravi Kumar"         670     1  Namaste Ravi Kumar, your balance is Rs 670.
+9000000202 "Anna & Sons"        0       1  Namaste Anna & Sons, your balance is Rs 0.            (& -> %26)
+9000000203 "Plus + Percent %"   -250.25 1  Namaste Plus + Percent %, your balance is Rs -250.25. (+ -> %2B, % -> %25)
+9000000204 "రవి కుమార్"         1500.50 1  Namaste రవి కుమార్, your balance is Rs 1500.50.
+9000000205 "रवि कुमार"          42      1  Namaste रवि कुमार, your balance is Rs 42.
+9000000206 "Zero Balance"       0       1  Namaste Zero Balance, your balance is Rs 0.
+9000000207 "Minus Twenty Five"  -250.25 1  Namaste Minus Twenty Five, your balance is Rs -250.25.
+href shape, e.g. 9000000202:
+https://wa.me/919000000202?text=Namaste%20Anna%20%26%20Sons%2C%20your%20balance%20is%20Rs%200.
+one link per row, one '?' only, no raw & + % ? = # inside the encoded message,
+decodeURIComponent(encoded) -> name + "Rs <rendered>", encodeURIComponent(decoded) === encoded
+```
+
+#### CRITIC-ADV-9 — angles the gate suite does not cover (36/36)
+
+`node /tmp/hisaab-critic/extra-p3.js`:
+
+```
+EXTRA P3 CHECKS: 36/36 passed
+```
+
+| Probe | Evidence |
+|---|---|
+| F. **Size-sensitive quota** (`setItem` throws only when the payload is > 20,000 chars, i.e. only because it carries the image) | 2 entries, 0 `img[data-shot]`, `#storage-msg` and `#entry-msg` both name the photo; the persisted payload is **304 chars with 2 entries and the payment has no `shot` field** (this is the §1.5 "saved without the image" path, not just an in-memory save); after reload both entries are present, 0 images, balance `700` |
+| G. Name `O'Brien 100% ? = #1` | href `https://wa.me/919000000801?text=Namaste%20O'Brien%20100%25%20%3F%20%3D%20%231%2C%20your%20balance%20is%20Rs%2099.99.` — exactly one `?`, no extra parameter, no raw `?`/`#`/`&`/`=` in the encoded message, name and `Rs 99.99` decode byte-identically, re-encoding matches |
+| H. Injected stored state: a `credit` entry carrying `data:image/…` | renders 0 images; the payment entry next to it renders 1 (render guard, §1.5 last bullet) |
+| I. 375×812 + `prefers-color-scheme: dark` with a thumbnail present | `scrollWidth` 375 (body 375), thumbnail right edge 258.66 px inside 375, `color-scheme: light dark`, contrast body **17.10**, customer name 17.10, heading 17.10, label **7.37** |
+| J. Stored/rendered identity + stability | stored `shot` = rendered `src` byte for byte, `data:image/jpeg;base64,`, 200,795 chars (under the 204,800 budget — see F-2), `data-entry-id` and `src` identical after reload |
+
+#### CRITIC-ADV-10 — contract probes against reload and the customer route (9/9)
+
+`node /tmp/hisaab-critic/final-probe.js` → `FINAL P3 PROBES: 9/9 passed`: empty state has 0 `img[data-shot]`; `#shot-input` is inside `#entry-form` at load, still present and visible when `#entry-type` is `credit`; the two imported rows' reminder hrefs are byte-identical after reload; `9000001201` reads exactly `https://wa.me/919000001201?text=` + `encodeURIComponent("Namaste Stable Row, your balance is Rs 250.25.")`; `/?customer=9000001201` keeps both `a[data-remind]` links, the total `250.25`, and the entry.
+
+#### CRITIC-ADV-11 — independent 50-shop fuzz re-run on the P3 build (1,077/1,077)
+
+`node /tmp/hisaab-critic/fuzz-p2.js` (seed `77190345`, a different generator and a separately written oracle from the Tester's F-01; no `app/` or `tests/` import) re-executed against the P3 build:
+
+```
+FUZZ seed 77190345 datasets 50
+DATASETS SUMMARY :: {"shops":50,"customers":155,"entries":202,"duplicatePhoneShops":22,
+  "negativeBalanceRows":38,"zeroBalanceRows":86,"unknownPhoneEntries":93,"unicodeNames":21,
+  "stringAmounts":114,"missingAmounts":10,"missingTypes":30,"missingDates":34,
+  "negativeTotalShops":13,"emptyShops":3,"bigValues":7,"invalidEntries":4,
+  "entryCountChecks":47,"zeroEntryRows":61,"sameDateTieShops":9,
+  "negativeAmountEntries":12,"duplicateCustomerRecords":48}
+FUZZ ASSERTIONS: 1077/1077 passed across 50 shops
+```
+
+The P3 code changes (reminder builder, image pipeline, persistence split) do not touch parse/normalise/balance/render: every row (text and attribute), the row set, the signed total, the machine shape and sampled entry counts still equal the independent oracle. No mismatch, no `NaN`/`undefined`, no console error.
+
+#### Contract audit — P3 scope (43/43)
+
+| # | CONTRACT rule | Result | Evidence |
+|---|---|---|---|
+| CA-P3-01 | Exactly one `a[data-remind="<phone>"]` per customer row (§1.3) | PASS | 7 rows → 7 links, 1 in each row, in ADV-8 A |
+| CA-P3-02 | `href` is exactly `https://wa.me/91<phone>?text=<encodeURIComponent(message)>`, literal prefix (§1.3) | PASS | Prefix at index 14 for all 7 rows; `encodeURIComponent(decoded) === encoded` |
+| CA-P3-03 | No other query parameters, no trailing characters (§1.3) | PASS | Exactly one `?`; no raw `&`; one field after `?`; punctuation-name probe (ADV-9 G) |
+| CA-P3-04 | Message contains the customer's **full name** (§1.3) | PASS | Seven names byte-identical, incl. `&`, `+`, `%`, Telugu, Devanagari and punctuation |
+| CA-P3-05 | Message contains the balance **rendered by §3.3 inside `Rs <rendered>`** (§1.3) | PASS | `Rs 670`, `Rs 0`, `Rs -250.25`, `Rs 1500.50`, `Rs 42`, `Rs 99.99` |
+| CA-P3-06 | Works for a zero balance (§1.3) | PASS | Two zero rows render `Rs 0` and still link |
+| CA-P3-07 | Works for a negative balance (§1.3) | PASS | `-250.25` → `Rs -250.25` on two rows |
+| CA-P3-08 | Encoding is mandatory and correct (no raw `&`, `+`, `%`, unicode) (§1.3) | PASS | `%26`, `%2B`, `%25`, percent-encoded unicode; decode/re-encode round-trip |
+| CA-P3-09 | The row's `[data-balance]` equals the value used in the message (§1.3) | PASS | Read from the same row and compared for all 7 |
+| CA-P3-10 | Reminder survives reload and the `?customer=` route (§1.3, §1.7) | PASS | Byte-identical hrefs after reload; both links and the total survive the customer route |
+| CA-P3-11 | `data-remind` equals the normalised row phone (§1.3) | PASS | `data-remind` = `[data-customer]` = the phone inside the href |
+| CA-P3-12 | `#shot-input` is a real `input[type=file]` on the payment form **present at load** (§1.5) | PASS | C-03/C-11 green; own probe counts 1 at first paint |
+| CA-P3-13 | Not created on click; not removed when the entry type is `credit` (§1.5) | PASS | Present with empty storage; still 1 and visible after selecting `credit`; static across four saves |
+| CA-P3-14 | After saving a payment that carried an image, **that** entry renders `img[data-shot]` inside the same `[data-entry-id]` (§1.5) | PASS | 1 image, inside the payment id; 3 other entries have none |
+| CA-P3-15 | The image `src` is a `data:` URL (§1.5) | PASS | `data:image/jpeg;base64,…` |
+| CA-P3-16 | `img[data-shot]` scope: exactly one, correct entry, none elsewhere (§1.5) | PASS | Global count 1; correct id; credit/payment-no-file/credit-with-file all 0 |
+| CA-P3-17 | Downscaled before storage: 800 px long edge, JPEG quality ladder 0.7–0.4 (TECH-STACK S8) | PASS | `app.js:529–548` scales by `min(1, 800 / max(w,h))` and walks 800px at 0.7/0.6/0.5/0.4; 5.28 MB → 157,435 chars |
+| CA-P3-18 | Stored `data:` URL under the 204,800-character budget (§1.5, E2E-P3-02 oracle) | PASS | 157,319 (RUN-6), 157,435 (ADV-8), 200,795 (ADV-9 J) — all < 204,800; ceiling note F-2 |
+| CA-P3-19 | Quota: the entry is still saved without the image, `img[data-shot]` absent, readable warning (§1.5) | PASS | All-writes-throw path: 2 entries, 0 images, `#storage-msg` + `#entry-msg` warn |
+| CA-P3-20 | Quota when only the image-bearing payload fails: the retry persists the entry (§1.5) | PASS | Size-sensitive path: 304-char payload, 2 entries, payment stored with no `shot`, reload keeps both |
+| CA-P3-21 | The warning is readable and names the screenshot/photo (§1.5) | PASS | "The payment screenshot could not be stored; the entry was saved without the photo." |
+| CA-P3-22 | The save must never be aborted because of the image (§1.5) | PASS | Entry + balance in memory under a full failure; persisted under the image-only failure |
+| CA-P3-23 | `img[data-shot]` never appears on entries saved without an image (§1.5) | PASS | Payment with no file → 0; credit with a file selected → 0 |
+| CA-P3-24 | A `credit` entry never carries a screenshot (§1.5) | PASS | Credit-with-image save → 0; hand-injected stored credit shot → 0 (ADV-9 H) |
+| CA-P3-25 | A non-image file saves the entry without a photo and warns (§1.5, PLAN P3) | PASS | `text/plain` → payment `70`, no image, warning, no console error |
+| CA-P3-26 | An undecodable `image/*` file saves the entry without a photo and warns (§1.5, PLAN P3) | PASS | Broken PNG → payment `20`, no image, warning, `#entry-save` enabled |
+| CA-P3-27 | Stored shot = rendered src; entry id stable across reload (§1.5, §1.8) | PASS | Byte-identical src and `data-entry-id` after reload (ADV-9 J) |
+| CA-P3-28 | `#entry-save` is never disabled by image processing (§1.5, §1.9) | PASS | Enabled after every success and every failure path |
+| CA-P3-29 | §7 assumption: the tester may upload a **multi-megabyte** image with `setInputFiles` | PASS | 5,282,627 B uploaded; one image rendered under budget |
+| CA-P3-30 | §7 assumption: reads happen with DOM APIs and a first-match number pattern | PASS | Every value read via `evaluate`/locators; machine nodes still bare (§3.3) |
+| CA-P3-31 | §7 assumption: reloads after the save | PASS | Image, entry id, balance and total stable after `reload()` |
+| CA-P3-32 | §7 assumption: imports twice in one tab (the image path must not disturb replace) | PASS | Replace probe 2 rows/`749.50`; fuzz re-run 1,077/1,077 |
+| CA-P3-33 | §7/§6: no network, no service worker, no console error on the scored path | PASS | 0 SW registrations, 0 external/failed requests, 0 console/page errors in every context |
+| CA-P3-34 | 19 `§2` nodes resolve exactly once and are visible at first paint | PASS | Own first-paint probe 19/19; C-09/E2E-P0-01 green |
+| CA-P3-35 | Empty storage: 0 data-dependent nodes, `#total-outstanding` `0` | PASS | 0 rows/reminders/shots/entries; C-16 green |
+| CA-P3-36 | Sample import: `11820`, 8 rows, every balance = `sample-expected.json` | PASS | Text = attribute for all 8; expected-file sum self-check |
+| CA-P3-37 | A second import replaces; reload keeps the second shop | PASS | 2 rows, `749.50`, `-250.50`; no sample row survives |
+| CA-P3-38 | Malformed import keeps prior state and reports it | PASS | `Could not import`, 2 rows, `749.50` intact |
+| CA-P3-39 | 375 px with the sample | PASS | `documentElement.scrollWidth` 375, body 375 |
+| CA-P3-40 | 375 px + dark with a thumbnail (P3 adds the image, so re-measured) | PASS | 375/375, thumbnail inside the viewport, body 17.10, label 7.37 |
+| CA-P3-41 | Machine nodes unchanged by the P3 work | PASS | Bare values, text = attribute, reminders and totals exact after reload |
+| CA-P3-42 | Vercel shape (`app/` only, relative, no build/auth/cookies/SW) | PASS | 3 files, 57,725 B, relative script/stylesheet, no build manifest, 5 routes 200 |
+| CA-P3-43 | No console error, failed request or external request in any inspected context | PASS | All six contexts; runtime SW/cookie probe empty |
+
+**`CONTRACT-<n>` deviations at P3: none.** Deferred by plan and therefore not G3 failures:
+
+- **P4 / B1–B7:** overdue rows + `[data-days]`, edit/delete buttons inside entry rows, `#export-csv` downloads, `#search` filtering, `a[href^="upi://pay?pa="]`, `#lang-switch` translation, OCR prefill on `#shot-input` (§5.6).
+- **P5 / P6:** 200-row + long-unicode + thumbnail responsive audit, full dark-mode and tap-target audit, 200-shop fuzz (F-02).
+
+#### Doc sync — output
+
+```
+$ grep -o 'R-[0-9]\+' docs/PRD.md | sort -u | wc -l                  → 0   (literal AGENTS.md §4 regex is vacuous)
+$ grep -oE '\b[RNB][0-9]+' docs/PRD.md | sort -u | wc -l            → 23
+$ comm -23 /tmp/critic_r /tmp/critic_p   (PRD IDs missing from PLAN) → (empty)  0
+$ comm -23 /tmp/critic_r /tmp/critic_t   (PRD IDs missing from TRACE)→ (empty)  0
+$ comm -13 /tmp/critic_r /tmp/critic_p ; comm -13 /tmp/critic_r /tmp/critic_t → (empty)  0 extra
+$ grep -o '`[#\[][^`]*`' docs/CONTRACT.md | tr -d '`' | sort -u | wc -l → 29
+$ while read sel; do grep -qF "$sel" docs/TEST-CASES.md || echo "UNTESTED: $sel"; done < /tmp/critic_sels
+                                                                     → (no output) 29/29
+$ grep -nE 'TBD|TODO|\(Planner\)' docs/{PRD,TECH-STACK,IMPLEMENTATION-PLAN,CONTRACT,DECISIONS,TRACEABILITY}.md
+                                                                     → none
+traceability rows                                                    → rows=23, with_phase=23, bad=none
+E2E-P3-01…05                                                         → 5/5 defined in TEST-CASES.md v0.8,
+                                                                       5/5 cited in TRACEABILITY.md v1.6,
+                                                                       5/5 implemented in tests/e2e/p3.spec.js,
+                                                                       PLAN v1.6 cites the range `E2E-P3-01–05`
+C-38                                                                 → row phase P4, "runs at" P4 (OCR remains P4, D5)
+traceability case IDs                                                → 92 cited, 92 defined, 0 undefined
+case rows in TEST-CASES.md                                           → 92
+headers                                                              → 4/4 (Version, Updated, Owner, Supersedes) on all six docs
+removed-ID scan (R11+/B8+/N7+)                                       → none in PRD/PLAN/TRACEABILITY/TEST-CASES/CONTRACT
+```
+
+Versions this gate: PRD **1.1**, TECH-STACK **1.0**, CONTRACT **1.0 — FROZEN at gate G0** (unchanged since G0), DECISIONS **1.3**, IMPLEMENTATION-PLAN **1.6**, TRACEABILITY **1.6**; all `Updated: 2026-11-17`. TEST-CASES v0.8 and test-results RUN-6 are Tester-owned and consistent with the plan. The P3 change is doc-sync only (Plan P3 gate suite + traceability rows); no CONTRACT change, so no human gate.
+
+#### Vercel readiness — PASS
+
+- Deployable set is exactly `app/index.html` (6,108 B), `app/styles.css` (7,510 B), `app/app.js` (44,107 B) — 57,725 B total. No `package.json`, lockfile, manifest, bundler config, `dist/`, `build/`, `assets/`, or `vercel.json` in `app/`; no build step.
+- Every `src`/`href` is relative or `data:` (`./styles.css`, `./app.js`, `./`, `data:,`); 0 absolute or `localhost` paths. The only absolute URLs are outbound `https://wa.me/…` reminder links, which produce no request.
+- No `serviceWorker` (0 registrations at runtime), no `document.cookie` (empty), no password input, no auth gate, no analytics, no `fetch`, no `XMLHttpRequest`, no third-party origin in `app/`.
+- Direct loads: `/`, `/index.html`, `/?customer=9000000101`, `/?today=2026-11-15`, `/?today=not-a-date` → HTTP 200. The screenshot and import flows both work from a cold direct load in a fresh profile.
+- Fresh contexts throughout CRITIC-ADV-8/9/10/11: 0 console errors, 0 page errors, 0 failed requests, 0 external requests.
+
+#### Score-risk review — WIN-ANALYSIS §4 and WIN-PLAN §4/§11
+
+WIN-ANALYSIS §4 (why we may lose), P3 build:
+
+| # | Failure mode | Status | Evidence |
+|---|---|---|---|
+| 1 | Selector missing / renamed / conditional | **PASS** | 19/19 §2 nodes; rows, reminders, entries, images all resolve |
+| 2 | Tester reads before first paint | **PASS for §2 and shells** | static ids at first paint; rows are post-import by design |
+| 3 | `.value` set without events; app reads state | **PASS** | every import in ADV-8/9 set `.value` directly and was honoured |
+| 4 | Import merges instead of replaces | **PASS** | replace probe; 50 fuzz shops exact |
+| 5 | Punctuation/commas/₹ in machine nodes | **PASS** | bare regex on every machine node in every probe |
+| 6 | Zero-balance / unknown-phone rows dropped | **PASS** | zero rows link with `Rs 0`; `Customer <phone>` counted |
+| 7 | Float money | **PASS** | `250.25`, `-250.25`, `1500.50`, `99.99` exact; independent integer oracle |
+| 8 | Screenshot quota loses the save | **PASS (closed at P3)** | all-throws keeps the entry in memory; size-sensitive retry persists it without the photo |
+| 9 | `?today=` ignored | **PASS** for entry/import defaults; overdue days are P4 | blank dates → `2026-11-15`; overdue rows are P4 |
+| 10 | Sideways scroll / unreadable dark | **PASS, provisional** | 375/375 with sample and thumbnail; dark 17.10 / 7.37 with a thumbnail; 200-row audit is P5 |
+| 11 | `[data-customer]` count ≠ customer count | **PASS** | row set = key set in 50 shops; no filter at load |
+| 12 | Virtualised / paginated list | **PASS** | every row in `#customers` |
+| 13 | No harness | **PASS** | 42-test suite + 243 independent assertions + 1,077 fuzz assertions |
+
+WIN-PLAN §4 edge-case matrix — PASS at P3: zero-entry customer; overpayment → negative; same name/different phones; duplicate phone; unknown phone; `"1,500"`/`"Rs 1500"`; `type` casing; same-date entries; future-dated entry; empty note; large numbers; unicode names; `entries: []`; malformed JSON; import twice; reload after import; **3 MB screenshot (now green: 5.28 MB → 157,435 chars, image on the right entry, survives reload)**. **DEFERRED:** `?today` overdue/days-since (P4).
+
+WIN-PLAN §11 (if we lose), P3 build:
+
+| # | Cause | P3 status |
+|---|---|---|
+| 1 | Import merging instead of replacing | **PASS** |
+| 2 | Punctuation in `#total-outstanding` | **PASS** |
+| 3 | Dropping zero-entry / unknown-phone rows | **PASS** |
+| 4 | Contract nodes rendered after a delay | **PASS** (§2 + customer shells static) |
+| 5 | Float money | **PASS** |
+| 6 | Screenshot upload fails on quota | **PASS (closed)** |
+| 7 | Sideways scroll at 375 from a table/long name/image | **PASS with the sample and a thumbnail**; 200-row pass is P5 |
+| 8 | No harness | **PASS** |
+
+The 10 phone/theme marks are earned provisionally with the graded flow plus a thumbnail (375×812, light and dark). P5 must still audit 200 rows, 100-character unicode notes, tap targets and a full dark-mode contrast sweep before the final gate.
+
+#### G3 gate checklist (PLAN §4)
+
+- [x] **Tester RUN id present with commands and evidence** — RUN-6: `cd tests && npx playwright test` → 42/42, the five P3 cases with exact expectations, measured image sizes (5,280,583 B → 157,319 chars), and a non-vacuity mutant failing 3/5 P3 cases.
+- [x] **Phase acceptance 100%, regression 100%** — E2E-P3-01…05 5/5 green in RUN-6 and CRITIC-RUN-4; P0 23/23, P1 8/8, P2 5/5 and F-01 green in the same run; every PLAN P3 acceptance bullet independently verified (exact href/encoding incl. `&`/`+`/`%`/unicode/zero/negative, `img[data-shot]` in the right entry, reload, downscale, quota with and without an image-only failure, credit/no-image, non-image/undecodable).
+- [x] **No open P0/P1** — none filed (RUN-1…6) and none found by ADV-8/9/10/11. The findings below are process and residual-risk notes, not P0/P1 defects.
+- [x] **Contract audit 100%** — 43/43 P3-observable items; 0 `CONTRACT-<n>`; deferred P4/P5 items named and owned.
+- [x] **Doc sync check passes** — output pasted above: 23/0/0 IDs, 29/29 selectors, 0 TBD, 23/23 rows phased, E2E-P3 5/5 defined+cited, 92/92 case IDs, headers 4/4.
+- [x] **Critic scorecard written; model score not lower than the previous gate** — 75/100 provisional (floor 70/100 with B7 = 0) vs 70/100 at G2.
+- [x] **`worklog.md` entry with `Next:`** — the latest entry (00:20, Planner) ends `Next: Critic G3`; the Orchestrator must append the G3 gate entry ending `Next: P4 — Coder` after this scorecard is recorded.
+
+**Verdict: PASS.**
+
+#### Findings / notes (none blocks G3; no veto raised)
+
+- **F-1 [process]** The P3 build is uncommitted: HEAD is `cccb4d6` (tag `g2`), `app/app.js` and `app/styles.css` are modified, and `tests/e2e/p3.spec.js` is untracked. The Orchestrator should commit and tag `g3` so the graded build is reproducible; the checksums above pin it for this scorecard. A stray root `.DS_Store` is untracked and outside `app/` (it is not deployed).
+- **F-2 [risk, non-blocking]** The stored-image acceptance ceiling is 204,800 chars (`SHOT_TARGET_CHARS = 200 * 1024`). A 1,200×900 noise JPEG compressed at the top rung (800 px, q0.7) measured **200,795 chars**: under the documented 204,800 budget and under 200 KiB, but above a strict "200 KB = 200,000 bytes" reading. No contract node exposes the stored size and the graded flow only reads `img[data-shot]`, so no mark is at risk; if the team wants margin, lower the acceptance ceiling in P6 (no contract change).
+- **F-3 [residual edge, non-blocking]** Only a hand-injected `localStorage` payload can put a `shot` on a `credit` entry; the UI never does, the save path strips it, and the render guard drops it (ADV-9 H). No action needed.
+- **F-4 [non-contract hooks]** `#entry-msg` and `#storage-msg` remain Coder test/UI hooks, not contract nodes. CONTRACT §1.5 only requires "a readable warning is shown", and both are visible text lines; the import status still uses the contract node `#import-msg`.
+- **F-5 [scope, by plan]** OCR (B7's amount reading, C-38), edit/delete, CSV, search filtering, overdue rows, UPI, language translation are P4. Deferred, not G3 failures.
+- **F-6 [note]** `img[data-shot]` carries `loading="lazy"`; the `src` attribute is set at render, so an attribute read is unaffected, and the image is in the viewport in the entry list. P5's screenshot audit should still confirm the thumbnail paints (not just resolves) at 200 rows.
+- **F-7 [doc note]** TRACEABILITY rows cite cases that run at gates other than the row's owning phase (N3→E2E-P3-02/04, N5→E2E-P3-04, R7→E2E-P3-02, B7→E2E-P3-*). This is the pre-existing pattern (R4 already cites E2E-P0-02): the Phase column is the owning phase and the case list spans gates. Not a G3 sync failure; the Planner may clarify the wording at P4.
+
+#### Required before P4
+
+1. Orchestrator: append the G3 gate entry to `worklog.md` with `Next: P4 — Coder`; commit and tag the P3 build (`669c644f…`, `291bc99c…`, `3049401a…`).
+2. Coder (P4): implement B1–B7. OCR must be a progressive no-op when unavailable, must prefill `#entry-amount` only when empty, and must never block `#entry-save` or disturb `#shot-input`; B1–B6 must not hide, rename or duplicate any contract node.
+3. Tester (P4): `C-38` plus one scripted check per bonus item, screenshot evidence for overdue ordering, CSV content, UPI href, language labels and OCR; re-run the full suite (42 + new) and file any P0/P1 before the gate.
+4. Planner: map B1–B7 to the P4 cases, bump the plan/traceability versions, and confirm the B7 wording so the provisional 5 becomes either a full 5 (OCR works) or 0.
+5. Optional (P6): lower the stored-image ceiling for margin and record the 200 KB interpretation (F-2); clarify the traceability phase/case wording (F-7).
+6. Keep the P3 guarantees green: 42/42, exact reminder encoding for every row, `img[data-shot]` only on the image-bearing payment, quota paths that never abort the save, 375 px and dark with a thumbnail.
+
+#### Confidence / unknown about the real tester
+
+- Four independent batches (243 assertions) plus the Tester's five cases now cover both P3 interactions, and the 60 hidden-data marks are re-backed by a 1,077-assertion fuzz on this exact build. A false PASS would need every oracle to share a wrong reading of §1.3/§1.5.
+- The real tester's **upload mechanics** are the largest unknown: `setInputFiles` with a JPEG, a text file and an undecodable PNG is covered; a drag-and-drop, a camera-capture stream, or a path typed into the input is not modelled.
+- **B7 is the least certain number here**: the brief's bonus is "reading the amount from the payment screenshot"; only the screenshot save/thumbnail path exists, so the 5 is provisional and the OCR prefill is P4. The 70/100 floor is the number I would defend without that provisional credit.
+- D4's exact-paise rendering and D10's `Customer <phone>` rows remain the highest-impact accepted choices for the hidden-data block; neither is exercised differently by P3.

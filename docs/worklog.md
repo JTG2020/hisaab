@@ -189,3 +189,33 @@ Notes:
 - F-5 P3/P4 scope deferred; F-6 auto-created rows count in the success customer count; F-7 `[data-amount]` is unsigned per contract.
 - **Stop at G2.** P3 (reminder + screenshot, B7) has not started and awaits human go.
 Next: P3 on human go; do not start automatically.
+
+## 2026-11-18 00:05 — P3 — Coder
+Action: implemented P3. Reminder href verified exact per CONTRACT §1.3 (normal, `&`, `+`, `%`, unicode, zero, negative). Payment screenshot pipeline: FileReader → Image → canvas, 800 px long edge, JPEG ladder 0.7–0.4, stored `data:` URL under 200 KB; `img[data-shot]` inside the correct `[data-entry-id]` and survives reload. Credit/no-image entries have no image; #shot-input stays static. Quota failure drops only the image, keeps the entry, warns; non-image/undecodable saves without a photo. OCR remains P4.
+Evidence: `app/app.js`, `app/styles.css`; `node --check` clean; existing suite 37/37; scratch 5 MB+ image → 60–120 KB, correct entry, reload, quota, bad-file paths; no console errors.
+Result: PASS (Coder handoff; Tester verification pending)
+Next: Tester P3
+
+## 2026-11-18 00:15 — P3 — Tester
+Action: added `tests/e2e/p3.spec.js` (E2E-P3-01–05); `TEST-CASES.md` v0.8; RUN-6. Verified reminder href/decode (normal, `&`, `+`, `%`, Telugu, Devanagari, zero, negative), 5.03 MB JPEG → **157,319 chars / 153.6 KB** stored, one `img[data-shot]` in the right entry + reload, credit/no-image cases, forced quota keeps the entry without image + warning, non-image/undecodable warnings. No bugs.
+Evidence: `cd tests && npx playwright test` → **42/42 passed (17.7s)** (23 P0 + 8 P1 + 5 P2 + 5 P3 + F-01 50 shops), re-run independently by the Orchestrator; non-vacuity mutant failed 3/5 P3 cases.
+Result: PASS (RUN-6)
+Next: Planner sync + Critic G3
+
+## 2026-11-18 00:20 — P3 — Planner
+Action: `TRACEABILITY.md` v1.6 maps R5/R6/R7/N3/N5/B7 to E2E-P3-01–05 (C-38 OCR remains P4); `IMPLEMENTATION-PLAN.md` v1.6 P3 gate suite cites E2E-P3-01–05. No CONTRACT change.
+Evidence: 23 rows, 0 TBD; 23/0/0 R-IDs; 29/29 selectors; headers 4/4.
+Result: PASS (docs)
+Next: Critic G3
+
+## 2026-11-18 00:40 — P3 — Orchestrator — GATE G3
+Action: recorded G3 PASS from the Critic's signed scorecard; P3 reminder + screenshot complete; committed the P3 build and created gate tag `g3`.
+Evidence: `docs/scorecards.md` GATE G3; RUN-6 (Tester) **42/42**; CRITIC-RUN-4 **42/42**; reminder href/decode (normal, `&`, `+`, `%`, unicode, zero, negative); 5.03 MB image → **153.6 KB** stored, one `img[data-shot]` in the right entry + reload; quota keeps the entry without image + warning; contract audit **43/43 P3-observable**; doc sync PASS; Vercel PASS; provisional model score **75/100** (strict B7/OCR reading 70/100; OCR is P4).
+G3 checklist: Tester RUN-6 present; P3 acceptance 100%; full regression 42/42 = 100%; no open P0/P1; contract audit 43/43; doc sync PASS; score 75 >= 70; `Next:` present.
+Notes:
+- F-1 resolved by the `g3` commit/tag.
+- F-2: stored image ceiling is 204,800 chars; a 1,200×900 noise JPEG measured 200,795 chars — under 200 KiB, above a strict 200,000-byte reading. Optional P6 margin.
+- F-3/F-4/F-6/F-7: injected credit-shot is render-guarded; `#entry-msg`/`#storage-msg` remain non-contract hooks; thumbnails use `loading="lazy"` with intact `src`; cross-gate traceability citations are by owning phase.
+- F-5: OCR, edit/delete, CSV, search, overdue, UPI, and language remain P4.
+- **Stop at G3.** P4 (bonuses B1–B6 + OCR for B7) has not started and awaits human go.
+Next: P4 on human go; do not start automatically.
