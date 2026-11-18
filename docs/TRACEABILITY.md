@@ -1,11 +1,11 @@
 # TRACEABILITY — Hisaab
 
-Version: 1.11
+Version: 1.12
 Updated: 2026-11-18
 Owner: Planner
-Supersedes: TRACEABILITY.md v1.10
+Supersedes: TRACEABILITY.md v1.11
 
-Rules: every requirement ID from `PRD.md` appears exactly once. Every row has a phase before G0. Selector strings appear verbatim in `CONTRACT.md`. Test case IDs come from `docs/TEST-CASES.md` v0.13 (Tester-owned); each cited case is executed at the phase gate named by that row and case, and the Status column stays `planned` until that gate runs. Every contract selector has at least one case in `TEST-CASES.md`; every test-case cell is filled.
+Rules: every requirement ID from `PRD.md` appears exactly once. Every row has a phase before G0. Selector strings appear verbatim in `CONTRACT.md`. Test case IDs come from `docs/TEST-CASES.md` v0.14 (Tester-owned); each cited case is executed at the phase gate named by that row and case, and the Status column stays `planned` until that gate runs. Every contract selector has at least one case in `TEST-CASES.md`; every test-case cell is filled.
 
 Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean oracle is `C-39`; the P6 full-journey oracle is `N-06`.
 
@@ -43,3 +43,4 @@ Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean or
 - B7: `C-38` and `E2E-P4-07` exercise the D5 manual fallback path because the OCR engine is unavailable; B7 is declared failed, not faked, and manual entry remains.
 - P0 cases C-01–C-03 and C-09–C-23, plus C-39 and E2E-P0-01–03, run at G0. Cases C-24–C-38, U-05–U-14, I-04–I-10, E2E-P1-01–08, E2E-P2-01–05, E2E-P3-01–05, E2E-P4-01–07, E2E-P5-01–04, F-01/F-02, N-01–N-04 and N-06 are planned oracles and run at their named phase gates; no P1/P2/P4/P5/P6 case is claimed as executed here.
 - P6 final gate: `E2E-P6-01` (full journey; tagged R1–R10, B1–B6, N1–N4), `E2E-P6-02` (R8/D9 empty-name duplicate warning), `E2E-P6-03` (search empty state and the per-row Add-entry customer picker; tagged R4/B4 and cited for R2 entry creation), `E2E-P6-04` (home layout and customer-view routing; tagged R4/R9/B1 and cited for B4 search adjacency), `F-02` (200 shops, seed recorded) and the full 58-test regression together exercise R1–R10, B1–B7, N1–N6 end-to-end (B7 via the D5 manual fallback `C-38`/`E2E-P4-07`; N5/N6 via their P1/P3/P0 cases). `F-01`/`F-02` are the hidden-data oracles (50/200 shops, seeds recorded in the Tester's RUN records). The post-G6 UX fix (search empty state, per-row Add entry, cache-busted assets) and the post-G6.2 layout fix (customer view only on `?customer=`; home order total → search → customers → overdue → add customer → entry form → import → shop UPI) changed no contract node.
+- P7 extras (non-scored): `X1–X5` (file/CSV import, UPI URI in the reminder, shop profile/logo/brand, OCR status) are **not** R/B/N requirements and add no `CONTRACT.md` node. They are tested by `E2E-P7-01–05`; the 23 scored rows and all 29 contract selectors are unchanged, with every test-case cell filled.

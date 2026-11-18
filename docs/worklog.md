@@ -355,3 +355,27 @@ Action: recorded **G6.2 technical PASS** after the user's screenshots exposed th
 Evidence: `docs/scorecards.md` GATE G6.2; RUN-13 **58/58**; CRITIC-RUN-9 **58/58**; independent CRITIC-G62 **78/78** (home order, hidden/shown customer view, search above Overdue, picker/Add entry, 375); contract 100%; F-02 200-shop green; Vercel PASS; final **100/100** (floor 97 strict B6); B7 0.
 Remaining human steps: deploy `app/` to Vercel, paste the live URL into `IMPLEMENTATION-PLAN.md` §3, approve/submit before **Sun 22 Nov 2026, 10:00 IST**; re-run the suite if `app/` changes.
 Next: awaits human deployment/live URL and submission approval; do not submit automatically.
+
+## 2026-11-18 11:55 — P7 — Coder
+Action: added the requested non-scored owner extras. File import (`#import-file`, `#import-choose`; empty `#import-go` opens the picker; paste unchanged); JSON/CSV with RFC-4180 and primary/customers-only/entries-only schemas; UPI URI inside the WhatsApp reminder; shop profile with logo/owner/address/UPI, 128 px logo, contrast-safe brand tint; honest manual-entry OCR hint. Contract unchanged.
+Evidence: `app/index.html`, `app/app.js`, `app/styles.css`; `node --check`; 58/58; self-checks for file/CSV/UPI/profile/brand/OCR; `sample-data.csv` imports 11820/8.
+Result: PASS (Coder handoff)
+Next: Tester P7
+
+## 2026-11-18 12:05 — P7 — Tester
+Action: added E2E-P7-01–05 (`tests/e2e/p7.spec.js`); `TEST-CASES.md` v0.14. RUN-14 was 62/63 with **BUG-3 P1** (brand header tint contrast: name 3.22, address/UPI 1.04 light); after the Coder fix, RUN-15 is **63/63**, BUG-3 closed. `sample-data.csv` imports 11820/8; file picker, CSV schemas, UPI-in-message, profile/logo/brand, OCR honesty all verified.
+Evidence: `cd tests && npx playwright test` → 63/63 (32.6s), re-run by the Orchestrator; F-02 200 shops still green; brand contrast light 14.12/4.76/4.76, dark 15.23/6.57/6.57; artifacts in `tests/artifacts/`.
+Result: PASS (RUN-15; BUG-3 closed)
+Next: Planner docs + Critic G7
+
+## 2026-11-18 12:10 — P7 — Planner
+Action: `IMPLEMENTATION-PLAN.md` v1.13 adds P7 owner extras (X1–X5, non-scored, no contract change) and the E2E-P7 suite; `DECISIONS.md` v1.4 adds D13–D17 (CSV schema, file-import UI, UPI URI in reminder, profile/logo/brand, OCR not implemented); `TRACEABILITY.md` v1.12 adds the P7 extras note. Judges' note updated to 63/63, file/CSV, UPI, profile, no OCR claim. No CONTRACT/PRD/TECH-STACK change.
+Evidence: 23 rows, 0 TBD; 23/0/0; 29/29; headers 4/4; versions PLAN 1.13, DECISIONS 1.4, TRACE 1.12.
+Result: PASS (docs)
+Next: Critic G7
+
+## 2026-11-18 12:15 — P7 — Orchestrator — GATE G7
+Action: recorded **G7 technical PASS** for the owner extras; added `sample-data.csv` and README file/CSV/profile/UPI/OCR instructions; committed/tagged `g7`.
+Evidence: `docs/scorecards.md` GATE G7; RUN-15 **63/63**; CRITIC-RUN-10 **63/63**; independent CRITIC-G7 **50/50 + 6/6** (file/CSV/sample CSV, UPI message, profile/logo/brand, OCR); contract 100%/0 deviations; F-02 200-shop green; final **100/100** (floor 97 strict B6); P7 extras non-scored; B7 0.
+Result: PASS (extras complete; scored contract unchanged)
+Next: no pending code work; awaits human review/use.

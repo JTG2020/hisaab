@@ -8,6 +8,8 @@
   --border: #8A8178;
   --accent: #B45309;
   --accent-ink: #FFFFFF;
+  --brand-soft: var(--surface);
+  --brand-muted: var(--muted);
   --positive: #146C33;
   --negative: #B91C1C;
   --focus: #B45309;
@@ -95,8 +97,48 @@ a {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--surface);
+  background: var(--brand-soft);
   border-bottom: 1px solid var(--border);
+}
+
+.shop-profile {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.shop-logo {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  object-fit: cover;
+}
+
+.shop-profile-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.shop-profile-name {
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.shop-profile-line {
+  font-size: 12px;
+  color: var(--brand-muted);
+  overflow-wrap: anywhere;
+}
+
+.shop-profile-line:empty {
+  display: none;
 }
 
 .brand {
@@ -113,7 +155,7 @@ a {
 .brand-sub {
   margin: 2px 0 0;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--brand-muted);
 }
 
 .lang {

@@ -2656,3 +2656,235 @@ Supplemental `/tmp/critic-g62-extra.js` at scrollY 0 after the sample import: `#
 - The score rests on the same G6 oracles because the post-G6.1 app diff is presentational only (`app.js +8`, `index.html` section reorder/hidden toggle, no CSS); the hidden-data, money and bonus surfaces are unchanged.
 - The most likely residual score loss is **B6 placeholder translation** → 97–98/100, still ≥95. B7 is 0 and is the dropped seventh.
 - Unknown: the grader's search event model (`input` vs `change`), whether it expects the customer view hidden on `/` (CONTRACT §1.7 makes it route-dependent and §2 does not list it), its dark-mode emulation and file-upload buffering, and host-side cache behaviour. Deployment and the live URL are the only human gate left.
+
+### GATE G7 | 2026-11-18 | phase P7 (post-gate owner extras, non-scored)
+
+Build: uncommitted post-P7 working tree at `/Users/akanse/Documents/FWAIProjects/batch10/hisaasb`, served by `python3 -m http.server 4173 --directory app`; SHA-256 `app/index.html 32fb04687ad1…` (9,574 B), `app/styles.css c52f8e013cf4…` (9,998 B), `app/app.js e562933e70f7…` (97,629 B); deployable total **117,201 B**. These are exactly RUN-15's handoff checksums. Git HEAD is `7c980cf` (tag `g6.2`); the P7 delta is uncommitted (`app/app.js +873/−…`, `app/index.html +34`, `app/styles.css +46`; total `+904/−49`). The scored contract files are unchanged: `docs/CONTRACT.md` is git-clean, and P7 adds **X1–X5** only — no R/B/N requirement, no machine node, no `CONTRACT.md` selector. Extras are **non-scored**; the final model score is exactly the G6.2 score.
+Runs cited: RUN-15 (Tester), **CRITIC-RUN-10** (full-suite re-run), **CRITIC-G7** (`/tmp/critic-g7.js`, independent file/CSV/UPI/profile/brand/OCR/Vercel probe), **CRITIC-G7X** (`/tmp/critic-g7-extra.js`, default-palette diff against the tagged G6.2 build plus CSV note round-trip), and `/tmp/critic-g7-empty.js` (empty-state contract).
+Hidden-data: **60/60** | Bonus: **30/30** (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 **0** — best six count) | Phone/theme: **10/10**
+MODEL SCORE: **100/100** (G6.2 100 → G7 **100**; P7 extras add no scored surface; final ≥95 holds; floor **97/100** under the strict B6-placeholder reading)
+Deductions:
+- Hidden-data: **none — 0 marks.** CRITIC-RUN-10 re-ran F-01 (50 shops, seed `20261117`, 160 customers/297 entries) and **F-02 (200 shops, seed `20261118`, 805 customers/1,401 entries)** green with 0 mismatches on this build. CRITIC-G7 independently imported the sample JSON through `#import-file` and `sample-data.csv` through the same file input: `#total-outstanding` text = `data-value` = **`11820`**, exactly **8** rows, and every `[data-balance]` text = attribute = `sample-expected.json` in both paths. The scored money/import code path is unchanged by P7.
+- Bonus: **none.** CRITIC-RUN-10 re-ran E2E-P4-01…06 (B1 overdue, B2 edit/delete, B3 CSV, B4 search, B5 UPI, B6 language) and E2E-P6-01 (full journey) green. **B7 remains 0, declared failed, not faked** (D5/D17: no OCR engine; manual entry works; P7 E2E-P7-05 proves no OCR asset or request).
+- Phone/theme: **none.** E2E-P5-01…04 are green; CRITIC-G7 measured 375×812 with the P7 logo: `innerWidth 375`, `documentElement.scrollWidth 375`, `body.scrollWidth 375`, logo visible. Brand-tint contrast is re-measured below; BUG-3 is closed.
+Contract audit: **100% pass, 0 `CONTRACT-<n>` deviations.** The **19 §2 nodes** resolve **exactly once and visibly** at first paint; the eight empty-state data selectors are **0** and `#total-outstanding` is `0`/`0` (`/tmp/critic-g7-empty.js`); the **29/29** contract selector tokens are still tested in `TEST-CASES.md`. The P7 ids (`#import-file`, `#import-choose`, `#logo-input`, `#owner-name`, `#owner-address`, `#shop-upi`, `#brand-theme`, `#profile-msg`, `#shop-logo`, `#shot-ocr-hint`) return **0** matches in `CONTRACT.md`; the empty `#import-go` picker is a P7 branch, and a non-empty paste still takes the scored import path exactly. No scored requirement or machine node changed (23/23 R/B/N IDs, 0 removed).
+Doc sync: **PASS** — literal `R-` check vacuous; corrected `[RNB][0-9]+` **23/23/23**, 0 missing / 0 extra in PLAN and TRACEABILITY; **29/29** selector tokens tested; **0** `TBD`/`TODO`/`(Planner)`; **23/23** traceability rows phased; **E2E-P7-01…05 defined 5/5** in `TEST-CASES.md` v0.14 and cited as the range `E2E-P7-01–05` in the `TRACEABILITY.md` P7 note (P7 cases are deliberately not added to R/B/N rows because X1–X5 are non-scored); versions **PLAN 1.13**, **TRACEABILITY 1.12**, **DECISIONS 1.4** (D13–D17 accepted), **TEST-CASES 0.14**, PRD 1.1, TECH-STACK 1.0, CONTRACT 1.0 FROZEN; headers 4/4; judges' note contains `pending deployment`, the JSON/CSV file import + `shop,phone,name,type,amount,date,note` columns, the UPI link in the reminder, the shop profile/logo/brand line, **`63/63`**, and "OCR prefill … not available … B7 is therefore not claimed".
+Vercel readiness: **PASS** — `app/` is exactly `index.html` + `styles.css` + `app.js` (**117,201 B**); the only asset paths are `./styles.css?v=6.1`, `./app.js?v=6.1` and favicon `data:,`, all relative; no `localhost`, no absolute asset URL, no build file, no `package.json`, no manifest, no `vercel.json`, no service worker, no cookie, no password/auth, no analytics, no `fetch`/`XMLHttpRequest`. `/`, `/index.html`, `/styles.css?v=6.1`, `/app.js?v=6.1`, `/?customer=9000000101`, `/?customer=9000000199`, `/?today=2026-11-15` and `/?today=not-a-date` all return **200** with the correct content type; the independent probe recorded 0 console errors, 0 page errors, 0 failed requests and 0 external requests.
+Score risks: WIN-ANALYSIS §4 (13 rows) → **PASS 13**; WIN-PLAN §4 hidden-data matrix (18 rows) → **PASS 18**; WIN-PLAN §11 (8 rows) → **PASS 8**. The P7 delta touches no import parser, money, storage, row-construction, reminder-href or bonus path; the file-import branch is additive and the paste branch is byte-identical. The only residual score risk remains the strict B6 reading (English input placeholders) → **97/100**, still above the 95 floor.
+Verdict: **PASS — G7 technical PASS.** P7 extras work and do not move the scored contract; the model score is unchanged at **100/100**. The live URL remains **pending human deployment**; that is the human submission gate, not a technical failure.
+Required before re-gate: none technical. Human/process steps are listed under "Remaining human steps — G7" below.
+Confidence / unknown about the real tester: (1) This gate re-ran all **63** suite cases plus **50 independent CRITIC-G7 checks, 6 CRITIC-G7X checks and the empty-state probe**, 0 failures, on the exact build the suite ran against. (2) The extras cannot raise or lower the model score: no R/B/N ID, machine node or 29-selector set changed; a grader that never touches file import, the reminder URI, the profile or OCR sees the G6.2 build's scored behaviour. (3) The most likely residual score loss remains **B6 placeholder translation** → 97/100, still above the 95 floor; B7 is 0 and is the dropped seventh. (4) Unknown: the grader's CSV encoding expectations (the app accepts BOM, CRLF, RFC-4180 quoting), how it uploads files (`setInputFiles` vs drag), whether it treats the hidden native `#import-file` as absent (it is a non-contract P7 input; the visible `#import-choose` button opens it), and host-side cache behaviour. Deployment and the live URL are the only human gate left.
+
+#### CRITIC-RUN-10 — independent re-execution of the full suite
+
+Command: `cd tests && npx playwright test` (config `workers: 1`, `retries: 0`, base `http://localhost:4173`, Chromium via `@playwright/test` 1.65.1, 1280×800 default, 375×812 where a case sets it, locale `en-IN`, `Asia/Kolkata`).
+
+```
+Running 63 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/p0-gate.spec.js:59:1 › C-23 Vercel shape: app/index.html, relative assets, no build step, no service worker (246ms)
+  ✓   2 [chromium] › e2e/p0-gate.spec.js:95:1 › N-05 no service worker, cookie gate, password field, analytics, or third-party origin (248ms)
+  ✓   3 [chromium] › e2e/p0-gate.spec.js:121:1 › E2E-P0-01 first paint: 19 §2 nodes resolve, data selectors are empty, customer view resolves (476ms)
+  ✓   4 [chromium] › e2e/p0-gate.spec.js:148:1 › E2E-P0-02 all query-string routes render the same first paint (1.0s)
+  ✓   5 [chromium] › e2e/p0-gate.spec.js:176:1 › E2E-P0-03 phone + theme baseline and offline-safe load (409ms)
+  ✓   6 [chromium] › e2e/p1.spec.js:66:1 › E2E-P1-01 add customers and four entries: exact paise balances, total, amounts, rejections (561ms)
+  ✓   7 [chromium] › e2e/p1.spec.js:161:1 › E2E-P1-02 reload keeps everything; a storage failure keeps the save in memory with a visible warning (526ms)
+  ✓   8 [chromium] › e2e/p1.spec.js:211:1 › E2E-P1-03 row link and direct ?customer= both open the same correct view (579ms)
+  ✓   9 [chromium] › e2e/p1.spec.js:249:1 › E2E-P1-04 ?today=2026-11-15 sets the default entry date and the saved data-date (351ms)
+  ✓  10 [chromium] › e2e/p1.spec.js:270:1 › E2E-P1-05 375x812 with long unicode name, long unicode note, and a fractional amount (322ms)
+  ✓  11 [chromium] › e2e/p1.spec.js:325:1 › E2E-P1-06 money parsing and rendering through the entry form (D4, N4) (587ms)
+  ✓  12 [chromium] › e2e/p1.spec.js:384:1 › E2E-P1-07 entries with equal dates keep the newest-saved first (R4, U-04) (419ms)
+  ✓  13 [chromium] › e2e/p1.spec.js:413:1 › E2E-P1-08 a later successful save clears the storage warning and persists (N5) (540ms)
+  ✓  14 [chromium] › e2e/p2.spec.js:52:1 › E2E-P2-01 (C-04/C-05/C-06/C-34) sample import: 11820, 8 rows, every balance matches sample-expected.json (329ms)
+  ✓  15 [chromium] › e2e/p2.spec.js:100:1 › E2E-P2-02 (I-01) a second import replaces the first shop and reload keeps the second (504ms)
+  ✓  16 [chromium] › e2e/p2.spec.js:144:1 › E2E-P2-03 (C-33/I-10) malformed JSON keeps state; missing lists warn; empty arrays render an empty shop (447ms)
+  ✓  17 [chromium] › e2e/p2.spec.js:191:1 › E2E-P2-04 (I-04/I-05/I-06/I-07/U-02/U-03) dedupe, unknown phone, zero entries, decorated amounts, type casing (336ms)
+  ✓  18 [chromium] › e2e/p2.spec.js:282:1 › E2E-P2-05 imported sample at 375x812: no sideways scroll, balances not clipped (437ms)
+  ✓  19 [chromium] › e2e/p3.spec.js:69:1 › E2E-P3-01 (C-07) reminder href for normal, &, +/%, Telugu, Devanagari, zero and negative balances (314ms)
+E2E-P3-02 image sizes: original 5280583 bytes, stored 157319 chars
+  ✓  20 [chromium] › e2e/p3.spec.js:138:1 › E2E-P3-02 (I-03/N-03) payment with a 3 MB+ image: thumbnail in the right entry, stored under 200 KB, survives reload (939ms)
+  ✓  21 [chromium] › e2e/p3.spec.js:195:1 › E2E-P3-03 credit with an image and payment without one both save with no img[data-shot] (420ms)
+  ✓  22 [chromium] › e2e/p3.spec.js:232:1 › E2E-P3-04 (I-08/N-03) quota failure saves the payment without the image and warns; a later save persists (712ms)
+  ✓  23 [chromium] › e2e/p3.spec.js:290:1 › E2E-P3-05 a non-image file and an undecodable image save the entry without a photo and warn (384ms)
+  ✓  24 [chromium] › e2e/p4.spec.js:131:1 › E2E-P4-01 (C-14/C-28) overdue: 4 sample rows in day order, bare data-days, no data-customer, no-payment excluded, empty state (468ms)
+  ✓  25 [chromium] › e2e/p4.spec.js:208:1 › E2E-P4-02 (C-36) edit 500->800 and delete: amounts, balances, total, id, image, reload, other customer untouched (766ms)
+  ✓  26 [chromium] › e2e/p4.spec.js:288:1 › E2E-P4-03 (C-29) CSV export: exact headers, one row each, newest-first entries, RFC-4180 quoting, current state (382ms)
+  ✓  27 [chromium] › e2e/p4.spec.js:370:1 › E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, restores on clear and reload (519ms)
+  ✓  28 [chromium] › e2e/p4.spec.js:415:1 › E2E-P4-05 (C-35) UPI pay links: one per row, am = max(balance,0), cu=INR once, tn decodes, default and shop VPA (364ms)
+  ✓  29 [chromium] › e2e/p4.spec.js:480:1 › E2E-P4-06 (C-13/N-06) language switch translates labels and leaves every id, attribute, name, date, money text and href byte-identical (592ms)
+  ✓  30 [chromium] › e2e/p4.spec.js:604:1 › E2E-P4-07 (C-38) OCR fallback: upload does not block or overwrite; manual amount saves (3.5s)
+  ✓  31 [chromium] › e2e/p5.spec.js:166:1 › E2E-P5-01 (R9/N2) sample at 375x812: no sideways scroll, every node reachable, amounts not clipped (363ms)
+  ✓  32 [chromium] › e2e/p5.spec.js:203:1 › E2E-P5-02 (R9/N2) adversarial 200-customer shop at 375x812: all rows in DOM, long text wraps, thumbnail safe (546ms)
+  ✓  33 [chromium] › e2e/p5.spec.js:297:1 › E2E-P5-03 (N3) contrast in light and dark: text >= 4.5:1, large text and control borders >= 3:1 (472ms)
+  ✓  34 [chromium] › e2e/p5.spec.js:409:1 › E2E-P5-04 (N2/N3) tap targets >= 40px, no overflow masking, no fixed/sticky overlay (298ms)
+  ✓  35 [chromium] › e2e/p6.spec.js:136:1 › E2E-P6-01 full journey: import, replace, customer, reminder, image, B1–B6, 375, dark, clear, quota, ?today (961ms)
+  ✓  36 [chromium] › e2e/p6.spec.js:394:1 › E2E-P6-02 duplicate phone: later empty name keeps the earlier name and warns; later non-empty name wins; exact duplicate is silent (344ms)
+  ✓  37 [chromium] › e2e/p6.spec.js:466:1 › E2E-P6-03 post-G6 UX: search empty state, customer picker, add-entry button (480ms)
+  ✓  38 [chromium] › e2e/p6.spec.js:564:1 › E2E-P6-04 post-G6.2 layout: home order, hidden customer view, search above overdue, routes and 375 (394ms)
+  ✓  39 [chromium] › e2e/p7.spec.js:98:1 › E2E-P7-01 JSON import via #import-file, #import-choose and empty #import-go; paste still imports (479ms)
+  ✓  40 [chromium] › e2e/p7.spec.js:167:1 › E2E-P7-02 CSV import: primary schema, quoted fields, customers-only, entries-only, malformed and empty (263ms)
+  ✓  41 [chromium] › e2e/p7.spec.js:242:1 › E2E-P7-03 reminder message carries name, Rs balance and the exact UPI URI; owner UPI applies (344ms)
+  ✓  42 [chromium] › e2e/p7.spec.js:304:1 › E2E-P7-04 profile and logo: header, persistence, brand contrast light/dark, default palette, 375, quota (415ms)
+  ✓  43 [chromium] › e2e/p7.spec.js:401:1 › E2E-P7-05 OCR honesty: hint says manual, no OCR asset or request, upload neither prefills nor blocks (1.6s)
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"duplicatePhoneShops":21,"negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,"stringAmounts":172,"missingAmounts":31,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,"emptyShops":1}
+  ✓  44 [chromium] › fuzz/p2-fuzz.spec.js:217:1 › F-01 50-shop fuzz: every balance and the total equal the independent computation (394ms)
+F-02 seed 20261118 datasets 200 :: {"shops":200,"customers":805,"entries":1401,"duplicatePhoneShops":79,"emptyNameDuplicateRecords":2,"clampedEntries":1,"negativeBalanceRows":293,"zeroBalanceRows":394,"unknownPhoneEntries":868,"unicodeNames":360,"stringAmounts":788,"missingAmounts":134,"missingTypes":107,"missingDates":242,"negativeTotalShops":52,"emptyShops":3,"customersInLargestShop":202}
+  ✓  45 [chromium] › fuzz/p2-fuzz.spec.js:400:1 › F-02 200-shop fuzz (hardening): every balance and total equal the independent computation (1.0s)
+  ✓  46 [chromium] › nonfunctional/p0.spec.js:10:3 › 375x812 viewport › C-20 document scrollWidth is 375 or less at empty state (212ms)
+  ✓  47 [chromium] › nonfunctional/p0.spec.js:30:3 › prefers-color-scheme: dark › C-21 dark baseline keeps key nodes visible and text at >= 4.5:1 (266ms)
+  ✓  48 [chromium] › nonfunctional/p0.spec.js:63:1 › C-22 no external network request on load (same-origin or data: only) (580ms)
+  ✓  49 [chromium] › smoke/contract.spec.js:45:1 › C-01 #total-outstanding resolves on load with text 0 (266ms)
+  ✓  50 [chromium] › smoke/contract.spec.js:54:1 › C-02 #import-box and #import-go are visible at first paint (247ms)
+  ✓  51 [chromium] › smoke/contract.spec.js:61:1 › C-03 #shot-input exists inside the payment form at first paint (264ms)
+  ✓  52 [chromium] › smoke/contract.spec.js:68:1 › C-09 every CONTRACT §2 node resolves and is visible before interaction (263ms)
+  ✓  53 [chromium] › smoke/contract.spec.js:91:1 › C-10 #total-outstanding text and data-value are exactly 0 (bare), Rs lives in a sibling (244ms)
+  ✓  54 [chromium] › smoke/contract.spec.js:114:1 › C-11 #import-box is a textarea, #import-go a button, #shot-input a file input accepting image/* (242ms)
+  ✓  55 [chromium] › smoke/contract.spec.js:141:1 › C-12 #entry-type options are exactly credit and payment (242ms)
+  ✓  56 [chromium] › smoke/contract.spec.js:153:1 › C-13 #lang-switch is a select with exactly en, hi, te and defaults to en (261ms)
+  ✓  57 [chromium] › smoke/contract.spec.js:175:1 › C-14 #overdue heading contains Overdue and 30+ days, with an empty-state line (263ms)
+  ✓  58 [chromium] › smoke/contract.spec.js:194:1 › C-15 #customers shows a visible empty-state message and no rows (262ms)
+  ✓  59 [chromium] › smoke/contract.spec.js:205:1 › C-16 empty storage renders zero data-dependent nodes (263ms)
+  ✓  60 [chromium] › smoke/contract.spec.js:216:1 › C-39 first paint raises no console error, failed request, or rejection (848ms)
+  ✓  61 [chromium] › smoke/routes.spec.js:28:1 › C-17 ?customer=unknown renders the not-found view and keeps every list node (262ms)
+  ✓  62 [chromium] › smoke/routes.spec.js:54:1 › C-18 ?today=2026-11-15 loads cleanly with the full empty-state contract (242ms)
+  ✓  63 [chromium] › smoke/routes.spec.js:66:1 › C-19 invalid ?today values load cleanly and do not crash (469ms)
+
+  63 passed (32.4s)
+```
+
+`63 = 58 scored regression (23 P0 + 8 P1 + 5 P2 + 5 P3 + 7 P4 + 4 P5 + 4 P6 + F-01 + F-02) + 5 P7 extras`. `npx playwright test --list` → `Total: 63 tests in 12 files`. Every case matches RUN-15; no test was edited, skipped, retried or weakened.
+
+#### CRITIC-G7 — independent file / CSV / UPI / profile / brand / OCR evidence
+
+Command: `node /tmp/critic-g7.js` (standalone Playwright; reads the DOM directly; expectations from `sample-data.json`, `sample-expected.json`, `sample-data.csv`, `CONTRACT.md` and the stated arithmetic; imports no app code and no test helper). Result: **50/50 checks, 0 failures**.
+
+```
+JSON #import-file            : total 11820/11820; 8 rows; all 8 balances text=attr=sample-expected.json
+#import-choose               : filechooser opens; 2-row CSV replaces the shop; total 0
+empty #import-go             : filechooser opens; sample JSON imports 11820/8 rows
+non-empty paste              : imports exactly (1 row, total 42) — scored paste path unchanged
+sample-data.csv              : total 11820/11820; 8 rows; all 8 balances match sample-expected.json
+primary CSV (BOM/CRLF)       : Doe, Jane -> 1249.50 text=attr; Plain -> 670.50; total 1920;
+                               message names filename-derived shop "shop-a"
+customers-only CSV           : 2 rows at 0; total 0; message contains "Shop B"
+entries-only CSV             : one auto-created "Customer 9000000605" with 100; total 100
+malformed CSV                : "Could not import: the CSV could not be read. The previous shop is
+                               unchanged."; still 1 row / total 100
+empty CSV                    : 0 rows, total 0, "Warning: the CSV had no data rows; the shop is now empty."
+reminder 9000000701          : exact wa.me prefix; decoded "Namaste Ravi Kumar, your balance is Rs 670.
+                               Pay via UPI: upi://pay?pa=hisaab@upi&am=670&cu=INR&tn=Ravi%20Kumar";
+                               one UPI anchor with that exact href
+reminder 9000000702 (Telugu) : same, name round-trips, Rs 1500.50, exact percent-encoded URI; 1 anchor
+default palette (no logo)    : #brand-theme text ""; #import-go rgb(180, 83, 9) / white
+logo upload                  : visible data:image/png, natural 128x128 (<=128 long edge);
+                               #brand-theme sets --accent rgb(178, 6, 109); owner/address/UPI visible
+reload                       : profile + logo persist; both rows' UPI anchors pa=profile@bank;
+                               reminder text carries the same profile@bank URI
+brand contrast light         : import-go 6.69 | owner name 14.12 | address 4.76 | UPI 4.76 |
+                               row link 16.16 | total 18.51 | row balance 16.16 | search 18.51
+brand contrast dark          : import-go 4.62 | owner name 15.23 | address 6.57 | UPI 6.57 |
+                               row link 14.40 | total 15.73 | row balance 14.40 | search 15.73  (all >=4.5)
+375x812 with logo            : innerWidth 375, documentElement.scrollWidth 375, body.scrollWidth 375
+logo quota path              : "Could not save the shop profile to browser storage; it is used in this
+                               tab only."; new logo still displayed in-tab; no crash; customers visible
+OCR hint                     : "Enter the amount manually; the screenshot is saved with the entry."
+OCR upload                   : #entry-amount stays ""; #entry-save enabled; 0 ocr/tesseract requests;
+                               app/ has no OCR asset; manual 1500 saves with exactly 1 img[data-shot]
+noise                        : 0 console errors, 0 page errors, 0 failed requests, 0 external requests
+```
+
+#### CRITIC-G7X — default palette diff and CSV note round-trip
+
+Command: `node /tmp/critic-g7-extra.js` (serves the tagged `g6.2` HEAD app on `:4174` and the working tree on `:4173`; compares computed default styles; then re-imports the quoted CSV). Result: **6/6, 0 failures**.
+
+```
+default light (no logo) : identical to G6.2 HEAD —
+  body bg rgb(251,248,243), ink rgb(22,19,16), #import-go bg rgb(180,83,9)/white,
+  total ink rgb(22,19,16), search bg white, row link ink rgb(22,19,16), --accent #B45309
+default dark  (no logo) : identical to G6.2 HEAD —
+  body bg rgb(15,13,11), ink rgb(245,240,232), #import-go bg rgb(245,158,11)
+CSV quoted quote        : note "said \"hi\"" preserved exactly
+CSV quoted newline      : note "line one\nline two" preserved exactly
+CSV amounts             : entries 1500 and 250.50 present on the customer view
+```
+
+#### Contract audit — G7 delta
+
+| Check | Result | Evidence |
+|---|---|---|
+| 19 §2 nodes at first paint | **PASS** | each id count 1, non-zero box, visible; `#total-outstanding` `0`/`0` |
+| 8 empty-state data selectors (`[data-customer]`, `a[data-remind]`, `[data-entry-id]`, `[data-amount]`, `[data-days]`, `[data-overdue]`, `a[href^="upi://pay?pa="]`, `img[data-shot]`) | **PASS** | all **0** at empty state; 0 console errors (`/tmp/critic-g7-empty.js`) |
+| 29 contract selector tokens | **PASS** | `CONTRACT.md` extraction = 29; 29/29 covered in `TEST-CASES.md`; 0 `UNTESTED` |
+| P7 ids are non-contract | **PASS** | `#import-file`, `#import-choose`, `#logo-input`, `#owner-name`, `#owner-address`, `#shop-upi`, `#brand-theme`, `#profile-msg`, `#shop-logo`, `#shot-ocr-hint` → 0 matches in `CONTRACT.md` |
+| Import paste path unchanged | **PASS** | non-empty `#import-box` + `#import-go` imports the pasted JSON exactly (`11820`, 8 rows) |
+| No scored requirement changed | **PASS** | PRD/PLAN/TRACEABILITY 23/23/23 IDs, 0 missing/extra; `CONTRACT.md` git-clean; P7 adds X1–X5 only |
+| `CONTRACT-<n>` deviations | **0** | no token in `app/`, docs, or tests outside this scorecard |
+| Full regression | **PASS** | **63/63** (CRITIC-RUN-10); `58` scored cases green |
+| F-02 200-shop hidden data | **PASS** | green, seed `20261118`, 805 customers / 1,401 entries, 0 mismatches |
+| Open / reminder / UPI links | **PASS** | Open link unchanged; reminder name + `Rs` + URI; exactly one UPI anchor per row |
+| BUG-3 brand contrast | **PASS — closed** | light 6.69/14.12/4.76/4.76/16.16; dark 4.62/15.23/6.57/6.57/14.40, all ≥ 4.5:1 |
+
+#### Doc sync — output
+
+```
+$ grep -o 'R-[0-9]\+' docs/{PRD,IMPLEMENTATION-PLAN,TRACEABILITY}.md | sort -u | wc -l  → 0/0/0 (literal regex vacuous)
+$ grep -oE '\b[RNB][0-9]+' docs/PRD.md | sort -u | wc -l                     → 23
+$ grep -oE '\b[RNB][0-9]+' docs/IMPLEMENTATION-PLAN.md | sort -u | wc -l     → 23
+$ grep -oE '\b[RNB][0-9]+' docs/TRACEABILITY.md | sort -u | wc -l            → 23
+$ comm -23 r p ; comm -23 r t ; comm -13 r p ; comm -13 r t                  → (all empty)
+$ grep -o '`[#\[][^`]*`' docs/CONTRACT.md | tr -d '`' | sort -u | wc -l      → 29
+$ while read -r sel; do grep -qF "$sel" docs/TEST-CASES.md || echo UNTESTED   → (no output) 29/29
+$ grep -nE 'TBD|TODO|\(Planner\)' on the seven docs                          → none
+traceability rows                                                            → 23 rows, 23 with a phase
+E2E-P7-01..05                                                               → 5/5 defined in TEST-CASES v0.14;
+                                                                               cited as the range `E2E-P7-01–05` in TRACEABILITY
+headers                                                                      → 4/4 (Version, Updated, Owner, Supersedes)
+versions                                                                     → PRD 1.1, TECH-STACK 1.0, PLAN 1.13,
+                                                                               CONTRACT 1.0 FROZEN, DECISIONS 1.4,
+                                                                               TRACEABILITY 1.12, TEST-CASES 0.14
+judges' note                                                                 → pending deployment; JSON/CSV file import and
+                                                                               `shop,phone,name,type,amount,date,note`;
+                                                                               UPI link in the reminder; shop profile/logo/brand;
+                                                                               63/63; OCR manual and "B7 is therefore not claimed"
+CONTRACT.md git status                                                       → clean (unchanged since G0)
+```
+
+Versions this gate: PRD **1.1**, TECH-STACK **1.0**, IMPLEMENTATION-PLAN **1.13**, CONTRACT **1.0 — FROZEN at gate G0**, DECISIONS **1.4**, TRACEABILITY **1.12**, TEST-CASES **0.14**; all `Updated: 2026-11-18` where changed. No CONTRACT change, so no human gate was triggered.
+
+#### Vercel readiness — PASS
+
+- Deployable set is exactly `app/index.html` (9,574 B), `app/styles.css` (9,998 B), `app/app.js` (97,629 B) — **117,201 B**. No `package.json`, lockfile, manifest, bundler config, `dist/`, `build/` or `vercel.json` in `app/`; no build step. (`sample-data.csv` is a root workspace sample, not part of the deployable unit.)
+- Asset paths are relative and cache-busted: `./styles.css?v=6.1`, `./app.js?v=6.1`; favicon `data:,`; 0 absolute or `localhost` asset paths. The only absolute URL is the outbound literal `https://wa.me/91` / `upi://…` in markup, which issues no request.
+- No service worker, cookie, password input, auth gate, analytics, `fetch` or `XMLHttpRequest`; storage is `localStorage` only.
+- Direct routes `/`, `/index.html`, `/styles.css?v=6.1`, `/app.js?v=6.1`, `/?customer=9000000101`, `/?customer=9000000199`, `/?today=2026-11-15`, `/?today=not-a-date` → **200** with `text/html`, `text/css`, `text/javascript` as appropriate.
+- Clean-profile context: empty storage, total `0`, 0 rows, `#lang-switch en`, empty `document.cookie`, no SW controller, 0 console/page errors, 0 failed or third-party requests.
+
+#### G7 gate checklist (PLAN P7 + non-scored extras)
+
+- [x] **Tester RUN id present with commands and evidence** — RUN-15 (63/63, 5 P7 cases, F-02 green, BUG-3 closed, artifacts `p7-brand-contrast.txt` / `p7-ocr.txt` / `p7-profile-375.png`).
+- [x] **Phase acceptance 100%, regression 100%** — CRITIC-RUN-10 **63/63**, 0 flaky, 0 skipped; 58 scored regression + 5 extras; F-01/F-02 green.
+- [x] **No open P0/P1** — none filed; BUG-1, BUG-2 and **BUG-3 remain closed**.
+- [x] **Contract audit 100%** — 19/19 §2 nodes exactly once; 29/29 selector tokens; data selectors 0 at empty; P7 ids non-contract; **0 `CONTRACT-<n>`**; F-02 200-shop green.
+- [x] **Doc sync check passes** — 23/0/0 IDs, 29/29 selectors, 0 TBD, 23/23 phased, E2E-P7-01–05 defined 5/5; PLAN/TRACEABILITY/DECISIONS current; TEST-CASES 0.14; headers 4/4; judges' note checks.
+- [x] **Critic scorecard written; score not lower than the previous gate** — **100/100** vs 100/100 at G6.2; final threshold ≥95 met (floor 97 under the strict B6-placeholder reading).
+- [x] **Vercel shape** — static `app/`, relative `?v=6.1` assets, no build/auth/SW/cookies, direct routes 200, clean console.
+- [ ] **Live URL** — **pending human deployment** (human submission gate, not a technical item).
+- [x] **`worklog.md` entry** — RUN-15 is recorded; the Orchestrator must append the G7 gate entry after this scorecard is recorded (F-1).
+
+**Verdict: PASS — G7 technical PASS.**
+
+#### Findings / notes (none blocks G7; no veto raised)
+
+- **F-1 [process]** The P7 build is uncommitted: HEAD is `7c980cf` (tag `g6.2`); `app/*`, `docs/*`, `tests/e2e/p7.spec.js`, `tests`/`README`/`sample-data.csv` are modified/untracked. The Orchestrator should commit and tag `p7` so the submitted build is reproducible; the checksums above pin it for this scorecard.
+- **F-2 [doc hygiene, non-blocking]** `TRACEABILITY.md` cites the P7 tests as the range `E2E-P7-01–05` in its P7 note rather than adding five rows to R/B/N. That is correct for non-scored extras: X1–X5 add no requirement ID, and `TEST-CASES.md` v0.14 defines all five cases individually. The scored 23-row mapping is unchanged.
+- **F-3 [declared failure]** B7 OCR remains **0** — D17 records OCR as not implemented; P7 adds only an honest hint. The manual fallback and screenshot attachment are verified; B7 is the dropped seventh, so the bonus block stays 30/30.
+- **F-4 [non-scored surface]** `#import-file` is a hidden native file input (normal for a styled file picker); the visible path is `#import-choose`, and the empty `#import-go` button opens the same picker. Both are non-contract P7 ids; the scored `#import-box`/`#import-go` paste path is unchanged.
+- **F-5 [human gate]** The judges' note is a draft. Its live link is `pending deployment`; the human deploys `app/`, pastes the URL, approves and submits. Nothing in `app/` may change after this gate without re-running the suite and this audit.
+
+#### Remaining human steps — G7
+
+1. Deploy the `app/` directory to Vercel with **Root Directory = `app`**, framework preset **Other**, no build command. Verify the live `/`, `/?customer=<phone>`, `/?today=2026-11-15`, one paste-and-import, one JSON/CSV file import, the reminder UPI URI, one profile/logo save, and the OCR manual hint.
+2. Paste the live URL into the judges' note in `IMPLEMENTATION-PLAN.md` §3, replacing `pending deployment`.
+3. Approve the judges' note and submit before **Sun 22 Nov 2026, 10:00 IST** (tie-break: earlier submission).
+4. Optional but recommended: commit and tag the graded P7 build (`32fb0468…`, `c52f8e01…`, `e562933e…`) so the submission is reproducible.
+5. If any `app/` change is made after this gate, re-run `cd tests && npx playwright test` and the CRITIC-G7 probe before submitting; otherwise ship the pinned build.

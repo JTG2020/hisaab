@@ -7,12 +7,21 @@
   <title>Hisaab — Shop ledger</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./styles.css?v=6.1">
+  <style id="brand-theme"></style>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <h1 class="brand-name">Hisaab</h1>
       <p class="brand-sub" data-i18n="brandSub">Shop ledger</p>
+    </div>
+    <div class="shop-profile" aria-label="Shop profile summary">
+      <img id="shop-logo" class="shop-logo" alt="" hidden>
+      <div class="shop-profile-text">
+        <span id="owner-display-name" class="shop-profile-name">Your shop</span>
+        <span id="owner-display-address" class="shop-profile-line"></span>
+        <span id="owner-display-upi" class="shop-profile-line">Demo UPI ID</span>
+      </div>
     </div>
     <div class="lang">
       <label for="lang-switch" class="visually-hidden" data-i18n="language">Language</label>
@@ -121,7 +130,7 @@
         <div class="field">
           <label for="shot-input" data-i18n="shotLabel">Payment screenshot</label>
           <input id="shot-input" name="shot" type="file" accept="image/*">
-          <span class="small muted ocr-hint" id="shot-ocr-hint" data-i18n="ocrLabel">Read amount from screenshot</span>
+          <span class="small muted ocr-hint" id="shot-ocr-hint" data-i18n="ocrLabel">Enter the amount manually; the screenshot is saved with the entry.</span>
         </div>
         <div class="row-actions">
           <button id="entry-save" type="submit" class="btn primary">Save</button>
@@ -132,28 +141,43 @@
     </section>
 
     <section class="card" aria-labelledby="import-title">
-      <h2 class="section-title" id="import-title" data-i18n="importTitle">Import shop JSON</h2>
+      <h2 class="section-title" id="import-title" data-i18n="importTitle">Import shop data</h2>
       <form class="import-form" novalidate>
         <div class="field">
-          <label for="import-box" data-i18n="pasteLabel">Paste shop JSON</label>
+          <label for="import-box" data-i18n="pasteLabel">Paste shop JSON or CSV</label>
           <textarea id="import-box" placeholder="Paste shop JSON" spellcheck="false"></textarea>
         </div>
         <div class="row-actions">
           <button id="import-go" type="button" class="btn primary" data-i18n="importBtn">Import</button>
+          <button id="import-choose" type="button" class="btn" data-i18n="chooseFile">Choose JSON/CSV file</button>
           <button id="export-csv" type="button" class="btn" data-i18n="exportBtn">Export CSV</button>
         </div>
+        <input id="import-file" type="file" accept=".json,.csv,application/json,text/csv" hidden>
         <p id="import-msg" class="msg" role="status" aria-live="polite"></p>
         <p id="export-msg" class="msg" role="status" aria-live="polite"></p>
       </form>
     </section>
 
-    <section class="card" aria-labelledby="upi-title">
-      <h2 class="section-title" id="upi-title" data-i18n="shopUpiTitle">Shop UPI ID</h2>
+    <section class="card" aria-labelledby="profile-title">
+      <h2 class="section-title" id="profile-title" data-i18n="shopProfileTitle">Shop profile</h2>
+      <div class="field">
+        <label for="logo-input" data-i18n="logoLabel">Shop logo</label>
+        <input id="logo-input" name="logo" type="file" accept="image/*">
+      </div>
+      <div class="field">
+        <label for="owner-name" data-i18n="ownerNameLabel">Owner name</label>
+        <input id="owner-name" name="ownerName" type="text" autocomplete="organization" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label for="owner-address" data-i18n="ownerAddressLabel">Shop address</label>
+        <input id="owner-address" name="ownerAddress" type="text" autocomplete="street-address" placeholder="Shop address">
+      </div>
       <div class="field">
         <label for="shop-upi" data-i18n="shopUpiLabel">Your UPI ID (for pay links)</label>
         <input id="shop-upi" name="upi" type="text" autocomplete="off" spellcheck="false" placeholder="yourname@bank" data-i18n-ph="shopUpiPlaceholder">
       </div>
       <p class="small muted" id="upi-demo-note" data-i18n="upiDemoNote">Demo UPI ID — set your shop UPI ID</p>
+      <p class="msg" id="profile-msg" role="status" aria-live="polite"></p>
       <p class="msg" id="upi-msg" role="status" aria-live="polite"></p>
     </section>
   </main>

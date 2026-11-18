@@ -1,11 +1,11 @@
 # DECISIONS — Hisaab
 
-Version: 1.3
-Updated: 2026-11-17
+Version: 1.4
+Updated: 2026-11-18
 Owner: Planner
-Supersedes: DECISIONS.md v1.2
+Supersedes: DECISIONS.md v1.3
 
-Rule: no silent decisions. Every ambiguity has an entry with the chosen default, the rationale, the impact if the decision is wrong, and a status. Only the human can move a human-gate item from `proposed` to `accepted` (`AGENTS.md` §7). D1–D12 were accepted by the human on 2026-11-17: D1 and D11 were confirmed at G0, and D12 was accepted as Option A at G0. No decision is `proposed` or vetoable at G0.
+Rule: no silent decisions. Every ambiguity has an entry with the chosen default, the rationale, the impact if the decision is wrong, and a status. Only the human can move a human-gate item from `proposed` to `accepted` (`AGENTS.md` §7). D1–D12 were accepted by the human on 2026-11-17: D1 and D11 were confirmed at G0, and D12 was accepted as Option A at G0. D13–D17 were accepted by the human on 2026-11-18 as non-scored P7 owner extras. No decision is `proposed` or vetoable at G0.
 
 ## 1. Decisions
 
@@ -23,12 +23,17 @@ Rule: no silent decisions. Every ambiguity has an entry with the chosen default,
 | D10 | Entries for an unknown phone | **Auto-create a customer named `Customer` followed by the phone** (for example `Customer 9000000199`) and attribute the entries to it. Never drop the entry and never drop money from the total. | The hidden data may contain entries for a phone missing from `customers`; dropping them understates the total. | If a grader expected such entries to be ignored, the row count and total differ by exactly those entries; preserving money is the stronger reading and is documented. | accepted |
 | D11 | Malformed entry defaults (human-accepted) | Missing or empty `type` → `credit` with a warning. Unknown `type` → `credit` with a warning. A negative amount is read for its magnitude; direction comes from `type`. An entry with no usable phone is skipped with a warning (it cannot be attributed). A blank or missing `date` → today (`?today=` when present); an unparseable date is kept as text and sorts after ISO dates. Missing `note` → empty text. | Every rule preserves rows and money where attribution is possible, and never crashes on garbage input; each is visible in `#import-msg` rather than silent. | A grader expecting a different default for unknown types would differ on those entries only; valid sample-shaped data is unaffected. | accepted |
 | D12 | UPI payee VPA (human-accepted, Option A) | The payee is the **shop owner's** UPI ID, entered in a visible "Shop UPI ID" setting and stored locally; it is never the customer's ID and never another shop's. If the owner has not set one, use the documented demo default `hisaab@upi` and show a visible label "Demo UPI ID — set your shop UPI ID"; the demo is never presented as the owner's real payment address. Each `[data-customer]` row still has exactly one `a[href^="upi://pay?pa="]`; `am=` is the rendered positive balance (`am=0` for zero or negative); `cu=INR` occurs exactly once; `tn=` is the percent-encoded customer name. The import schema is unchanged: `shop` remains a string and there is no nested `shop.upi`; an optional imported VPA is deferred and would require a human-approved data-shape/contract change. | The brief requires a UPI link but supplies no payee. The owner must be able to receive the money into the right account; a clearly labelled demo fallback keeps the href testable without misrepresenting it as a real address. | If a grader checks a specific VPA, the demo default still satisfies the `upi://pay?pa=` href shape and the owner-set value is used when present. No imported data or balance changes. | accepted |
+| D13 | CSV import schema | Primary CSV columns **`shop,phone,name,type,amount,date,note`** in any order. A customers-only file **`phone,name`** imports customers and ignores financial columns with a warning. An entries-only file **`phone,type,amount,date,note`** imports entries. RFC-4180 quoting throughout; D4, D9, D10, and D11 apply unchanged. The shop name comes from the `shop` column or, when absent, from the filename. No contract change. | Owners already keep spreadsheets; a tolerant schema lets them import one without hand-building JSON, and reusing D4/D9/D10/D11 keeps every imported value on the same oracle. | A file with unexpected headers imports fewer rows or warns; JSON import and the scored contract are unaffected. | accepted |
+| D14 | File-import UI | **`#import-file`** and **`#import-choose`** add JSON/CSV file import. Pressing `#import-go` with an empty box opens the file picker; a non-empty paste through `#import-box` keeps the existing behaviour exactly; every import replaces state atomically and never merges. Non-contract extension; no machine node changes. | The owner can load the file they already have; the paste path the grader uses is untouched. | File import could mis-handle an unusual file; the paste path and all contract nodes are unaffected. | accepted |
+| D15 | UPI URI in the reminder message | The WhatsApp message text includes the **same UPI URI** as that row's pay anchor. The row still has exactly one `a[href^="upi://pay?pa="]`; the `wa.me` href format and the name plus `Rs` content stay exact. No contract change. | One tap from the reminder can both ask for payment and open the payment app; the machine href contract is unchanged. | A stricter parser sees extra message text; the name and rendered `Rs` balance are still present and the anchor count is unchanged. | accepted |
+| D16 | Shop profile, logo, brand | Owner name, address, UPI ID, logo, and brand colour render in a visible header strip and profile card. The logo is stored as a **128 px data URL**. The brand colour is applied as a **contrast-safe tint/accent**; without a logo the default palette is unchanged. Stored locally; no contract change. | The shop is identifiable on a shared phone and on the customer view, while contrast stays above the N3 thresholds for any brand colour. | An extreme brand colour is reduced to a tint; machine nodes, selectors, and default colours are unaffected. | accepted |
+| D17 | OCR status | **OCR is not implemented.** B7 remains 0. The screenshot attaches and displays and the amount is entered manually. No OCR dependency, asset, or network request is added. | D5 makes OCR progressive and never blocking; without an approved self-hosted asset the honest outcome is manual entry, and no scored flow depends on OCR. | At most the 5 B7 bonus marks, already counted as 0; screenshots and payments work. | accepted |
 
 ## 2. Status summary
 
 | Status | IDs |
 |---|---|
-| accepted (human) | D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12 |
+| accepted (human) | D1–D17 |
 | vetoable at G0 | none |
 | proposed | none |
 
@@ -48,3 +53,4 @@ Rule: no silent decisions. Every ambiguity has an entry with the chosen default,
 | 2026-11-17 | 1.2 | D12 | Human accepted D12 Option A: owner-configured UPI ID with demo fallback; no import-schema change. | human |
 | 2026-11-17 | 1.3 | D4 | Wording clarification: fractional values render with exactly two decimals (whole values no decimals); no behavior change. | Planner |
 | 2026-11-17 | 1.3 | — | PRD v1.1 N1 clarified to the P0/P1 contract reading; no decision or contract change. | Planner |
+| 2026-11-18 | 1.4 | D13–D17 | P7 owner extras accepted by the human: CSV import schema, file-import UI, UPI URI in reminder, shop profile/logo/brand, OCR not implemented. No contract change. | human |

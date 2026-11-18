@@ -7,6 +7,8 @@
   var MAX_RUPEES = 90000000000000;
   var WA_PREFIX = 'https://wa.me/91';
   var UPI_STORE_KEY = 'hisaab.upi.v1';
+  var PROFILE_KEY = 'hisaab.profile.v1';
+  var LOGO_STORE_MAX_CHARS = 400 * 1024;
   var DEMO_UPI = 'hisaab@upi';
   var UPI_PREFIX = 'upi://pay?pa=';
   var OVERDUE_DAYS = 30;
@@ -43,14 +45,21 @@
       dateLabel: 'Date',
       noteLabel: 'Note',
       shotLabel: 'Payment screenshot',
-      ocrLabel: 'Read amount from screenshot',
+      ocrLabel: 'Enter the amount manually; the screenshot is saved with the entry.',
       save: 'Save',
       update: 'Update',
       cancel: 'Cancel',
-      importTitle: 'Import shop JSON',
-      pasteLabel: 'Paste shop JSON',
+      importTitle: 'Import shop data',
+      pasteLabel: 'Paste shop JSON or CSV',
+      chooseFile: 'Choose JSON/CSV file',
       importBtn: 'Import',
       exportBtn: 'Export CSV',
+      shopProfileTitle: 'Shop profile',
+      logoLabel: 'Shop logo',
+      ownerNameLabel: 'Owner name',
+      ownerAddressLabel: 'Shop address',
+      yourShop: 'Your shop',
+      demoUpiBadge: 'Demo UPI ID',
       shopUpiTitle: 'Shop UPI ID',
       shopUpiLabel: 'Your UPI ID (for pay links)',
       shopUpiPlaceholder: 'yourname@bank',
@@ -99,14 +108,21 @@
       dateLabel: 'तारीख़',
       noteLabel: 'टिप्पणी',
       shotLabel: 'भुगतान का स्क्रीनशॉट',
-      ocrLabel: 'स्क्रीनशॉट से राशि पढ़ें',
+      ocrLabel: 'राशि हाथ से भरें; स्क्रीनशॉट प्रविष्टि के साथ सहेजा जाता है।',
       save: 'सहेजें',
       update: 'अपडेट करें',
       cancel: 'रद्द करें',
-      importTitle: 'दुकान JSON आयात करें',
-      pasteLabel: 'दुकान JSON पेस्ट करें',
+      importTitle: 'दुकान डेटा आयात करें',
+      pasteLabel: 'दुकान JSON या CSV पेस्ट करें',
+      chooseFile: 'JSON/CSV फ़ाइल चुनें',
       importBtn: 'आयात करें',
       exportBtn: 'CSV निर्यात करें',
+      shopProfileTitle: 'दुकान प्रोफ़ाइल',
+      logoLabel: 'दुकान का लोगो',
+      ownerNameLabel: 'मालिक का नाम',
+      ownerAddressLabel: 'दुकान का पता',
+      yourShop: 'आपकी दुकान',
+      demoUpiBadge: 'डेमो UPI ID',
       shopUpiTitle: 'दुकान UPI ID',
       shopUpiLabel: 'आपकी UPI ID (भुगतान लिंक के लिए)',
       shopUpiPlaceholder: 'yourname@bank',
@@ -155,14 +171,21 @@
       dateLabel: 'తేదీ',
       noteLabel: 'గమనిక',
       shotLabel: 'చెల్లింపు స్క్రీన్‌షాట్',
-      ocrLabel: 'స్క్రీన్‌షాట్ నుండి మొత్తం చదవండి',
+      ocrLabel: 'మొత్తాన్ని మాన్యువల్‌గా నమోదు చేయండి; స్క్రీన్‌షాట్ నమోదుతో సేవ్ అవుతుంది.',
       save: 'సేవ్ చేయండి',
       update: 'అప్‌డేట్ చేయండి',
       cancel: 'రద్దు చేయండి',
-      importTitle: 'షాప్ JSON దిగుమతి చేయండి',
-      pasteLabel: 'షాప్ JSON పేస్ట్ చేయండి',
+      importTitle: 'షాప్ డేటా దిగుమతి చేయండి',
+      pasteLabel: 'షాప్ JSON లేదా CSV పేస్ట్ చేయండి',
+      chooseFile: 'JSON/CSV ఫైల్ ఎంచుకోండి',
       importBtn: 'దిగుమతి',
       exportBtn: 'CSV ఎగుమతి',
+      shopProfileTitle: 'షాప్ ప్రొఫైల్',
+      logoLabel: 'షాప్ లోగో',
+      ownerNameLabel: 'యజమాని పేరు',
+      ownerAddressLabel: 'షాప్ చిరునామా',
+      yourShop: 'మీ షాప్',
+      demoUpiBadge: 'డెమో UPI ID',
       shopUpiTitle: 'షాప్ UPI ID',
       shopUpiLabel: 'మీ UPI ID (చెల్లింపు లింక్‌ల కోసం)',
       shopUpiPlaceholder: 'yourname@bank',
@@ -763,6 +786,32 @@
     });
   }
 
+  function readFileText(file) {
+    return new Promise(function (resolve, reject) {
+      var reader;
+      try {
+        reader = new FileReader();
+      } catch (error) {
+        reject(error);
+        return;
+      }
+      reader.onload = function () {
+        resolve(String(reader.result || ''));
+      };
+      reader.onerror = function () {
+        reject(reader.error || new Error('The file could not be read.'));
+      };
+      reader.onabort = function () {
+        reject(new Error('The file read was cancelled.'));
+      };
+      try {
+        reader.readAsText(file);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   function loadImageFromDataUrl(dataUrl) {
     return new Promise(function (resolve, reject) {
       var image = new Image();
@@ -910,6 +959,7 @@
   var writeWarning = '';
   var LANG = 'en';
   var shopUpi = '';
+  var profile = { ownerName: '', address: '', upi: '', logo: '', brand: null };
   var editingEntryId = null;
   var editingEntryPhone = null;
 
@@ -1140,17 +1190,439 @@
     return { photoDropped: hadShot };
   }
 
-  function loadShopUpi() {
+  function usableLogo(value) {
+    return (
+      typeof value === 'string' &&
+      value.indexOf('data:image/') === 0 &&
+      value.length <= LOGO_STORE_MAX_CHARS
+    );
+  }
+
+  function normalizeBrand(value) {
+    if (!Array.isArray(value) || value.length !== 3) {
+      return null;
+    }
+    var out = [];
+    for (var index = 0; index < 3; index += 1) {
+      var channel = Math.round(Number(value[index]));
+      if (!isFinite(channel) || channel < 0 || channel > 255) {
+        return null;
+      }
+      out.push(channel);
+    }
+    return out;
+  }
+
+  function clampChannel(value) {
+    var channel = Math.round(Number(value));
+    if (!isFinite(channel)) {
+      return 0;
+    }
+    if (channel < 0) {
+      return 0;
+    }
+    if (channel > 255) {
+      return 255;
+    }
+    return channel;
+  }
+
+  function rgbToHsl(red, green, blue) {
+    var r = red / 255;
+    var g = green / 255;
+    var b = blue / 255;
+    var max = Math.max(r, g, b);
+    var min = Math.min(r, g, b);
+    var hue = 0;
+    var saturation = 0;
+    var lightness = (max + min) / 2;
+    if (max !== min) {
+      var delta = max - min;
+      saturation = lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+      if (max === r) {
+        hue = ((g - b) / delta + (g < b ? 6 : 0)) * 60;
+      } else if (max === g) {
+        hue = ((b - r) / delta + 2) * 60;
+      } else {
+        hue = ((r - g) / delta + 4) * 60;
+      }
+    }
+    return { h: hue, s: saturation, l: lightness * 100 };
+  }
+
+  function hslToRgb(hue, saturation, lightness) {
+    var h = ((hue % 360) + 360) % 360;
+    var s = Math.min(1, Math.max(0, saturation));
+    var l = Math.min(1, Math.max(0, lightness / 100));
+    var chroma = (1 - Math.abs(2 * l - 1)) * s;
+    var x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+    var m = l - chroma / 2;
+    var r = 0;
+    var g = 0;
+    var b = 0;
+    if (h < 60) {
+      r = chroma;
+      g = x;
+    } else if (h < 120) {
+      r = x;
+      g = chroma;
+    } else if (h < 180) {
+      g = chroma;
+      b = x;
+    } else if (h < 240) {
+      g = x;
+      b = chroma;
+    } else if (h < 300) {
+      r = x;
+      b = chroma;
+    } else {
+      r = chroma;
+      b = x;
+    }
+    return [
+      clampChannel((r + m) * 255),
+      clampChannel((g + m) * 255),
+      clampChannel((b + m) * 255)
+    ];
+  }
+
+  function relativeLuminance(rgb) {
+    var channels = [];
+    for (var index = 0; index < 3; index += 1) {
+      var value = clampChannel(rgb[index]) / 255;
+      channels.push(value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4));
+    }
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  }
+
+  function contrastRatio(first, second) {
+    var a = relativeLuminance(first);
+    var b = relativeLuminance(second);
+    var lighter = Math.max(a, b);
+    var darker = Math.min(a, b);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function cssRgb(rgb) {
+    return 'rgb(' + clampChannel(rgb[0]) + ', ' + clampChannel(rgb[1]) + ', ' + clampChannel(rgb[2]) + ')';
+  }
+
+  function mixRgb(base, target, weight) {
+    var out = [];
+    for (var index = 0; index < 3; index += 1) {
+      out.push(clampChannel(base[index] * (1 - weight) + target[index] * weight));
+    }
+    return out;
+  }
+
+  function readableTintText(base, reference, direction) {
+    var hsl = rgbToHsl(base[0], base[1], base[2]);
+    var lightness = hsl.l;
+    var rgb = base;
+    var guard = 0;
+    while (contrastRatio(rgb, reference) < 4.6 && guard < 100) {
+      lightness += direction;
+      if (lightness < 0) {
+        lightness = 0;
+      }
+      if (lightness > 100) {
+        lightness = 100;
+      }
+      rgb = hslToRgb(hsl.h, hsl.s, lightness);
+      if (lightness === 0 || lightness === 100) {
+        break;
+      }
+      guard += 1;
+    }
+    if (contrastRatio(rgb, reference) < 4.6) {
+      return direction < 0 ? [22, 19, 16] : [245, 240, 232];
+    }
+    return rgb;
+  }
+
+  function accentFor(hsl, reference, direction) {
+    var lightness = hsl.l;
+    var rgb = hslToRgb(hsl.h, hsl.s, lightness);
+    var guard = 0;
+    while (contrastRatio(rgb, reference) < 4.6 && guard < 100) {
+      lightness += direction;
+      if (lightness < 0) {
+        lightness = 0;
+      }
+      if (lightness > 100) {
+        lightness = 100;
+      }
+      rgb = hslToRgb(hsl.h, hsl.s, lightness);
+      if (lightness === 0 || lightness === 100) {
+        break;
+      }
+      guard += 1;
+    }
+    return rgb;
+  }
+
+  function dominantSaturatedColor(image) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    var context = canvas.getContext ? canvas.getContext('2d') : null;
+    if (!context) {
+      return null;
+    }
+    try {
+      context.drawImage(image, 0, 0, 32, 32);
+      var data = context.getImageData(0, 0, 32, 32).data;
+      var buckets = [];
+      var index;
+      for (index = 0; index < 12; index += 1) {
+        buckets.push({ count: 0, r: 0, g: 0, b: 0 });
+      }
+      for (index = 0; index < data.length; index += 4) {
+        if (data[index + 3] < 200) {
+          continue;
+        }
+        var red = data[index];
+        var green = data[index + 1];
+        var blue = data[index + 2];
+        var hsl = rgbToHsl(red, green, blue);
+        if (hsl.s < 0.35 || hsl.l < 12 || hsl.l > 85) {
+          continue;
+        }
+        var bucket = buckets[Math.floor(hsl.h / 30) % 12];
+        bucket.count += 1;
+        bucket.r += red;
+        bucket.g += green;
+        bucket.b += blue;
+      }
+      var best = null;
+      for (index = 0; index < buckets.length; index += 1) {
+        if (!best || buckets[index].count > best.count) {
+          best = buckets[index];
+        }
+      }
+      if (!best || best.count < 4) {
+        return null;
+      }
+      return [
+        Math.round(best.r / best.count),
+        Math.round(best.g / best.count),
+        Math.round(best.b / best.count)
+      ];
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function applyBrandTheme(sampled) {
+    var style = byId('brand-theme');
+    if (!style) {
+      return;
+    }
+    if (!sampled || sampled.length !== 3) {
+      style.textContent = '';
+      return;
+    }
+    var hsl = rgbToHsl(sampled[0], sampled[1], sampled[2]);
+    if (hsl.s < 0.2) {
+      style.textContent = '';
+      return;
+    }
+    var lightAccent = accentFor(hsl, [251, 248, 243], -1);
+    var darkAccent = accentFor(hsl, [26, 18, 6], 1);
+    var lightSoft = mixRgb([251, 248, 243], lightAccent, 0.12);
+    var darkSoft = mixRgb([15, 13, 11], darkAccent, 0.16);
+    var lightMuted = readableTintText([107, 98, 89], lightSoft, -1);
+    var darkMuted = readableTintText([169, 158, 144], darkSoft, 1);
+    style.textContent =
+      ':root{--accent:' +
+      cssRgb(lightAccent) +
+      ';--accent-ink:#FFFFFF;--brand-soft:' +
+      cssRgb(lightSoft) +
+      ';--brand-muted:' +
+      cssRgb(lightMuted) +
+      ';--focus:' +
+      cssRgb(lightAccent) +
+      '}' +
+      '@media (prefers-color-scheme: dark){:root{--accent:' +
+      cssRgb(darkAccent) +
+      ';--accent-ink:#1A1206;--brand-soft:' +
+      cssRgb(darkSoft) +
+      ';--brand-muted:' +
+      cssRgb(darkMuted) +
+      ';--focus:' +
+      cssRgb(darkAccent) +
+      '}}';
+  }
+
+  function processLogoFile(file) {
+    return readFileDataUrl(file)
+      .then(loadImageFromDataUrl)
+      .then(function (image) {
+        var dataUrl = encodeJpeg(image, 128, 0.85);
+        if (typeof dataUrl !== 'string' || dataUrl.indexOf('data:image/') !== 0) {
+          throw new Error('The logo could not be encoded.');
+        }
+        return { dataUrl: dataUrl, color: dominantSaturatedColor(image) };
+      });
+  }
+
+  function handleLogoFile(file) {
+    var message = byId('profile-msg');
+    var input = byId('logo-input');
+    if (!file) {
+      return;
+    }
+    if (typeof file.type === 'string' && file.type && !/^image\//i.test(file.type)) {
+      setMessage(message, 'That file is not an image; the logo was not changed.', true);
+      if (input) {
+        try {
+          input.value = '';
+        } catch (error) {
+          /* resetting the file input is best effort */
+        }
+      }
+      return;
+    }
+    processLogoFile(file)
+      .then(
+        function (result) {
+          profile.logo = result.dataUrl;
+          profile.brand = result.color;
+          saveProfile();
+          renderProfile();
+          applyBrandTheme(profile.brand);
+        },
+        function () {
+          setMessage(message, 'The logo could not be read; the rest of the profile is unchanged.', true);
+        }
+      )
+      .then(function () {
+        if (input) {
+          try {
+            input.value = '';
+          } catch (error) {
+            /* resetting the file input is best effort */
+          }
+        }
+      });
+  }
+
+  function loadProfile() {
+    var stored = null;
     var raw = null;
     try {
-      raw = window.localStorage.getItem(UPI_STORE_KEY);
+      raw = window.localStorage.getItem(PROFILE_KEY);
     } catch (error) {
       raw = null;
     }
-    shopUpi = typeof raw === 'string' ? raw.trim() : '';
-    var input = byId('shop-upi');
-    if (input) {
-      input.value = shopUpi;
+    if (raw) {
+      try {
+        stored = JSON.parse(raw);
+      } catch (error) {
+        stored = null;
+      }
+    }
+    if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+      profile.ownerName = typeof stored.ownerName === 'string' ? stored.ownerName : '';
+      profile.address = typeof stored.address === 'string' ? stored.address : '';
+      profile.upi = typeof stored.upi === 'string' ? stored.upi.trim() : '';
+      profile.logo = usableLogo(stored.logo) ? stored.logo : '';
+      profile.brand = normalizeBrand(stored.brand);
+    }
+    if (!profile.upi) {
+      var legacy = null;
+      try {
+        legacy = window.localStorage.getItem(UPI_STORE_KEY);
+      } catch (error) {
+        legacy = null;
+      }
+      profile.upi = typeof legacy === 'string' ? legacy.trim() : '';
+    }
+    shopUpi = profile.upi;
+    syncProfileInputs();
+    renderProfile();
+    applyBrandTheme(profile.brand);
+  }
+
+  function syncProfileInputs() {
+    var ownerName = byId('owner-name');
+    if (ownerName) {
+      ownerName.value = profile.ownerName;
+    }
+    var address = byId('owner-address');
+    if (address) {
+      address.value = profile.address;
+    }
+    var upi = byId('shop-upi');
+    if (upi) {
+      upi.value = profile.upi;
+    }
+  }
+
+  function renderProfile() {
+    var nameNode = byId('owner-display-name');
+    if (nameNode) {
+      nameNode.textContent = profile.ownerName || t('yourShop');
+    }
+    var addressNode = byId('owner-display-address');
+    if (addressNode) {
+      addressNode.textContent = profile.address || '';
+    }
+    var upiNode = byId('owner-display-upi');
+    if (upiNode) {
+      upiNode.textContent = profile.upi || t('demoUpiBadge');
+    }
+    var logoNode = byId('shop-logo');
+    if (logoNode) {
+      if (profile.logo) {
+        logoNode.setAttribute('src', profile.logo);
+        logoNode.setAttribute('alt', profile.ownerName || t('yourShop'));
+        logoNode.removeAttribute('hidden');
+      } else {
+        logoNode.removeAttribute('src');
+        logoNode.setAttribute('alt', '');
+        logoNode.setAttribute('hidden', 'hidden');
+      }
+    }
+  }
+
+  function profilePayload(includeLogo) {
+    return JSON.stringify({
+      version: 1,
+      ownerName: profile.ownerName,
+      address: profile.address,
+      upi: profile.upi,
+      logo: includeLogo ? profile.logo : '',
+      brand: profile.brand
+    });
+  }
+
+  function saveProfile() {
+    var message = byId('profile-msg');
+    try {
+      window.localStorage.setItem(PROFILE_KEY, profilePayload(true));
+      setMessage(message, '', false);
+      return true;
+    } catch (error) {
+      if (profile.logo) {
+        try {
+          window.localStorage.setItem(PROFILE_KEY, profilePayload(false));
+          setMessage(
+            message,
+            'The logo could not be stored; your other shop details were saved. The logo is shown in this tab only.',
+            false
+          );
+          return true;
+        } catch (ignored) {
+          /* fall through to the general storage warning */
+        }
+      }
+      setMessage(
+        message,
+        'Could not save the shop profile to browser storage; it is used in this tab only.',
+        false
+      );
+      return false;
     }
   }
 
@@ -1252,7 +1724,13 @@
   }
 
   function buildReminderHref(customer, balance) {
-    var message = 'Namaste ' + customer.name + ', your balance is Rs ' + renderMachine(balance) + '.';
+    var message =
+      'Namaste ' +
+      customer.name +
+      ', your balance is Rs ' +
+      renderMachine(balance) +
+      '. Pay via UPI: ' +
+      buildUpiHref(customer, balance);
     return WA_PREFIX + customer.phone + '?text=' + encodeURIComponent(message);
   }
 
@@ -1736,6 +2214,7 @@
     renderCustomerView(balances);
     renderEntryCustomerSelect();
     renderUpiState();
+    renderProfile();
     updateEditModeUi();
   }
 
@@ -2140,42 +2619,251 @@
     saveEntryWithImage(entry, file);
   }
 
-  function handleImport() {
-    var box = document.querySelector('#import-box');
-    var message = byId('import-msg');
-    var rawText = box ? String(box.value || '') : '';
-    var parsedRoot;
+  function normalizeCsvHeader(cell) {
+    return String(cell === null || cell === undefined ? '' : cell).replace(/\s+/g, '').toLowerCase();
+  }
 
-    try {
-      parsedRoot = JSON.parse(rawText);
-    } catch (error) {
-      setMessage(
-        message,
-        'Could not import: the pasted text is not valid JSON. The previous shop is unchanged.',
-        true
-      );
-      return;
+  function csvCell(row, header, name) {
+    var index = header.indexOf(name);
+    if (index === -1 || index >= row.length) {
+      return '';
+    }
+    return String(row[index] === null || row[index] === undefined ? '' : row[index]);
+  }
+
+  function parseCsvRows(text) {
+    var source = String(text || '').replace(/^\uFEFF/, '');
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuotes = false;
+    var index = 0;
+    while (index < source.length) {
+      var character = source.charAt(index);
+      if (inQuotes) {
+        if (character === '"') {
+          if (source.charAt(index + 1) === '"') {
+            field += '"';
+            index += 2;
+            continue;
+          }
+          inQuotes = false;
+          index += 1;
+          continue;
+        }
+        field += character;
+        index += 1;
+        continue;
+      }
+      if (character === '"' && field === '') {
+        inQuotes = true;
+        index += 1;
+        continue;
+      }
+      if (character === ',') {
+        row.push(field);
+        field = '';
+        index += 1;
+        continue;
+      }
+      if (character === '\r' || character === '\n') {
+        if (character === '\r' && source.charAt(index + 1) === '\n') {
+          index += 1;
+        }
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+        index += 1;
+        continue;
+      }
+      field += character;
+      index += 1;
+    }
+    if (inQuotes) {
+      throw new Error('The CSV has an unterminated quoted field.');
+    }
+    if (field !== '' || row.length) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function csvShopName(rows, header, filename) {
+    if (header.indexOf('shop') !== -1) {
+      for (var index = 1; index < rows.length; index += 1) {
+        var value = csvCell(rows[index], header, 'shop').trim();
+        if (value) {
+          return value;
+        }
+      }
+    }
+    var base = String(filename || '')
+      .replace(/^.*[\\/]/, '')
+      .replace(/\.[^.]+$/, '')
+      .trim();
+    return base || 'Imported shop';
+  }
+
+  function buildCsvImportState(text, filename) {
+    var parsed = parseCsvRows(text);
+    var rows = [];
+    var index;
+    for (index = 0; index < parsed.length; index += 1) {
+      var sourceRow = parsed[index];
+      var hasContent = false;
+      for (var cell = 0; cell < sourceRow.length; cell += 1) {
+        var rawCell = sourceRow[cell];
+        if (String(rawCell === null || rawCell === undefined ? '' : rawCell).trim() !== '') {
+          hasContent = true;
+          break;
+        }
+      }
+      if (hasContent) {
+        rows.push(sourceRow);
+      }
     }
 
-    if (!parsedRoot || typeof parsedRoot !== 'object' || Array.isArray(parsedRoot)) {
+    var warnings = [];
+    if (!rows.length) {
+      return {
+        state: { shop: csvShopName([], [], filename), customers: [], entries: [] },
+        warnings: ['Warning: the CSV had no rows; the shop is now empty.']
+      };
+    }
+
+    var header = [];
+    for (index = 0; index < rows[0].length; index += 1) {
+      header.push(normalizeCsvHeader(rows[0][index]));
+    }
+    if (header.indexOf('phone') === -1) {
+      throw new Error('The CSV needs a phone column.');
+    }
+    if (
+      header.indexOf('credit') !== -1 ||
+      header.indexOf('payment') !== -1 ||
+      header.indexOf('balance') !== -1
+    ) {
+      warnings.push('Warning: CSV customer balances are not imported; use type/amount rows.');
+    }
+
+    var customers = [];
+    var entries = [];
+    var skippedRows = 0;
+    var typeWithoutAmount = 0;
+    for (index = 1; index < rows.length; index += 1) {
+      var dataRow = rows[index];
+      var phone = csvCell(dataRow, header, 'phone').trim();
+      if (!phone) {
+        skippedRows += 1;
+        continue;
+      }
+      var name = csvCell(dataRow, header, 'name').trim();
+      if (name) {
+        customers.push({ name: name, phone: phone });
+      }
+      var type = csvCell(dataRow, header, 'type').trim();
+      var amount = csvCell(dataRow, header, 'amount').trim();
+      if (amount) {
+        entries.push({
+          phone: phone,
+          type: type,
+          amount: amount,
+          date: csvCell(dataRow, header, 'date'),
+          note: csvCell(dataRow, header, 'note')
+        });
+      } else if (type) {
+        typeWithoutAmount += 1;
+      }
+    }
+
+    if (rows.length === 1) {
+      warnings.push('Warning: the CSV had no data rows; the shop is now empty.');
+    }
+    if (skippedRows) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(skippedRows, 'CSV row was', 'CSV rows were') +
+          ' skipped because the phone column was empty.'
+      );
+    }
+    if (typeWithoutAmount) {
+      warnings.push(
+        'Warning: ' +
+          importCountText(typeWithoutAmount, 'CSV row had', 'CSV rows had') +
+          ' a type but no amount; no entry was created for it.'
+      );
+    }
+
+    var built = buildImportState({
+      shop: csvShopName(rows, header, filename),
+      customers: customers,
+      entries: entries
+    });
+    built.warnings = warnings.concat(built.warnings);
+    return built;
+  }
+
+  function runImport(rawText, filename) {
+    var message = byId('import-msg');
+    var text = String(rawText === null || rawText === undefined ? '' : rawText).replace(/^\uFEFF/, '');
+    var trimmed = text.trim();
+    var built;
+
+    if (!trimmed) {
+      built = {
+        state: { shop: csvShopName([], [], filename), customers: [], entries: [] },
+        warnings: ['Warning: the file had no rows; the shop is now empty.']
+      };
+    } else if (trimmed.charAt(0) === '{') {
+      var parsedRoot;
+      try {
+        parsedRoot = JSON.parse(trimmed);
+      } catch (error) {
+        setMessage(
+          message,
+          'Could not import: the text is not valid JSON. The previous shop is unchanged.',
+          true
+        );
+        return;
+      }
+      if (!parsedRoot || typeof parsedRoot !== 'object' || Array.isArray(parsedRoot)) {
+        setMessage(
+          message,
+          'Could not import: the JSON must be an object with shop, customers and entries. The previous shop is unchanged.',
+          true
+        );
+        return;
+      }
+      try {
+        built = buildImportState(parsedRoot);
+      } catch (error) {
+        setMessage(
+          message,
+          'Could not import: the shop data could not be read. The previous shop is unchanged.',
+          true
+        );
+        return;
+      }
+    } else if (trimmed.charAt(0) === '[') {
       setMessage(
         message,
         'Could not import: the JSON must be an object with shop, customers and entries. The previous shop is unchanged.',
         true
       );
       return;
-    }
-
-    var built;
-    try {
-      built = buildImportState(parsedRoot);
-    } catch (error) {
-      setMessage(
-        message,
-        'Could not import: the shop data could not be read. The previous shop is unchanged.',
-        true
-      );
-      return;
+    } else {
+      try {
+        built = buildCsvImportState(trimmed, filename);
+      } catch (error) {
+        setMessage(
+          message,
+          'Could not import: the CSV could not be read. The previous shop is unchanged.',
+          true
+        );
+        return;
+      }
     }
 
     var previous = state;
@@ -2226,6 +2914,57 @@
       success += ' ' + built.warnings.join(' ');
     }
     setMessage(message, success, false);
+  }
+
+  function openImportPicker() {
+    var input = byId('import-file');
+    if (input) {
+      try {
+        input.click();
+      } catch (error) {
+        /* opening the picker is best effort */
+      }
+    }
+  }
+
+  function handleImportFile(file) {
+    var message = byId('import-msg');
+    if (!file) {
+      return;
+    }
+    readFileText(file)
+      .then(
+        function (text) {
+          runImport(text, file.name || '');
+        },
+        function () {
+          setMessage(
+            message,
+            'Could not import: the file could not be read. The previous shop is unchanged.',
+            true
+          );
+        }
+      )
+      .then(function () {
+        var input = byId('import-file');
+        if (input) {
+          try {
+            input.value = '';
+          } catch (error) {
+            /* resetting the file input is best effort */
+          }
+        }
+      });
+  }
+
+  function handleImport() {
+    var box = document.querySelector('#import-box');
+    var rawText = box ? String(box.value || '') : '';
+    if (rawText.trim() === '') {
+      openImportPicker();
+      return;
+    }
+    runImport(rawText, '');
   }
 
   function navigate(url) {
@@ -2354,10 +3093,42 @@
 
     var shopUpiInput = byId('shop-upi');
     if (shopUpiInput) {
-      shopUpiInput.addEventListener('input', function () {
+      var applyShopUpi = function () {
         shopUpi = String(shopUpiInput.value || '').trim();
+        profile.upi = shopUpi;
         saveShopUpi();
+        saveProfile();
         renderAll();
+      };
+      shopUpiInput.addEventListener('input', applyShopUpi);
+      shopUpiInput.addEventListener('change', applyShopUpi);
+    }
+
+    var ownerNameInput = byId('owner-name');
+    if (ownerNameInput) {
+      ownerNameInput.addEventListener('input', function () {
+        profile.ownerName = String(ownerNameInput.value || '');
+        saveProfile();
+        renderProfile();
+      });
+    }
+
+    var ownerAddressInput = byId('owner-address');
+    if (ownerAddressInput) {
+      ownerAddressInput.addEventListener('input', function () {
+        profile.address = String(ownerAddressInput.value || '');
+        saveProfile();
+        renderProfile();
+      });
+    }
+
+    var logoInput = byId('logo-input');
+    if (logoInput) {
+      logoInput.addEventListener('change', function () {
+        var files = logoInput.files;
+        if (files && files.length) {
+          handleLogoFile(files[0]);
+        }
       });
     }
 
@@ -2376,6 +3147,24 @@
       importButton.addEventListener('click', function (event) {
         event.preventDefault();
         handleImport();
+      });
+    }
+
+    var importChoose = byId('import-choose');
+    if (importChoose) {
+      importChoose.addEventListener('click', function (event) {
+        event.preventDefault();
+        openImportPicker();
+      });
+    }
+
+    var importFile = byId('import-file');
+    if (importFile) {
+      importFile.addEventListener('change', function () {
+        var files = importFile.files;
+        if (files && files.length) {
+          handleImportFile(files[0]);
+        }
       });
     }
 
@@ -2431,7 +3220,7 @@
       langSwitch.value = 'en';
     }
     loadState();
-    loadShopUpi();
+    loadProfile();
     ensureEntryCustomers();
     var dateInput = byId('entry-date');
     if (dateInput && !dateInput.value) {

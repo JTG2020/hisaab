@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.14
+Version: 0.16
 Updated: 2026-11-18
 Owner: Tester
-Supersedes: test-results.md v0.13
+Supersedes: test-results.md v0.15
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -913,3 +913,144 @@ Notes:
 - `docs/TEST-CASES.md` v0.13 adds E2E-P6-04 and the P6.2 mapping. No existing ID or expected value changed.
 - Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-13 line and the P6.2 note; `TRACEABILITY.md` should record E2E-P6-04.
 - The Tester did not edit `app/`. App checksums at verification time: `app/index.html 0ee9383e5398…`, `app/app.js 138320ebdde9…`, `app/styles.css 1a9e3c1e4059…`.
+
+### RUN-14 | 2026-11-18 06:44 EST | phase P7 | gate P7 (extras verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 where a case requires it; light plus emulated `prefers-color-scheme: dark` for the theme cases; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 12 spec files.
+
+Cases: 63 total | **62 passed, 1 failed** | Failing: **E2E-P7-04**
+- Scored regression green: P0 23/23, P1 8/8, P2 5/5, P3 5/5, P4 7/7, P5 4/4, F-01 50 datasets, F-02 200 datasets (seed `20261118`)
+- P6 green: E2E-P6-01, E2E-P6-02, E2E-P6-03, E2E-P6-04
+- P7: E2E-P7-01, E2E-P7-02, E2E-P7-03, **E2E-P7-04 failed**, E2E-P7-05 green
+
+Bugs filed: **BUG-3 (P1, open)** | Bugs closed: none
+
+Failing assertion:
+
+```
+E2E-P7-04 › "brand text contrast below 4.5:1"
+  light #owner-display-name    = 3.22 (rgb(22, 19, 16) on rgb(187, 35, 125))
+  light #owner-display-address = 1.04 (rgb(107, 98, 89) on rgb(187, 35, 125))
+  light #owner-display-upi     = 1.04 (rgb(107, 98, 89) on rgb(187, 35, 125))
+  dark  #owner-display-address = 2.01 (rgb(169, 158, 144) on rgb(206, 9, 126))
+  dark  #owner-display-upi     = 2.01 (rgb(169, 158, 144) on rgb(206, 9, 126))
+  6 passed samples: light #import-go 6.69, dark #import-go 4.62, dark #owner-display-name 4.67,
+                    and the functional steps (logo 128 px, header text, persistence, 375, quota)
+```
+
+Evidence:
+
+```
+$ npx playwright test
+Running 63 tests using 1 worker
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-01 JSON import via #import-file, #import-choose and empty #import-go; paste still imports (495ms)
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-02 CSV import: primary schema, quoted fields, customers-only, entries-only, malformed and empty (259ms)
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-03 reminder message carries name, Rs balance and the exact UPI URI; owner UPI applies (327ms)
+  ✘ [chromium] › e2e/p7.spec.js › E2E-P7-04 profile and logo: header, persistence, brand contrast light/dark, default palette, 375, quota
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-05 OCR honesty: hint says manual, no OCR asset or request, upload neither prefills nor blocks (1.7s)
+  62 passed, 1 failed (32.9s)
+
+$ npx playwright test --list | tail -1
+Total: 63 tests in 12 files
+```
+
+P7 extras verified green:
+
+```
+JSON file import      #import-choose picker -> 11820 / 8 rows / sample balances; empty #import-go picker
+                      -> second shop 749.50 / 2 rows, reload keeps it; pasted sample still imports 11820
+CSV import            primary schema with BOM+CRLF+"Doe, Jane"/"said ""hi"""/embedded newline:
+                      2 rows, 1249.50 + 670.50, total 1920, shop "shop-a" from the filename;
+                      customers-only with shop column -> 2 rows at 0, "Shop B";
+                      entries-only -> "Customer 9000000605" 100; unterminated quote -> Could not import,
+                      previous shop intact; header-only -> 0 rows + Warning; no phone column -> Could not import
+Reminder + UPI URI    decoded wa.me text contains the name, "Rs 670"/"Rs 1500.50" and
+                      upi://pay?pa=hisaab@upi&am=<amt>&cu=INR&tn=<encoded> with cu=INR once;
+                      exactly one row anchor with the identical href; owner VPA myshop@bank applies to both
+Profile (functional)  default #brand-theme empty and button 5.02; logo stored as data:image with a 128 px
+                      long edge; header name/address/UPI show the saved values; row UPI links use profile@bank;
+                      reload persists; 375 px scrollWidth 375/375; forced quota -> #profile-msg warning,
+                      new logo still shown, no crash
+OCR honesty           hint "Enter the amount manually; the screenshot is saved with the entry.";
+                      no ocr/tesseract request; no prefill; manual 1500 saved with one img[data-shot]
+```
+
+Artifacts: `tests/artifacts/p7-brand-contrast.txt` (all eight ratios), `tests/artifacts/p7-profile-375.png`, `tests/artifacts/p7-ocr.txt`.
+
+Verdict: **FAIL** (BUG-3, P1) — the scored 58-case contract, F-01 and F-02 are green; the only red case is the new brand-contrast assertion.
+
+Notes:
+
+- **BUG-3 | severity P1 | phase P7 | case E2E-P7-04**
+  Expected: with a brand color sampled from a logo, every visible header line and the accent button keep ≥ 4.5:1 text contrast in light and dark (PRD N3, and the P7 brief's "brand color injected contrast-safely").
+  Actual: the themed header uses a near-accent background (`rgb(187,35,125)` for a `#B0006A` logo, `rgb(206,9,126)` in dark). `#owner-display-name` falls to 3.22:1 in light; `#owner-display-address` and `#owner-display-upi` fall to **1.04:1 light and 2.01:1 dark**, i.e. effectively invisible. The accent button itself passes (6.69 light / 4.62 dark), so the defect is confined to the header tint.
+  Repro: serve `app/`; import `sample-data.json`; upload a saturated logo (e.g. a 320×320 `#B0006A` square) on `#logo-input`; read computed colours of `.topbar` and the three `#owner-display-*` nodes.
+  Evidence: `tests/artifacts/p7-brand-contrast.txt`; reproduced with two hues (`#B0006A`, `#0055CC`) and both schemes, so it is systematic, not a one-colour artefact.
+  Suspected layer: theme/brand (CSS variable injection).
+  Root cause: stated, not guessed — `applyBrandTheme` sets `--brand-soft` with `mixRgb(lightAccent, pageBg, 0.12)` and `mixRgb(darkAccent, darkBg, 0.16)`, while `mixRgb(base, target, weight)` computes `base*(1-weight) + target*weight`; the accent therefore stays at 88 %/84 % and the header renders almost fully saturated instead of a 12–16 % tint. The accent itself is contrast-tuned against the page background, but the header's ink/muted text is measured against the tinted surface, which was never checked.
+  Contract impact: no machine node; N3 (contrast) is broken whenever a logo brand is applied. P1 blocks the P7 gate; the fix is CSS/injection-only (make the tint the background color, e.g. `mixRgb(pageBg, lightAccent, 0.12)`, or set header text to `--accent-ink`).
+- `docs/TEST-CASES.md` v0.14 adds E2E-P7-01…05 and the P7 mapping. No existing ID or expected value changed.
+- The scored 58-case suite plus F-01/F-02 remain green, and the P7 extras' functional behaviour (JSON/CSV file import, reminder UPI, profile persistence, logo downscale, quota handling, OCR honesty) is verified; only the brand-tint contrast is red.
+- Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-14 line and the BUG-3 fix loop; `TRACEABILITY.md` should record E2E-P7-01…05.
+- The Tester did not edit `app/`. App checksums at verification time: `app/index.html 32fb04687ad1…`, `app/app.js 8c99fbc34a5d…`, `app/styles.css da42dd418ea6…`.
+
+### RUN-15 | 2026-11-18 06:49 EST | phase P7 | gate P7 (BUG-3 re-verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 where a case requires it; light plus emulated `prefers-color-scheme: dark` for the theme cases; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 12 spec files.
+
+Cases: **63/63 passed** | Failing: none
+- Scored regression green: P0 23, P1 8, P2 5, P3 5, P4 7, P5 4
+- F-01 50 datasets (seed `20261117`) and **F-02 200 datasets (seed `20261118`)** green
+- P6 four cases green; **P7 five cases green** (JSON file import, CSV, reminder UPI URI, profile/logo/brand, OCR honesty)
+
+Bugs filed: none | **Bugs closed: BUG-3 (P1, brand-tint header contrast)**
+
+Evidence:
+
+```
+$ npx playwright test
+Running 63 tests using 1 worker
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-01 JSON import via #import-file, #import-choose and empty #import-go
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-02 CSV import: primary schema, quoted fields, customers-only, entries-only, malformed and empty
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-03 reminder message carries name, Rs balance and the exact UPI URI; owner UPI applies
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-04 profile and logo: header, persistence, brand contrast light/dark, default palette, 375, quota
+  ✓ [chromium] › e2e/p7.spec.js › E2E-P7-05 OCR honesty: hint says manual, no OCR asset or request, upload neither prefills nor blocks
+  ... all 58 other P0–P6 cases + F-01 + F-02 green ...
+  63 passed (32.3s)
+
+$ npx playwright test --list | tail -1
+Total: 63 tests in 12 files
+```
+
+BUG-3 re-measured with the same `#B0006A` logo (`tests/artifacts/p7-brand-contrast.txt`):
+
+```
+light #import-go               = 6.69  (white on rgb(178, 6, 109))
+light #owner-display-name      = 14.12 (rgb(22, 19, 16) on rgb(242, 219, 227))
+light #owner-display-address   = 4.76  (rgb(104, 95, 87) on rgb(242, 219, 227))
+light #owner-display-upi       = 4.76  (rgb(104, 95, 87) on rgb(242, 219, 227))
+light row link                 = 16.16 (rgb(22, 19, 16) on rgb(244, 239, 230))
+dark  #import-go               = 4.62  (rgb(26, 18, 6) on rgb(242, 8, 148))
+dark  #owner-display-name      = 15.23 (rgb(245, 240, 232) on rgb(51, 12, 33))
+dark  #owner-display-address   = 6.57  (rgb(169, 158, 144) on rgb(51, 12, 33))
+dark  #owner-display-upi       = 6.57  (rgb(169, 158, 144) on rgb(51, 12, 33))
+dark  row link                 = 14.40 (rgb(245, 240, 232) on rgb(36, 31, 26))
+all >= 4.5:1; the light topbar is now rgb(242,219,227) (a 12% tint) instead of rgb(187,35,125)
+```
+
+F-02 unchanged and green: 200 datasets, seed `20261118`, 805 customers / 1,401 entries, 0 mismatches, no row dropped.
+
+Verdict: PASS — **BUG-3 closed**
+
+Notes:
+
+- **BUG-3 closure:** the tint is now mixed from the page background (`mixRgb([251,248,243], lightAccent, 0.12)` / `mixRgb([15,13,11], darkAccent, 0.16)`), and `--brand-muted` is contrast-adjusted (`readableTintText`). Measured header text went from 3.22/1.04/1.04 (light) and 4.67/2.01/2.01 (dark) to 14.12/4.76/4.76 and 15.23/6.57/6.57. The accent button and the row link also clear 4.5:1 in both schemes, and the default no-logo palette is unchanged (`#brand-theme` empty; default button contrast re-asserted).
+- **Test adjustment (no weakening):** the brand sample list now also includes the row link (`#customers [data-customer] a[href^="?customer="]`) to cover the "button/link" wording explicitly; all samples use the same ≥4.5:1 threshold.
+- **Harness race found and fixed during this re-verification:** the first two invocations of the suite failed E2E-P7-02 at `expect(shop.rows).toHaveLength(0)` after the header-only CSV, because `setInputFiles` returns before the app's async `FileReader` import finishes; in isolation the timing usually passed, under full-suite load it did not. `importFile()` now waits until the app resets `#import-file` (its completion signal after success or refusal). This was a test-side race, not an app defect — the CSV behaviour itself was correct in both the passing and failing orderings once settled. The two aborted invocations are not recorded as RUNs.
+- The P7 cases that previously passed (JSON file import, CSV schema/fallbacks, reminder UPI URI, OCR honesty) all pass again on the fixed build, and the 58 scored cases plus F-01/F-02 are untouched.
+- Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-15 line and the BUG-3 closure; `TRACEABILITY.md` should record E2E-P7-01…05.
+- The Tester did not edit `app/`. App checksums at verification time: `app/index.html 32fb04687ad1…`, `app/app.js e562933e70f7…` (BUG-3 fix), `app/styles.css c52f8e013cf4…`.
