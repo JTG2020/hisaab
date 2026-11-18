@@ -86,7 +86,10 @@
       storeSelectLabel: 'Select Shop',
       storeNameLabel: 'Shop name',
       storeCreate: 'Create Shop',
-      storeRename: 'Rename Shop',
+      storeRename: 'Update Shop',
+      storeDraftDiscardConfirm: 'Discard unsaved shop profile changes?',
+      storeProfileUpdated: 'Shop profile updated.',
+      invalidLogo: 'Choose a valid logo image.',
       storeDelete: 'Delete Shop',
       storeConfirmPrompt: 'Delete this shop?',
       storeConfirmDelete: 'Confirm delete',
@@ -173,7 +176,10 @@
       storeSelectLabel: 'दुकान चुनें',
       storeNameLabel: 'दुकान का नाम',
       storeCreate: 'दुकान बनाएँ',
-      storeRename: 'दुकान का नाम बदलें',
+      storeRename: 'दुकान अपडेट करें',
+      storeDraftDiscardConfirm: 'दुकान की बिना सहेजी प्रोफ़ाइल के बदलाव छोड़ दें?',
+      storeProfileUpdated: 'दुकान की प्रोफ़ाइल अपडेट की गई।',
+      invalidLogo: 'कृपया मान्य लोगो छवि चुनें।',
       storeDelete: 'दुकान हटाएँ',
       storeConfirmPrompt: 'क्या इस दुकान को हटाएँ?',
       storeConfirmDelete: 'हटाने की पुष्टि करें',
@@ -260,7 +266,10 @@
       storeSelectLabel: 'దుకాణాన్ని ఎంచుకోండి',
       storeNameLabel: 'దుకాణం పేరు',
       storeCreate: 'దుకాణాన్ని సృష్టించండి',
-      storeRename: 'దుకాణం పేరు మార్చండి',
+      storeRename: 'దుకాణాన్ని నవీకరించండి',
+      storeDraftDiscardConfirm: 'సేవ్ చేయని దుకాణ ప్రొఫైల్ మార్పులను వదిలివేయాలా?',
+      storeProfileUpdated: 'దుకాణం ప్రొఫైల్ నవీకరించబడింది.',
+      invalidLogo: 'చెల్లుబాటు అయ్యే లోగో చిత్రాన్ని ఎంచుకోండి.',
       storeDelete: 'దుకాణాన్ని తొలగించండి',
       storeConfirmPrompt: 'ఈ దుకాణాన్ని తొలగించాలా?',
       storeConfirmDelete: 'తొలగింపును నిర్ధారించండి',
@@ -1034,6 +1043,8 @@
   var LANG = 'en';
   var shopUpi = '';
   var profile = { ownerName: '', address: '', upi: '', logo: '', brand: null };
+  var draftLogoFile = null;
+  var storeCommitPending = false;
   var portfolio = [];
   var activeStoreId = '';
   var storeStorageWarning = false;
@@ -1696,44 +1707,8 @@
   }
 
   function handleLogoFile(file) {
-    var message = byId('profile-msg');
-    var input = byId('logo-input');
-    if (!file) {
-      return;
-    }
-    if (typeof file.type === 'string' && file.type && !/^image\//i.test(file.type)) {
-      setMessage(message, 'That file is not an image; the logo was not changed.', true);
-      if (input) {
-        try {
-          input.value = '';
-        } catch (error) {
-          /* resetting the file input is best effort */
-        }
-      }
-      return;
-    }
-    processLogoFile(file)
-      .then(
-        function (result) {
-          profile.logo = result.dataUrl;
-          profile.brand = result.color;
-          saveProfile();
-          renderProfile();
-          applyBrandTheme(profile.brand);
-        },
-        function () {
-          setMessage(message, 'The logo could not be read; the rest of the profile is unchanged.', true);
-        }
-      )
-      .then(function () {
-        if (input) {
-          try {
-            input.value = '';
-          } catch (error) {
-            /* resetting the file input is best effort */
-          }
-        }
-      });
+    draftLogoFile = file || null;
+    setMessage(byId('profile-msg'), '', false);
   }
 
   function loadProfile() {
@@ -1756,6 +1731,20 @@
     var upi = byId('shop-upi');
     if (upi) {
       upi.value = profile.upi;
+    }
+    var storeName = byId('store-name');
+    var active = currentStore();
+    if (storeName) {
+      storeName.value = active ? active.name : '';
+    }
+    draftLogoFile = null;
+    var logoInput = byId('logo-input');
+    if (logoInput) {
+      try {
+        logoInput.value = '';
+      } catch (error) {
+        /* resetting the file input is best effort */
+      }
     }
   }
 
@@ -2003,6 +1992,53 @@
     renderAll();
   }
 
+  function hasUnsavedStoreDraft() {
+    var ownerName = byId('owner-name');
+    var address = byId('owner-address');
+    var upi = byId('shop-upi');
+    var storeName = byId('store-name');
+    var logoInput = byId('logo-input');
+    var selectedLogo = draftLogoFile || (logoInput && logoInput.files && logoInput.files[0]);
+    var active = currentStore();
+    return !!selectedLogo ||
+      !!(ownerName && ownerName.value !== profile.ownerName) ||
+      !!(address && address.value !== profile.address) ||
+      !!(upi && upi.value !== profile.upi) ||
+      !!(storeName && active && storeName.value !== active.name);
+  }
+
+  function confirmDraftDiscard() {
+    return !hasUnsavedStoreDraft() || window.confirm(t('storeDraftDiscardConfirm'));
+  }
+
+  function draftProfileSnapshot() {
+    var ownerName = byId('owner-name');
+    var address = byId('owner-address');
+    var upi = byId('shop-upi');
+    var logoInput = byId('logo-input');
+    return {
+      ownerName: ownerName ? String(ownerName.value || '') : '',
+      address: address ? String(address.value || '') : '',
+      upi: upi ? String(upi.value || '').trim() : '',
+      logoFile: draftLogoFile || (logoInput && logoInput.files && logoInput.files[0]) || null
+    };
+  }
+
+  function processSelectedLogo(file) {
+    if (!file) {
+      return Promise.resolve(null);
+    }
+    if (typeof file.type === 'string' && file.type && !/^image\//i.test(file.type)) {
+      return Promise.reject(new Error('invalid logo'));
+    }
+    return processLogoFile(file).then(function (result) {
+      if (!result || !usableLogo(result.dataUrl)) {
+        throw new Error('invalid logo');
+      }
+      return result;
+    });
+  }
+
   function normalizedStoreName(raw) {
     return normalizeName(raw);
   }
@@ -2027,39 +2063,85 @@
   }
 
   function handleStoreCreate() {
-    var name = normalizedStoreName(byId('store-name').value);
+    if (storeCommitPending) {
+      return;
+    }
+    var nameInput = byId('store-name');
+    var name = normalizedStoreName(nameInput ? nameInput.value : '');
     var reason = storeNameError(name, true);
     if (reason) {
       setStoreNotice('', true, reason);
       return;
     }
-    var store = makeStore(name, { shop: '', customers: [], entries: [] }, {});
-    portfolio.push(store);
-    deleteConfirmationOpen = false;
-    bindActiveStore(store);
-    clearCustomerRoute();
-    setStoreNotice('storeCreated', false);
-    persist();
-    syncProfileInputs();
-    applyBrandTheme(profile.brand);
-    renderAll();
+    var candidate = draftProfileSnapshot();
+    storeCommitPending = true;
+    processSelectedLogo(candidate.logoFile).then(function (logo) {
+      var newProfile = {
+        ownerName: candidate.ownerName,
+        address: candidate.address,
+        upi: candidate.upi,
+        logo: logo ? logo.dataUrl : '',
+        brand: logo ? logo.color : null
+      };
+      var store = makeStore(name, { shop: '', customers: [], entries: [] }, newProfile);
+      portfolio.push(store);
+      deleteConfirmationOpen = false;
+      bindActiveStore(store);
+      clearCustomerRoute();
+      setStoreNotice('storeCreated', false);
+      persist();
+      syncProfileInputs();
+      applyBrandTheme(profile.brand);
+      renderAll();
+      setMessage(byId('profile-msg'), '', false);
+    }, function () {
+      setMessage(byId('profile-msg'), t('invalidLogo'), true);
+    }).then(function () {
+      storeCommitPending = false;
+    });
   }
 
   function handleStoreRename() {
+    if (storeCommitPending) {
+      return;
+    }
     var active = currentStore();
     if (!active) {
       return;
     }
-    var name = normalizedStoreName(byId('store-name').value);
-    var reason = storeNameError(name, false);
+    var nameInput = byId('store-name');
+    var suppliedName = nameInput ? String(nameInput.value || '') : '';
+    var name = suppliedName === '' ? active.name : normalizedStoreName(suppliedName);
+    var reason = suppliedName === '' ? '' : storeNameError(name, false);
     if (reason) {
       setStoreNotice('', true, reason);
       return;
     }
-    active.name = name;
-    setStoreNotice('storeRenamed', false);
-    persist();
-    renderAll();
+    var candidate = draftProfileSnapshot();
+    storeCommitPending = true;
+    processSelectedLogo(candidate.logoFile).then(function (logo) {
+      var newProfile = {
+        ownerName: candidate.ownerName,
+        address: candidate.address,
+        upi: candidate.upi,
+        logo: logo ? logo.dataUrl : profile.logo,
+        brand: logo ? logo.color : profile.brand
+      };
+      active.name = name;
+      active.profile = cleanProfile(newProfile);
+      profile = active.profile;
+      shopUpi = profile.upi;
+      setStoreNotice('storeProfileUpdated', false);
+      persist();
+      syncProfileInputs();
+      applyBrandTheme(profile.brand);
+      renderAll();
+      setMessage(byId('profile-msg'), '', false);
+    }, function () {
+      setMessage(byId('profile-msg'), t('invalidLogo'), true);
+    }).then(function () {
+      storeCommitPending = false;
+    });
   }
 
   function handleStoreDeleteRequest() {
@@ -3520,6 +3602,10 @@
       setImportStoreResolution(prepared, reason);
       return;
     }
+    if (!confirmDraftDiscard()) {
+      setMessage(byId('import-store-msg'), 'Store activation cancelled. No store was changed.', false);
+      return;
+    }
     activatePreparedAdd(prepared, normalized);
   }
 
@@ -3592,6 +3678,10 @@
             : 'That store name is a duplicate.',
         true
       );
+      return;
+    }
+    if (!confirmDraftDiscard()) {
+      setMessage(byId('import-store-msg'), 'Store activation cancelled. No store was changed.', false);
       return;
     }
     activatePreparedAdd(pendingAddImport, name);
@@ -3686,6 +3776,10 @@
       storeSelect.addEventListener('change', function () {
         var selectedStore = storeForActiveId(storeSelect.value);
         if (selectedStore && selectedStore.id !== activeStoreId) {
+          if (!confirmDraftDiscard()) {
+            storeSelect.value = activeStoreId;
+            return;
+          }
           activateStore(selectedStore, true);
         }
       });
@@ -3812,32 +3906,25 @@
 
     var shopUpiInput = byId('shop-upi');
     if (shopUpiInput) {
-      var applyShopUpi = function () {
-        shopUpi = String(shopUpiInput.value || '').trim();
-        profile.upi = shopUpi;
-        saveShopUpi();
-        saveProfile();
-        renderAll();
+      var updateUpiDraft = function () {
+        setMessage(byId('upi-msg'), '', false);
+        setMessage(byId('profile-msg'), '', false);
       };
-      shopUpiInput.addEventListener('input', applyShopUpi);
-      shopUpiInput.addEventListener('change', applyShopUpi);
+      shopUpiInput.addEventListener('input', updateUpiDraft);
+      shopUpiInput.addEventListener('change', updateUpiDraft);
     }
 
     var ownerNameInput = byId('owner-name');
     if (ownerNameInput) {
       ownerNameInput.addEventListener('input', function () {
-        profile.ownerName = String(ownerNameInput.value || '');
-        saveProfile();
-        renderProfile();
+        setMessage(byId('profile-msg'), '', false);
       });
     }
 
     var ownerAddressInput = byId('owner-address');
     if (ownerAddressInput) {
       ownerAddressInput.addEventListener('input', function () {
-        profile.address = String(ownerAddressInput.value || '');
-        saveProfile();
-        renderProfile();
+        setMessage(byId('profile-msg'), '', false);
       });
     }
 

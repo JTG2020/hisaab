@@ -1,9 +1,9 @@
 # PRD — Hisaab
 
-Version: 1.10
+Version: 1.11
 Updated: 2026-11-18
 Owner: Planner
-Supersedes: PRD.md v1.9
+Supersedes: PRD.md v1.10
 Sources: `PROJECT.md`, `WIN-ANALYSIS.md`, `WIN-PLAN.md`, `DESIGN.md`, `sample-data.json`, `sample-expected.json`
 
 v1.2 changes: adds stable requirement R11 for multiple local-only stores under post-G0 human-approved Phase P8. No existing R/B/N statement, acceptance criterion, or selector is renumbered or weakened.
@@ -14,6 +14,7 @@ v1.6 changes: narrows P9 to the existing profile controls and autosave IDs; bran
 v1.8 changes: reconciles the bonus status with accepted D17 and P7 evidence: B1–B6 are available, while B7 OCR is not implemented/unclaimed and scores 0; manual screenshot attachment/payment entry remains available.
 v1.9 changes: adds R13/P10 for consistent localized Shop terminology and the approved Shop workspace placement; confirms manual Shop creation keeps the existing blank-profile/autosave behavior without changing data semantics.
 v1.10 changes: adds strictly additive R14/P11 for a top-left active-shop name line while preserving the existing owner name/address/UPI display and the frozen P0–P10 contract.
+v1.11 changes: adds human-approved post-G11 R15/P12 for draft-only Shop Profile editing, explicit Update Shop, Create Shop from the current profile draft, and discard confirmation. P12 supersedes P9/P10 autosave-on-input and Rename Shop presentation plus the prior blank-profile-on-Create default, while preserving P11 header behavior and all other P0–P11 behavior.
 
 ## 1. Product summary
 
@@ -290,6 +291,26 @@ A digital ledger for a local shop: the notebook a kirana keeps for who owes what
 
 **Hidden-data cases:** switch and rename to Unicode, 60-character, and whitespace-normalised names; add and activate a manually created shop; replacement JSON/CSV whose ledger shop label differs from the portfolio name; P9 add/populate activation; reload after switch/rename/add; sample data with no owner/UPI profile; 375 px and light/dark rendering.
 
+### R15 — Staged Shop Profile edits with explicit save (P12)
+
+**Statement:** Edit the active Shop Profile as a draft, then explicitly save it with Update Shop or use the draft to create a separate Shop. No profile edit is persisted or reflected in the top-left owner/address/UPI display until a successful commit.
+
+**Acceptance**
+- Given an active shop, when its workspace loads, then `#owner-name`, `#owner-address`, and `#shop-upi` show that shop's saved profile values. The `#logo-input` remains an unprefilled file input; the saved logo is retained for display by the existing logo behavior.
+- Given any profile field is edited or a logo file is selected, then only the form draft changes: saved state, the active-shop header values, the UPI links, and other shops remain unchanged until Update Shop or successful Create Shop. P9/P10 autosave-on-input requirements in R12/R13 are superseded by this requirement.
+- Given `#store-rename` is pressed, then its visible action is `Update Shop` (the ID remains `#store-rename`). It commits the current owner name, address, UPI, optional valid logo, and optional shop-name change as one operation. An empty-string `#store-name` on Update leaves the active portfolio name unchanged; any non-empty value, including whitespace-only, is supplied and follows D19 validation. A valid unique supplied name renames the active shop atomically with the profile. An invalid or duplicate name or invalid selected logo rejects the whole operation, leaving all saved profile fields and the shop name unchanged and showing visible status.
+- Given an Update draft has an empty owner name, address, or UPI input, then that field is intentionally saved as `""`; blank fields are not replaced with the old saved values or display fallbacks. If Update has no newly selected logo file, then the current stored logo is preserved. Brand behavior remains the existing derived/default behavior; no brand editor or storage-schema change is introduced.
+- Given `#store-create` is pressed with a valid unique name in `#store-name`, then a new Shop is created and activated with an empty ledger and the current profile draft values. A newly selected valid logo is included; with no new logo selected, the new Shop starts with the existing blank/default logo rather than inheriting another Shop's logo. The new Shop's profile and ledger are isolated from every existing Shop. Invalid or duplicate names, or an invalid selected logo, create no partial Shop.
+- Given Update or Create commits, then all profile/name validation completes before mutation; the update is atomic across the active Shop name and profile. Update leaves ledger, customers, entries, and balances untouched. Only after the in-memory commit do the P11 shop-name line, owner/address/UPI header values, logo, and UPI links reflect the saved active Shop. A storage write failure follows the existing in-memory-plus-visible-warning behavior; it does not partially apply fields.
+- Given profile or shop-name drafts differ from the loaded active values, when the owner attempts to switch shops, then a localized discard confirmation is shown. Cancel restores the selector to the current shop and keeps the active shop and all drafts; confirm discards the drafts and loads the newly selected shop. The same guard is used before a successful P9 add-import creates/populates and activates a Shop; cancelling leaves the portfolio, active shop, and drafts unchanged. Invalid imports that cannot activate a Shop do not discard drafts.
+- The discard prompt is localized: English `Discard unsaved shop profile changes?`; Hindi `दुकान की बिना सहेजी प्रोफ़ाइल के बदलाव छोड़ दें?`; Telugu `సేవ్ చేయని దుకాణ ప్రొఫైల్ మార్పులను వదిలివేయాలా?`. The visible Update Shop action is localized for `en`/`hi`/`te` as `Update Shop` / `दुकान अपडेट करें` / `దుకాణాన్ని నవీకరించండి`.
+- Update success and invalid-logo validation are visible in existing status nodes and localized: `Shop profile updated.` / `दुकान की प्रोफ़ाइल अपडेट की गई।` / `దుకాణం ప్రొఫైల్ నవీకరించబడింది.` and `Choose a valid logo image.` / `कृपया मान्य लोगो छवि चुनें।` / `చెల్లుబాటు అయ్యే లోగో చిత్రాన్ని ఎంచుకోండి.`. Existing localized name-validation and storage-warning messages remain available.
+- Existing shop-delete inline confirmation/cancel semantics remain unchanged. Preserve all IDs, including `#store-rename`; add no machine IDs. Preserve P11's active portfolio name display. R15 supersedes the earlier blank-profile-on-Create default, P9/P10 autosave-on-input, and Rename Shop copy/operation requirements; other P0–P11 behavior, scoring selectors, and data contracts remain intact. R15 stays planned until Tester and Critic evidence exists.
+
+**Selectors:** `#store-workspace`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-msg`, `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, `#upi-msg`, `#active-store-name`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#shop-logo`, `#brand-theme`, `a[href^="upi://pay?pa="]`.
+
+**Hidden-data cases:** edit fields without input/change autosave and inspect state/header before commit; clear each owner/address/UPI value; Update with exactly empty, whitespace-only, unchanged, valid, duplicate, over-60, Unicode, whitespace-normalized, and case-only names; Update with and without a newly selected logo; invalid, external, non-image, and over-limit logo values; failed storage write; repeated Update; Create from edited profile with/without a new logo and identical customer phones in two Shops; switch after editing and cancel/confirm; P9 add-import activation with dirty drafts and cancel/confirm; all discard prompts in en/hi/te; ensure ledger rows, entries, UPI links, delete confirmation, and P11 header behavior remain correct.
+
 ## 6. Bonus requirements
 
 Six bonuses are available: B1 overdue list, B2 edit/delete with recalculation, B3 CSV export, B4 search, B5 UPI pay link, and B6 Hindi/Telugu labels. B7 OCR is not implemented and is unclaimed (score 0) under accepted D17 and P7 evidence (RUN-15/CRITIC-RUN-G7 for P7/manual fallback evidence). Manual payment screenshot attachment and manual amount entry remain available; the screenshot can be saved and displayed while the amount is entered normally. At most six of the seven score, so B7 may fail or remain absent harmlessly.
@@ -462,8 +483,8 @@ Authentication, accounts, multi-user sync, cross-device store sync, server or AP
 
 ## 9. Ambiguities and decisions
 
-All accepted decisions are in `DECISIONS.md`: D1 overdue threshold, D2 net total, D3 routing, D4 money, D5 OCR, D6 language, D7 empty shop, D8 CSV columns, D9 dedupe, D10 unknown phone, D11 malformed-entry defaults, D12 UPI payee, D18–D20 post-G0 local-store behavior, D21–D24 post-G8 store-workspace/import behavior, D25 post-G9 Shop terminology/workspace presentation, and D26 post-G10 top-left active-shop name presentation.
+All accepted decisions are in `DECISIONS.md`: D1 overdue threshold, D2 net total, D3 routing, D4 money, D5 OCR, D6 language, D7 empty shop, D8 CSV columns, D9 dedupe, D10 unknown phone, D11 malformed-entry defaults, D12 UPI payee, D18–D20 post-G0 local-store behavior, D21–D24 post-G8 store-workspace/import behavior, D25 post-G9 Shop terminology/workspace presentation, D26 post-G10 top-left active-shop name presentation, and D27 post-G11 staged profile edits and explicit save.
 
 ## 10. Traceability
 
-`TRACEABILITY.md` maps every R1–R14, B1–B7, and N1–N6 to a phase, the exact selectors, and test case IDs.
+`TRACEABILITY.md` maps every R1–R15, B1–B7, and N1–N6 to a phase, the exact selectors, and test case IDs.
