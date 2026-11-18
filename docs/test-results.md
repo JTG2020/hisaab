@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.16
+Version: 0.21
 Updated: 2026-11-18
 Owner: Tester
-Supersedes: test-results.md v0.15
+Supersedes: test-results.md v0.20
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -1054,3 +1054,281 @@ Notes:
 - The P7 cases that previously passed (JSON file import, CSV schema/fallbacks, reminder UPI URI, OCR honesty) all pass again on the fixed build, and the 58 scored cases plus F-01/F-02 are untouched.
 - Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-15 line and the BUG-3 closure; `TRACEABILITY.md` should record E2E-P7-01…05.
 - The Tester did not edit `app/`. App checksums at verification time: `app/index.html 32fb04687ad1…`, `app/app.js e562933e70f7…` (BUG-3 fix), `app/styles.css c52f8e013cf4…`.
+
+### RUN-16 | 2026-11-18 10:31 EST | phase P8 | gate G8
+
+Command: `python3 -m http.server 4173 --directory app` (shell 58), then `cd tests && npx playwright test smoke` (shell 59), `cd tests && npx playwright test unit/p8.spec.js integration/p8.spec.js e2e/p8.spec.js` (shell 61), and `cd tests && npx playwright test` (shell 62)
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app`; Playwright `1.65.1`; Chromium 159.0.8154.6; `workers: 1`; default viewport `1280×800`; P8 mobile check `375×812`; local timezone `Asia/Kolkata` and locale `en-IN`
+
+Cases: 15/15 smoke passed | 22/22 P8 affected unit/integration/E2E passed | 85/85 full regression/E2E-P8/fuzz passed | Failing: none
+
+P8 case IDs executed: C-40, C-41, C-42, C-43, C-44, C-45, C-46, C-47, C-48, U-15, I-11, I-12, I-13, I-14, E2E-P8-01, E2E-P8-02, E2E-P8-03, E2E-P8-04, E2E-P8-05, E2E-P8-06, E2E-P8-07, E2E-P8-08.
+
+Bugs filed: none | Bugs closed: none
+
+Evidence:
+
+```
+$ cd tests && npx playwright test smoke
+Running 15 tests using 1 worker
+15 passed (5.3s)
+
+$ cd tests && npx playwright test unit/p8.spec.js integration/p8.spec.js e2e/p8.spec.js
+Running 22 tests using 1 worker
+22 passed (4.2s)
+
+$ cd tests && npx playwright test
+Running 85 tests using 1 worker
+  ✓ C-40 ... P8 manager and contract selectors are visible at first paint
+  ✓ E2E-P8-08 storage failure, 375 px and contract regressions
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,"stringAmounts":172,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,"emptyShops":1}
+F-02 seed 20261118 datasets 200 :: {"shops":200,"customers":805,"entries":1401,"negativeBalanceRows":293,"zeroBalanceRows":394,"unknownPhoneEntries":868,"unicodeNames":360,"stringAmounts":788,"missingTypes":107,"missingDates":242,"negativeTotalShops":52,"emptyShops":3,"customersInLargestShop":202}
+85 passed (38.5s)
+```
+
+The P3 P8-storage contract update also passed in the full suite: `E2E-P3-02` read the active ledger from `hisaab.stores.v1` rather than `hisaab.v1`, and recorded the stored payment image under 200 KB and intact after reload.
+
+Verdict: PASS
+
+Notes:
+
+- P8 case definitions are exact and are no longer planned: C-40–C-48, U-15, I-11–I-14, and E2E-P8-01–08 are implemented and green.
+- Existing P0–P7 assertions remain in the full suite; no assertion was skipped or weakened.
+- The 85-test full run includes F-01 (50 generated shops) and F-02 (200 generated shops), both with zero mismatches in the independent computation.
+- 375 px P8 storage failure, active-store isolation, legacy migration, active-ledger import, and `?customer=`/`?today=` route behavior are green.
+- The new P8 tests read `hisaab.stores.v1`, `hisaab.activeStore.v1`, `hisaab.profile.v1`, `hisaab.upi.v1`, and legacy `hisaab.v1` only as storage-contract setup/verification; they derive DOM expectations independently.
+- Files added or changed for this Tester run: `tests/e2e/p8.spec.js`, `tests/unit/p8.spec.js`, `tests/integration/p8.spec.js`, `tests/e2e/p3.spec.js`, `tests/playwright.config.js`, `docs/TEST-CASES.md`, and `docs/test-results.md`.
+- App code was not edited by this Tester run. The app working tree and docs outside Tester scope were not changed by this task.
+
+### RUN-17 | 2026-11-18 10:53 EST | phase P8 | gate G8 follow-up
+
+Command: `python3 -m http.server 4173 --directory app` (shell 72), then `cd tests && npx playwright test unit/p8.spec.js integration/p8.spec.js e2e/p8.spec.js`, `cd tests && npx playwright test smoke`, and `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served from `app/`; Playwright `1.65.1`; Chromium 159.0.8154.6; 1 worker; default viewport `1280×800`; P8 responsive check `375×812` with dark scheme; locale `en-IN`; timezone `Asia/Kolkata`.
+
+Cases: **22/22 affected P8 tests passed** | **15/15 contract smoke tests passed** | **85/85 full regression passed** | Failing: none
+
+P8 cases re-run: C-40–C-48, U-15, I-11–I-14, E2E-P8-01–08. The full 85-test run also includes F-01 (50 datasets, seed `20261117`) and F-02 (200 datasets, seed `20261118`), both green.
+
+Evidence:
+
+```
+$ cd tests && npx playwright test unit/p8.spec.js integration/p8.spec.js e2e/p8.spec.js
+Running 22 tests using 1 worker
+22 passed (5.1s)
+
+$ cd tests && npx playwright test smoke
+Running 15 tests using 1 worker
+15 passed (5.4s)
+
+$ cd tests && npx playwright test
+Running 85 tests using 1 worker
+  ✓  49 [chromium] › e2e/p8.spec.js:73:1 › C-45 active id, ledger, profile and UPI persist per store (374ms)
+  ✓  56 [chromium] › e2e/p8.spec.js:212:1 › E2E-P8-04 active reload and full per-store ledger/profile/logo/brand isolation (342ms)
+  ✓  58 [chromium] › e2e/p8.spec.js:275:1 › E2E-P8-06 legacy migration and same-phone independence (161ms)
+  ✓  60 [chromium] › e2e/p8.spec.js:306:1 › E2E-P8-08 storage failure, 375 px and contract regressions (139ms)
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"duplicatePhoneShops":21,"negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,"stringAmounts":172,"missingAmounts":31,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,"emptyShops":1}
+F-02 seed 20261118 datasets 200 :: {"shops":200,"customers":805,"entries":1401,"duplicatePhoneShops":79,"emptyNameDuplicateRecords":2,"clampedEntries":1,"negativeBalanceRows":293,"zeroBalanceRows":394,"unknownPhoneEntries":868,"unicodeNames":360,"stringAmounts":788,"missingAmounts":134,"missingTypes":107,"missingDates":242,"negativeTotalShops":52,"emptyShops":3,"customersInLargestShop":202}
+85 passed (38.6s)
+```
+
+Coverage sync: `docs/CONTRACT.md` selector sweep found **45/45** selector tokens in `docs/TEST-CASES.md`; `#owner-display-address` and `#owner-display-upi` appear in C-45 and are asserted against rendered text. The new isolation checks compare distinct owner name/address/UPI, logo `src`, and `#brand-theme` values across A↔B switches and reload; same-phone balances assert exact text and `data-balance` values (`70`, `707`). E2E-P8-08 checks manager visibility/375 px bounds and text contrast `>=4.5:1` in dark mode.
+
+Bugs filed: none | Bugs closed: none
+
+Verdict: **PASS**
+
+Notes:
+
+- Tester follow-up only; app and non-Tester docs were not edited.
+- `TEST-CASES.md` is v0.16; this append-only result log is v0.18. Previous RUN entries and assertions remain unchanged.
+
+### RUN-18 | 2026-11-18 12:22 EST | phase P9 | gate G9 pre-gate verification
+Command: `python3 -m http.server 4173 --directory app`; `cd tests && npx playwright test smoke`; `cd tests && npx playwright test unit/p9.spec.js integration/p9.spec.js`; `cd tests && npx playwright test e2e/p7.spec.js e2e/p8.spec.js`
+Environment: local http://localhost:4173, Chromium, viewport 1280×800 (P9 mobile checks in P9 spec)
+Cases: smoke 15/15 passed; P9 unit/integration 1/5 passed, 4/5 failed; P7/P8 regression 20/22 passed, 2/22 failed
+Failing: I-16, I-17, I-18, U-16; E2E-P7-01, E2E-P7-02
+Bugs filed: BUG-4 P1 (P7 immediate file replacement)| Bugs closed: none
+Evidence:
+- Smoke: `15 passed (5.4s)`.
+- P9 unit/integration: I-15 passed; I-16 failed because `#owner-display-upi` remained `Demo UPI ID` instead of blank for invalid `upi`; I-17 failed because `#import-add-file` resolved to `0` elements; I-18 failed because manual-store display name remained `Your shop` instead of blank; U-16 failed because invalid-profile display nodes remained `Your shop` defaults.
+- P7/P8: P7-01 received 0 `[data-customer]` after JSON file selection instead of 8; P7-02 received 0 `[data-customer]` after CSV file selection instead of 2; P8 suite passed 16/16; P7-03/P7-04/P7-05 passed.
+- P9 E2E gate suite was not run because P7/P9 prerequisites are red.
+
+BUG-4 | severity P1 | phase P7/P9 | case E2E-P7-01, E2E-P7-02
+Expected: selecting JSON/CSV through `#import-file` via `#import-choose` immediately replaces the active ledger; sample JSON renders 11820/8 rows and primary CSV renders 1920/2 rows.
+Actual: after each selection `[data-customer]` stayed at 0 rather than 8/2.
+Repro: `cd tests && npx playwright test e2e/p7.spec.js`
+Evidence: RUN-18; `E2E-P7-01` and `E2E-P7-02` failed at row-count assertions in P7.
+Suspected layer: import
+Root cause: `handleImportFile` stages the file instead of immediately replacing the active ledger through the existing P7 replacement flow.
+Contract impact: `#import-file`, `#import-choose`, `[data-customer]`, `#total-outstanding`
+
+Verdict: **FAIL**
+Notes:
+- P9 test coverage is now present in v0.17: C-49–C-58, U-16, I-15–I-18, E2E-P9-01–10.
+- Test-results append-only log is v0.19.
+- No app or Planner-owned document was edited by the Tester.
+- No P9 E2E gate PASS is claimed. No P9 gate E2E suite is green until the Coder fixes the red import behavior and the full suite is rerun.
+
+### Test oracle correction | 2026-11-18 | P9 accepted-spec alignment
+Owner: Tester
+Scope: `TEST-CASES.md` v0.18 and P9 unit/integration/E2E oracle code.
+Changed: corrected U-16, I-16, I-18 and E2E-P9-03/04/06/07 assumptions to distinguish blank underlying profile fields/editable inputs/logo from D12 display fallbacks (`#owner-display-name = "Your shop"` and `#owner-display-upi = "Demo UPI ID"`). True-name-collision setup now makes the existing same-name store non-pristine; sole pristine `My Store` remains bootstrap-eligible. Missing-name/cancel, duplicate no-overwrite, and pristine/bootstrap coverage are retained.
+Run: No commands executed for this documentation/oracle correction. No PASS or green verdict is claimed.
+
+### Test oracle correction | 2026-11-18 | P9 CONTRACT §10/D23 alignment
+Owner: Tester
+Scope: `TEST-CASES.md` v0.19, P9 I-17 and E2E-P9-06 oracle code.
+Changed: corrected I-17 so a valid unique CSV name on the sole pristine store asserts immediate bootstrap, hidden resolution, the active imported store/row, and then an existing P7 replacement file that replaces only the active ledger. Corrected E2E-P9-06 to populate initial `My Store` through `#import-go` with a non-empty 899 ledger, preserve that exact original row/balance across missing-name and true-collision cancellations, resolve the collision to `Safe Store`, and switch back to verify `My Store` still contains its original ledger. Missing-name cancellation, true collision, no-overwrite, and bootstrap cases remain covered.
+Run: No commands executed. This is an oracle-only correction; RUN-18 and all prior RUN evidence are unchanged. No PASS or green verdict is claimed.
+
+### RUN-19 | 2026-11-18 14:00 EST | phase P9 | gate G9
+Command:
+- `cd tests && npx playwright test smoke`
+- `cd tests && npx playwright test unit/p9.spec.js integration/p9.spec.js e2e/p7.spec.js e2e/p8.spec.js`
+- `cd tests && npx playwright test e2e/p9.spec.js`
+- `cd tests && npx playwright test`
+Environment: local `http://localhost:4173` served from `app/` (existing server; `/` and `/app.js` returned HTTP 200); Playwright 1.65.1; Chromium 159.0.8154.6; one worker; default viewport 1280×800; P9 responsive check 375×812 with dark scheme; locale `en-IN`, timezone `Asia/Kolkata`.
+Cases: contract smoke **15/15**; P9 unit/integration plus targeted P7/P8 regression **27/27**; P9 E2E gate **10/10**; full P0–P9 regression including F-01/F-02 **100/100**. Failing: none.
+P9 cases: C-49–C-58, U-16, I-15–I-18, E2E-P9-01–10. P7/P8 regression: E2E-P7-01–05, C-40–C-48, E2E-P8-01–08. The full run also executed both fuzz cases: F-01 (50 shops, seed `20261117`) and F-02 (200 shops, seed `20261118`), with 0 mismatches.
+Bugs filed: none | Bugs closed: **BUG-4 (P1)**.
+Evidence:
+```
+$ cd tests && npx playwright test smoke
+15 passed (5.3s)
+
+$ cd tests && npx playwright test unit/p9.spec.js integration/p9.spec.js e2e/p7.spec.js e2e/p8.spec.js
+27 passed (7.5s)
+E2E-P7-01 and E2E-P7-02 passed; immediate JSON/CSV replacement restored.
+
+$ cd tests && npx playwright test e2e/p9.spec.js
+10 passed (2.1s)
+
+$ cd tests && npx playwright test
+F-01 seed 20261117 datasets 50 :: ... "shops":50 ...
+F-02 seed 20261118 datasets 200 :: ... "shops":200 ...
+100 passed (40.6s)
+```
+Selector coverage: C-49/E2E-P9-01 first-paint coverage includes `#store-workspace`, `#store-profile-editor`, `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, `#store-msg`, `#active-store-name`, `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, `#upi-msg`, `#import-add-store`, `#import-add-file`, `#import-store-name`, `#import-store-confirm`, `#import-store-cancel`, `#import-store-msg`, `#import-box`, `#import-go`, `#import-file`, `#import-choose`, `#total-outstanding`, and `#shot-input`; the prohibited `#profile-save` and `#profile-brand-input` are verified absent. Profile/display coverage includes `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#shop-logo`, and `#brand-theme`. Import and ledger assertions cover `[data-customer]`, phone-specific `[data-customer="<phone>"]`, and `[data-balance]`; name/cancel/bootstrap, storage and route cases assert the corresponding store controls/messages and active ledger. P9 mobile/dark assertions check `document.documentElement.scrollWidth <= 375` and ≥4.5:1 contrast for `#active-store-name`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#import-add-store`, and `#import-go`. Full smoke and regression retain the P0–P8 contract selectors.
+BUG-4 closure evidence: the exact reproductions now pass in the targeted command and the full suite. `E2E-P7-01` immediately replaced the active ledger from JSON (`11820`, 8 rows, then `749.50`, 2 rows, surviving reload); `E2E-P7-02` passed the CSV replacement/schema cases. The separate P9 `#import-add-file` path also passed I-17 and E2E-P9-04/05, confirming add-store selection does not stage or replace the P7 picker semantics.
+Console/network: C-39 passed with 0 console errors, uncaught rejections, and failed requests across the four contract routes; C-22 passed with no external request on load. A Playwright probe of P9 add-import with an invalid external logo recorded `consoleErrors: 0`, `failedRequests: 0`, `externalRequests: 0`.
+Verdict: **PASS**
+Notes: the 375 px/dark P9 gate and full P5 light/dark regression passed. No tests or TEST-CASES oracles were changed. RUN-18 remains unchanged as the historical failing run; BUG-4 is closed here with the regression evidence above.
+
+### RUN-20 | 2026-11-18 16:15 EST | phase P10 | gate G10 pre-gate verification
+Command:
+- `cd tests && npx playwright test smoke`
+- `cd tests && npx playwright test unit/p8.spec.js`
+- `cd tests && npx playwright test e2e/p10.spec.js e2e/p8.spec.js unit/p8.spec.js`
+- `cd tests && npx playwright test`
+- `cd tests && npx playwright test --reporter=line 2>&1 | tail -n 35` (concise result repeat)
+Environment: local `http://localhost:4173` served from `app/`; Playwright 1.65.1; Chromium 159.0.8154.6; one worker; default viewport 1280×800; P10 mobile check 375×812; locale/timezone `en-IN`/`Asia/Kolkata`.
+Acceptance: P10 focused suite **3/5 passed** — `E2E-P10-02`, `E2E-P10-03`, `E2E-P10-04` passed; `C-59` and `E2E-P10-01` failed on exact approved copy.
+P0–P9 regression: **97/100 passed** — the three P8 copy assertions `C-42`, `E2E-P8-02`, and `U-15` failed for the same exact-copy defect; all other P0–P9 tests passed. F-01/F-02 were included in the full run and remain green.
+Full suite: **100 passed / 5 failed** out of 105 tests.
+Cases: contract smoke **15/15**; targeted P8/P10 **18 passed / 5 failed**; P10 acceptance **3/5**; full suite including P0–P9 and P10 **100/105**.
+Failing: `C-59`, `E2E-P10-01`, `C-42`, `E2E-P8-02`, `U-15`.
+Evidence:
+- Smoke: `15 passed (5.6s)`.
+- Targeted rerun: `18 passed / 5 failed (31.4s)`.
+- Full rerun: `100 passed / 5 failed (1.1m)`.
+- Exact English duplicate reproduced as `Could not create shop: A shop with this name already exists.` / `Could not rename shop: A shop with this name already exists.` instead of exactly `A shop with this name already exists.`.
+- Hindi blank reproduced as `दुकान नहीं बनाई जा सकी: दुकान का नाम दर्ज करें।` instead of exactly `दुकान का नाम दर्ज करें।`.
+Bugs filed: **BUG-5 (P1, open)** | Bugs closed: none.
+
+BUG-5 | severity P1 | phase P10/P8 | case C-59, E2E-P10-01, C-42, E2E-P8-02, U-15
+Expected:
+- English create/rename validation reasons are exact: `Enter a shop name.`, `Shop name must be 60 characters or fewer.`, and `A shop with this name already exists.`
+- Hindi/Telugu blank, duplicate, too-long, delete-protection, and storage-status manager text exactly matches CONTRACT §10.6, without an obsolete English/Store prefix.
+Actual:
+- Validation text is prefixed in `#store-msg`, for example `Could not create shop: ...`, `Could not rename shop: ...`, and Hindi `दुकान नहीं बनाई जा सकी: ...`.
+Repro:
+1. Serve `app/` on `http://localhost:4173`.
+2. Load `/`, enter `P10 One`, click `#store-create`, then enter `P10 One` and click `#store-create` again.
+3. Read `#store-msg`.
+4. Repeat blank-name creation after selecting `hi` and read `#store-msg`.
+Evidence:
+- `cd tests && npx playwright test e2e/p10.spec.js e2e/p8.spec.js unit/p8.spec.js`
+- Exact raw values are shown above in this run.
+Suspected layer: `render` / localized manager status
+Root cause: `app/app.js` wraps D19/D25 reason keys through `storeCouldNotCreate` / `storeCouldNotRename` in `setStoreNotice`, producing extra create/rename prefixes instead of rendering the exact approved reason text; localized reason keys are then appended rather than used as the exact whole message.
+Contract impact: `#store-msg` exact P10 copy and P8 exact-copy supersession; the machine node and state semantics remain intact.
+Verdict: **FAIL**
+Notes: preserving prior RUN-19 and all earlier RUN records; this run adds no PASS/G10 claim, adds no app change, and does not update TRACEABILITY or any Planner-owned doc. P10 manual-create, blank-profile autosave, layout/375, import, isolation and P0–P9 behavior outside the exact-copy defect passed. BUG-5 requires Coder fix; after fix, Tester will add/retain the exact regression assertions and rerun the full suite.
+
+### RUN-21 | 2026-11-18 16:14 EST | phase P10 | BUG-5 post-fix verification
+Command:
+- `cd tests && npx playwright test smoke`
+- `cd tests && npx playwright test e2e/p10.spec.js e2e/p8.spec.js unit/p8.spec.js`
+- `cd tests && npx playwright test`
+Environment: local `http://localhost:4173` served from `app/`; Playwright 1.65.1; Chromium 159.0.8154.6; one worker; default viewport 1280×800; P10/P8/P9 mobile checks include 375×812; locale/timezone `en-IN`/`Asia/Kolkata`.
+Cases: contract smoke **15/15**; targeted P8/P10 regression **23/23**; full P0–P10 regression **105/105**. Failing: none.
+Acceptance:
+- C-59 passed exact English and localized manager copy, including exact blank, 61-character overlength, duplicate-name, and storage-failure status text in en/hi/te.
+- E2E-P10-01–04 passed.
+- C-42, E2E-P8-02, and U-15 passed the formerly failing exact copy assertions.
+- P0–P9 regression, F-01 (50 shops), F-02 (200 shops), and 375 px/light/dark assertions passed.
+P10 focused suite **23/23**; full suite **105/105**.
+Failing: none.
+Evidence:
+```
+$ cd tests && npx playwright test smoke
+15 passed (5.5s)
+
+$ cd tests && npx playwright test e2e/p10.spec.js e2e/p8.spec.js unit/p8.spec.js
+23 passed (5.8s)
+
+$ cd tests && npx playwright test
+F-01 seed 20261117 datasets 50 :: 0 mismatches
+F-02 seed 20261118 datasets 200 :: 0 mismatches
+105 passed (42.0s)
+```
+BUG-5 closure evidence:
+- Exact English: blank `Enter a shop name.`, overlength `Shop name must be 60 characters or fewer.`, duplicate `A shop with this name already exists.`, storage `Could not save shop changes.`
+- Exact Hindi: blank `दुकान का नाम दर्ज करें।`, overlength `दुकान का नाम 60 अक्षरों से अधिक नहीं होना चाहिए।`, duplicate `इस नाम की दुकान पहले से मौजूद है।`, storage `दुकान के बदलाव सहेजे नहीं जा सके।`
+- Exact Telugu: blank `దుకాణం పేరు నమోదు చేయండి.`, overlength `దుకాణం పేరు 60 అక్షరాలకు మించకూడదు.`, duplicate `ఈ పేరుతో దుకాణం ఇప్పటికే ఉంది.`, storage `దుకాణం మార్పులను సేవ్ చేయలేకపోయాము.`
+- The exact post-fix checks in C-59, C-42, E2E-P8-02, and U-15 returned only those reason/status strings, with no create/rename prefix.
+Bugs filed: none new | Bugs closed: **BUG-5 (P1, P10/P8 exact copy and storage copy)**.
+Verdict: **PASS — BUG-5 closed**. This is post-fix verification only; no G10 PASS or gate claim is made.
+Notes: RUN-19 and RUN-20 remain preserved unchanged. TEST-CASES.md is strengthened at v0.21 with storage-warning coverage; no app, Planner-owned doc, README, scorecard, or worklog file was modified by the Tester. 375 px and dark/light checks are green in the full run, and F-01/F-02 remain green with independent oracles.
+
+### RUN-22 | 2026-11-18 16:34 EST | phase P11 | P11 gate verification
+Command:
+- `cd tests && npx playwright test smoke`
+- `cd tests && npx playwright test unit/p8.spec.js unit/p9.spec.js`
+- `cd tests && npx playwright test e2e/p8.spec.js e2e/p9.spec.js e2e/p10.spec.js`
+- `cd tests && npx playwright test e2e/p11.spec.js`
+- `cd tests && npx playwright test`
+Environment: local `http://localhost:4173` served from `app/`; Playwright 1.65.1; Chromium 159.0.8154.6; one worker; default/phase viewport 1280×800 and P11 375×812; locale/timezone `en-IN`/`Asia/Kolkata`.
+Cases: contract smoke **15/15**; affected P8/P9 unit **2/2**; P8/P9/P10 store/import regression **32/32**; P11 focused suite **3/3**; full P0–P11 regression including C-60/E2E-P11-01–02, F-01/F-02, P8/P9/P10 and P0–P7 **108/108**. Failing: none.
+P11 cases: C-60, E2E-P11-01, E2E-P11-02.
+Relevant P8/P10/P11 evidence:
+- C-60 passed exact equality across My Store, manual creation, Unicode rename, switch, replacement import, reload, and existing owner/UPI fallbacks.
+- E2E-P11-01 passed 375 px top-left header tracking through manual create, rename, switch and reload.
+- E2E-P11-02 passed replacement import with different ledger `shop` labels and P9 `sample-data.json` add/populate activation; the active portfolio name remained exact after reload, and blank owner/address/UPI fallbacks remained `Your shop`, `""`, and `Demo UPI ID`.
+- `.active-shop-display` passed class-only/no-ID/no-`data-*` inspection; `#active-store-name` passed exactly-one-count and no duplicate/moved location assertions.
+- P11 375 px no-overflow and light/dark contrast checks passed for `.active-shop-display`, `#active-store-name`, and the three owner display nodes.
+Evidence:
+```
+$ cd tests && npx playwright test smoke
+15 passed (5.3s)
+
+$ cd tests && npx playwright test unit/p8.spec.js unit/p9.spec.js
+2 passed (1.1s)
+
+$ cd tests && npx playwright test e2e/p8.spec.js e2e/p9.spec.js e2e/p10.spec.js
+32 passed (7.0s)
+
+$ cd tests && npx playwright test e2e/p11.spec.js
+3 passed (935ms)
+
+$ cd tests && npx playwright test
+F-01 seed 20261117 datasets 50 :: 0 mismatches
+F-02 seed 20261118 datasets 200 :: 0 mismatches
+108 passed (41.7s)
+```
+Bugs filed: none | Bugs closed: none.
+Verdict: **P11 TEST SUITE GREEN**. G11 is not claimed; Critic/Orchestrator phase-gate evidence remains required.
+Notes: RUN-1 through RUN-21 remain preserved unchanged. TEST-CASES.md is at v0.22 with C-60 and E2E-P11-01–02; test-results is at v0.21. No app, Planner-owned doc, README, scorecard, worklog, or TRACEABILITY file was changed in this Tester run. P11 test code changed only `tests/e2e/p11.spec.js`; no P0–P10 assertion was weakened or skipped.

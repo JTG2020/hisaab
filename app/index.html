@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Hisaab — Shop ledger</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css?v=6.1">
+  <link rel="stylesheet" href="./styles.css?v=6.2">
   <style id="brand-theme"></style>
 </head>
 <body>
@@ -18,6 +18,7 @@
     <div class="shop-profile" aria-label="Shop profile summary">
       <img id="shop-logo" class="shop-logo" alt="" hidden>
       <div class="shop-profile-text">
+        <span class="active-shop-display">My Store</span>
         <span id="owner-display-name" class="shop-profile-name">Your shop</span>
         <span id="owner-display-address" class="shop-profile-line"></span>
         <span id="owner-display-upi" class="shop-profile-line">Demo UPI ID</span>
@@ -33,7 +34,74 @@
     </div>
   </header>
 
+  <nav class="section-nav" aria-labelledby="section-nav-title">
+    <span class="visually-hidden" id="section-nav-title" data-i18n="navLabel">Shop sections</span>
+    <a class="section-nav-link" href="#total-label" data-i18n="navOverview">Overview</a>
+    <a class="section-nav-link" href="#customers-title" data-i18n="customersTitle">Customers</a>
+    <a class="section-nav-link" href="#overdue-title" data-i18n="overdueTitle">Overdue (30+ days)</a>
+    <details class="section-nav-more">
+      <summary data-i18n="navMore">More</summary>
+      <div class="section-nav-more-links">
+        <a href="#entry-title" data-i18n="addEntry">Add entry</a>
+        <a href="#new-customer-title" data-i18n="addCustomerBtn">Add customer</a>
+        <a href="#import-title" data-i18n="importTitle">Import shop data</a>
+        <a href="#profile-title" data-i18n="shopProfileTitle">Shop profile</a>
+      </div>
+    </details>
+  </nav>
+
   <main class="wrap">
+    <section id="store-workspace" class="card store-workspace" aria-label="Store workspace">
+    <section id="store-manager" class="store-manager" aria-label="Store manager">
+      <h2 class="section-title" data-i18n="storeManagerTitle">Shop Manager</h2>
+      <p class="store-active-line"><span data-i18n="activeStoreLabel">Active shop</span> <strong id="active-store-name">My Store</strong></p>
+      <div class="field">
+        <label for="store-select" data-i18n="storeSelectLabel">Select Shop</label>
+        <select id="store-select" name="store"></select>
+      </div>
+      <div class="store-confirmation" hidden>
+        <p><span data-i18n="storeConfirmPrompt">Delete this shop?</span> <strong class="store-confirm-name">My Store</strong></p>
+        <div class="row-actions">
+          <button id="store-confirm-delete" type="button" class="btn primary" data-i18n="storeConfirmDelete">Confirm delete</button>
+          <button id="store-cancel-delete" type="button" class="btn" data-i18n="storeCancelDelete">Cancel</button>
+        </div>
+      </div>
+      <p id="store-msg" class="msg" role="status" aria-live="polite"></p>
+    </section>
+    <section id="store-profile-editor" class="store-profile-editor" aria-labelledby="profile-title">
+      <h2 class="section-title" id="profile-title" data-i18n="shopProfileTitle">Shop profile</h2>
+      <div class="field">
+        <label for="logo-input" data-i18n="logoLabel">Shop logo</label>
+        <input id="logo-input" name="logo" type="file" accept="image/*">
+      </div>
+      <div class="field">
+        <label for="owner-name" data-i18n="ownerNameLabel">Owner name</label>
+        <input id="owner-name" name="ownerName" type="text" autocomplete="organization" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label for="owner-address" data-i18n="ownerAddressLabel">Shop address</label>
+        <input id="owner-address" name="ownerAddress" type="text" autocomplete="street-address" placeholder="Shop address">
+      </div>
+      <div class="field">
+        <label for="shop-upi" data-i18n="shopUpiLabel">Your UPI ID (for pay links)</label>
+        <input id="shop-upi" name="upi" type="text" autocomplete="off" spellcheck="false" placeholder="yourname@bank" data-i18n-ph="shopUpiPlaceholder">
+      </div>
+      <p class="small muted" id="upi-demo-note" data-i18n="upiDemoNote">Demo UPI ID — set your shop UPI ID</p>
+      <p class="msg" id="profile-msg" role="status" aria-live="polite"></p>
+      <p class="msg" id="upi-msg" role="status" aria-live="polite"></p>
+    </section>
+    <div class="store-name-actions">
+      <div class="field">
+        <label for="store-name" data-i18n="storeNameLabel">Shop name</label>
+        <input id="store-name" name="storeName" type="text" autocomplete="off" maxlength="120">
+      </div>
+      <div class="row-actions store-actions">
+        <button id="store-create" type="button" class="btn primary" data-i18n="storeCreate">Create Shop</button>
+        <button id="store-rename" type="button" class="btn" data-i18n="storeRename">Rename Shop</button>
+        <button id="store-delete" type="button" class="btn ghost" data-i18n="storeDelete">Delete Shop</button>
+      </div>
+    </div>
+    </section>
     <p id="storage-msg" class="msg" role="status" aria-live="polite"></p>
 
     <section id="customer-view" class="card customer-view" aria-labelledby="cust-view-title" hidden>
@@ -58,6 +126,10 @@
       <div class="total-row">
         <div id="total-outstanding" class="total" data-value="0">0</div>
         <span class="human total-human" id="total-human">Rs 0</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#entry-title" data-i18n="addEntry">Add entry</a>
+        <a class="btn ghost" href="#new-customer-title" data-i18n="addCustomerBtn">Add customer</a>
       </div>
     </section>
 
@@ -149,39 +221,29 @@
         </div>
         <div class="row-actions">
           <button id="import-go" type="button" class="btn primary" data-i18n="importBtn">Import</button>
+          <button id="import-add-store" type="button" class="btn" data-i18n="importAddStore">Add as store</button>
           <button id="import-choose" type="button" class="btn" data-i18n="chooseFile">Choose JSON/CSV file</button>
           <button id="export-csv" type="button" class="btn" data-i18n="exportBtn">Export CSV</button>
         </div>
         <input id="import-file" type="file" accept=".json,.csv,application/json,text/csv" hidden>
+        <input id="import-add-file" type="file" accept=".json,.csv,application/json,text/csv" hidden>
+        <div class="import-store-resolution" hidden>
+          <div class="field">
+            <label for="import-store-name" data-i18n="importStoreName">Proposed store name</label>
+            <input id="import-store-name" type="text" autocomplete="off" maxlength="120">
+          </div>
+          <div class="row-actions">
+            <button id="import-store-confirm" type="button" class="btn primary" data-i18n="importStoreConfirm">Confirm store</button>
+            <button id="import-store-cancel" type="button" class="btn" data-i18n="cancel">Cancel</button>
+          </div>
+        </div>
+        <p id="import-store-msg" class="msg" role="status" aria-live="polite"></p>
         <p id="import-msg" class="msg" role="status" aria-live="polite"></p>
         <p id="export-msg" class="msg" role="status" aria-live="polite"></p>
       </form>
     </section>
-
-    <section class="card" aria-labelledby="profile-title">
-      <h2 class="section-title" id="profile-title" data-i18n="shopProfileTitle">Shop profile</h2>
-      <div class="field">
-        <label for="logo-input" data-i18n="logoLabel">Shop logo</label>
-        <input id="logo-input" name="logo" type="file" accept="image/*">
-      </div>
-      <div class="field">
-        <label for="owner-name" data-i18n="ownerNameLabel">Owner name</label>
-        <input id="owner-name" name="ownerName" type="text" autocomplete="organization" placeholder="Your name">
-      </div>
-      <div class="field">
-        <label for="owner-address" data-i18n="ownerAddressLabel">Shop address</label>
-        <input id="owner-address" name="ownerAddress" type="text" autocomplete="street-address" placeholder="Shop address">
-      </div>
-      <div class="field">
-        <label for="shop-upi" data-i18n="shopUpiLabel">Your UPI ID (for pay links)</label>
-        <input id="shop-upi" name="upi" type="text" autocomplete="off" spellcheck="false" placeholder="yourname@bank" data-i18n-ph="shopUpiPlaceholder">
-      </div>
-      <p class="small muted" id="upi-demo-note" data-i18n="upiDemoNote">Demo UPI ID — set your shop UPI ID</p>
-      <p class="msg" id="profile-msg" role="status" aria-live="polite"></p>
-      <p class="msg" id="upi-msg" role="status" aria-live="polite"></p>
-    </section>
   </main>
 
-  <script src="./app.js?v=6.1" defer></script>
+  <script src="./app.js?v=6.2" defer></script>
 </body>
 </html>

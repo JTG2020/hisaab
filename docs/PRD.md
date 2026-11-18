@@ -1,12 +1,19 @@
 # PRD — Hisaab
 
-Version: 1.1
-Updated: 2026-11-17
+Version: 1.10
+Updated: 2026-11-18
 Owner: Planner
-Supersedes: PRD.md v1.0
+Supersedes: PRD.md v1.9
 Sources: `PROJECT.md`, `WIN-ANALYSIS.md`, `WIN-PLAN.md`, `DESIGN.md`, `sample-data.json`, `sample-expected.json`
 
-v1.1 changes: D4 fractional rendering is stated as exactly two decimals (whole-rupee values still render with no decimals, sample unchanged at `11820`); N1 is clarified to the P0/P1 contract reading (always-rendered §2 nodes present, data-dependent §1 selectors absent at empty state, customer-view nodes resolve on `?customer=`). No requirement ID, selector, or scope changed.
+v1.2 changes: adds stable requirement R11 for multiple local-only stores under post-G0 human-approved Phase P8. No existing R/B/N statement, acceptance criterion, or selector is renumbered or weakened.
+v1.3 changes: records human approval of D19 store-name normalization/uniqueness and D20 switching-route behavior; no requirement or selector is added or changed.
+v1.4 changes: corrects the traceability range to R1–R11 and clarifies that legacy `hisaab.upi.v1` supplies UPI only when the legacy profile UPI is empty.
+v1.5 changes: adds R12 for post-G8 store-workspace and import-as-new-store behavior; no R1–R11 acceptance or selector is changed.
+v1.6 changes: narrows P9 to the existing profile controls and autosave IDs; brand, logo, blank defaults, invalid-import warning, and the approved Store/Profile workspace placement are made exact without changing P0–P8 nodes.
+v1.8 changes: reconciles the bonus status with accepted D17 and P7 evidence: B1–B6 are available, while B7 OCR is not implemented/unclaimed and scores 0; manual screenshot attachment/payment entry remains available.
+v1.9 changes: adds R13/P10 for consistent localized Shop terminology and the approved Shop workspace placement; confirms manual Shop creation keeps the existing blank-profile/autosave behavior without changing data semantics.
+v1.10 changes: adds strictly additive R14/P11 for a top-left active-shop name line while preserving the existing owner name/address/UPI display and the frozen P0–P10 contract.
 
 ## 1. Product summary
 
@@ -200,9 +207,92 @@ A digital ledger for a local shop: the notebook a kirana keeps for who owes what
 
 **Hidden-data cases:** cold load; offline after first paint; blocked third-party requests.
 
+### R11 — Multiple local stores
+
+**Statement:** The owner can create, switch, rename, and delete browser-local stores, while each store keeps an isolated ledger, profile, UPI setting, and logo.
+
+**Acceptance**
+- Given the app is loaded, when the store manager is shown, then `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, and `#store-msg` are in the DOM and visible outside any modal, tab, or `<details>`.
+- Given at least one store exists, when a store name is entered and `#store-create` is pressed, then a new store is created with an empty ledger and profile, selected as active, and the active-store name is shown in `#active-store-name`; reload selects the same active store.
+- Given the store selector has a valid store, when a store is selected, then every ledger row, entry view, profile field, UPI value, logo, and brand value belongs only to that store; `#total-outstanding`, `[data-customer]`, `[data-balance]`, `#shop-upi`, and `#shop-logo` reflect the newly active store.
+- Given the owner presses `#store-rename` with a blank or whitespace-only name or a name longer than 60 characters, or a case-insensitive duplicate of another store name, then no store is renamed and `#store-msg` explains the rejection.
+- Given a valid unique name, when `#store-rename` succeeds, then only that store's name changes and the change survives reload.
+- Given `#store-delete` is pressed, when the inline confirmation controls are shown, then `#store-confirm-delete` must be pressed before deletion; `#store-cancel-delete` cancels without state change.
+- Given there is one store left, when delete is attempted, then the store is not deleted, `#store-msg` states that the last store cannot be deleted, and `#store-confirm-delete` cannot complete a deletion.
+- Given a store with customers or entries is deleted, when confirmed, then only that store and its per-store ledger/profile/UPI/logo are removed; the next store becomes active and reload persists the portfolio.
+- Given the active store is imported through `#import-box` and `#import-go`, then only that store's ledger is replaced; the store portfolio, active-store selection, and other stores' ledgers/profiles/UPI/logo remain unchanged.
+- Given legacy `hisaab.v1` state exists and no store portfolio exists, then one load migrates it and the legacy `hisaab.profile.v1` profile to a first store without losing customers, entries, profile, UPI, or logo; `hisaab.upi.v1` supplies UPI only when the legacy profile UPI is empty.
+- Given a customer view is open and the owner switches stores, then the `customer` query parameter is removed, the home view renders the newly active store, and no customer row or entry from the previous store remains.
+- Given a reload, then active-store selection is restored even if the browser is reopened at `/` or `/?today=...`; a direct `?customer=<phone>` route first checks the restored active store.
+- Given local storage is unavailable or throws, then in-memory store management still works for the current tab and a visible warning is shown; no server or account state is used.
+
+**Selectors:** `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, `#store-msg`, `#active-store-name`, `#total-outstanding`, `[data-customer]`, `[data-balance]`, `#shop-upi`, `#shop-logo`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#brand-theme`, `#import-box`, `#import-go`, `#cust-name`, `#cust-balance`, `#entries`.
+
+**Hidden-data cases:** single legacy store, zero-entry store, store names differing only by case or whitespace, 60-character names, Unicode names, switching while a customer view is open, deleting the active store, deleting the last store, forced storage failure, import followed by reload, two stores with identical phone numbers, and different ledgers with different profile/UPI/logo values.
+
+### R12 — Store workspace and imported stores
+
+**Statement:** The Store manager and Shop profile editor are visually unified in one active-store workspace, and JSON/CSV imports can explicitly create and activate a separate portfolio store without merging or replacing existing data.
+
+**Acceptance**
+- Given the app is loaded, then `#store-workspace` visibly combines the existing P8 store controls and `#store-profile-editor`; P9 may move the existing editable profile controls, including `#shop-upi`, into `#store-workspace`, but all P0–P8 header read-only display nodes and every other P0–P8 contract node remains in place and visible outside the move.
+- Given the profile editor is present, then it uses the existing controls `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, and `#upi-msg` inside wrapper `#store-profile-editor`; it does not require `#profile-save`, `#profile-brand-input`, or duplicate brand UI.
+- Given an owner edits any existing profile control, then the active profile autosaves on input; no separate save button or save event is required. Reload restores the active store's saved values.
+- Given a manual store or omitted profile subfields are created, then `ownerName`, `address`, `upi`, and `logo` blank to `""` and `brand` defaults to `null`.
+- Given a profile logo is entered or imported, then only a bounded `data:image/...` value at or below the existing `LOGO_STORE_MAX_CHARS` limit is retained; external URLs and over-limit/non-image values are invalid and blank the affected `logo` subfield.
+- Given a profile brand is entered or imported, then only `null` or an RGB array of exactly three integer channels from `0` through `255` is retained; any other shape or channel is invalid and blanks `brand` to `null`.
+- Given an invalid profile subfield is present in JSON/CSV add-import data, then the affected subfield blanks to the P9 default, the add-import warning remains visible in `#import-store-msg` or `#import-msg`, and no external logo URL is fetched or network request is made.
+- Given a JSON object is pasted into nonempty `#import-box`, when `#import-add-store` is pressed, then it parses that textarea content and creates a store from the imported ledger and optional top-level `profile`; `shop` is the imported store name, missing profile fields are blank, and no existing store or ledger is overwritten or merged.
+- Given `#import-box` is empty, when `#import-add-store` is pressed, then it opens the dedicated hidden `#import-add-file` picker; selecting a JSON or CSV immediately parses that file through the add-as-new-store path and its existing validation/name-confirm behavior, without another click. CSV uses `shop` as the store name and creates a profile with blank `ownerName`, `address`, `upi`, `logo`, and `brand` because the CSV schema has no profile fields.
+- Given a JSON or CSV file is selected through the existing P7 `#import-file`/`#import-choose` flow, or through the empty-box `#import-go` picker, then that selection immediately performs the existing active-ledger replacement. It is not staged for a later click; only the active ledger changes, and no store is created, renamed, merged, or given imported profile fields (E2E-P7-01/02).
+- Given the legacy `#import-box`/`#import-go` paste path is used, then it replaces only the currently active store ledger; it does not create a store, change store portfolio membership, rename the store manager name, or import profile fields.
+- Given the imported shop name is missing or normalises to a name that already exists case-insensitively, then no portfolio state changes and the inline `#import-store-name`, `#import-store-confirm`, and `#import-store-cancel` resolution controls appear; the owner can edit an available unique name or cancel. Only confirmation creates/activates the store.
+- Given exactly one store exists, that store is pristine, and its ledger and profile are both empty, then a successful first import may populate that bootstrap store instead of creating a placeholder store. The imported name/profile/ledger populate the sole store and leave no empty placeholder. It is never done if either the ledger or profile contains user data.
+- Given the sole pristine bootstrap store is missing or collides on an imported name, then the same editable-name/cancellation path is used and no bootstrap population occurs until a valid unique name is confirmed.
+- Given a store is successfully created or populated, then it becomes active, `?customer=` is removed, `?today=` is preserved exactly, and reload restores the active store and imported data.
+- Given a manual `#store-create` operation is performed, then the new store's ledger and profile all start blank even when a previous imported or edited store exists.
+- Given storage is unavailable or throws, then the P9 import/add-store operation continues in memory for the tab, shows a visible warning, and never loses existing stores or silently replaces data.
+
+**Selectors:** `#store-workspace`, `#store-profile-editor`, `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, `#upi-msg`, `#import-add-store`, `#import-add-file`, `#import-store-name`, `#import-store-confirm`, `#import-store-cancel`, `#import-store-msg`, existing `#store-manager`, P8 controls, `#import-box`, `#import-go`, `#import-file`, `#import-choose`, `#active-store-name`, `#total-outstanding`, `[data-customer]`, `[data-balance]`, `#cust-name`, `#cust-balance`, `#entries`, `#shop-logo`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#brand-theme`.
+
+**Hidden-data cases:** JSON with no `profile` or with only some profile fields; logo strings external/oversize/non-data; RGB arrays valid and invalid by length/type/channel range; CSV with no profile columns; empty add-store textarea with a stale P7 file selection; selected add-store file with missing/colliding names; duplicate/case-only/collapsed-whitespace store names; missing `shop`; Unicode and 60-character names; stale `?customer=`; `?today=` appended to another route; existing ledger/profile preventing bootstrap replacement; cancellation after collision; storage failure; reload after successful add.
+
+### R13 — Shop terminology and workspace presentation
+
+**Statement:** Present the existing local-store manager consistently as Shops/Shop, translate the changed visible copy for English, Hindi, and Telugu, and group Shop naming actions at the bottom of the existing Shop profile workspace without changing machine IDs or data behavior.
+
+**Acceptance**
+- In English, the manager heading is `Shop Manager`, the active label is `Active shop`, the selector label is exactly `Select Shop`, and the name-field label is exactly `Shop name`. The existing manager controls read `Create Shop`, `Rename Shop`, and `Delete Shop`; confirmation, cancel, validation, success, and storage-status copy consistently says Shop rather than Store.
+- Selecting `en`, `hi`, or `te` localizes all P10 heading, label, action, confirmation, and manager-status copy consistently to that language. The selector and name labels retain the exact English text above when English is selected. No P10 label or message is left untranslated or mixes a translated sentence with Store/Shop terminology from another language.
+- Within the existing `#store-workspace`, shop selection remains at the top. The existing `#store-name` field and create/rename/delete actions are visually grouped at the bottom of the Shop profile workspace. All existing controls remain present, visible, and usable; no machine ID or data attribute is renamed, removed, duplicated, or repurposed.
+- The user-facing owner name, address, and UPI display remains at the top-left and continues to update for the active shop as it does today. `#active-store-name` continues to expose only the active shop's exact name.
+- Manual Shop creation continues to activate a new empty ledger with profile `{ownerName:"", address:"", upi:"", logo:"", brand:null}`. Editing the existing profile inputs afterward continues to autosave to that active shop only; header display values update for it and do not alter another shop.
+- Import replacement/add-shop flows, ledger calculations, scoring, storage keys/schema, and other data semantics are unchanged. Existing P0–P9 acceptance remains intact.
+
+**Selectors:** `#store-workspace`, `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, `#store-msg`, `#active-store-name`, `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#shop-logo`, `#brand-theme`.
+
+**Hidden-data cases:** each manager status path in all three languages; 60-character and duplicate shop names; manual creation with a prior nonblank profile active; profile edits immediately after creation and after reload; switching between shops with different owner display values; a customer route while switching; 375 px and light/dark presentation.
+
+### R14 — Active shop name in the top-left header
+
+**Statement:** Add an ordinary, strictly presentational shop-name line to the top-left header so the active portfolio shop name is shown alongside the existing owner name, address, and UPI display.
+
+**Acceptance**
+- Given the app is rendered, then the top-left header contains a new shop-name display line sourced from the active portfolio shop name—the same exact value exposed by `#active-store-name`—and it is not sourced from an imported ledger `shop` label or replacement import.
+- The new shop-name line is an ordinary human display node with no `id`, no `data-*` selector, and no machine contract role. It may use a class-only or other non-machine presentation hook, and must not rename, duplicate, repurpose, or move `#active-store-name`.
+- Given the active shop is switched, renamed, or manually created and activated, then the added line updates to that shop's current portfolio name.
+- Given a JSON or CSV replacement import is performed through `#import-go` or the P7/P9 replacement flows, then the ledger import's `shop` label does not rename the active portfolio shop and the added line remains the active portfolio shop name.
+- Given a P9 add-as-new-store import creates or populates a store, then the added line follows the active portfolio shop name as that operation activates or populates the store.
+- Existing `#owner-display-name`, `#owner-display-address`, and `#owner-display-upi` remain in the top-left and unchanged: they continue to show active profile name/address/UPI, with their existing fallbacks when profile values are blank. No owner or UPI value is invented; in particular, `sample-data.json` may provide the shop name but supplies no owner/UPI profile, so its owner/UPI displays remain their existing blank fallbacks.
+- The added line preserves 375 px layout and light/dark readability, does not hide or displace the existing machine nodes or owner display, and does not change ledger, profile, import, storage, routing, calculation, reminder, screenshot, search, export, score, or P10 behavior.
+
+**Selectors:** existing top-left nodes `#active-store-name`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`; ordinary class-only presentation node (no ID and no `data-*` selector). No new `CONTRACT.md` node or machine selector is introduced.
+
+**Hidden-data cases:** switch and rename to Unicode, 60-character, and whitespace-normalised names; add and activate a manually created shop; replacement JSON/CSV whose ledger shop label differs from the portfolio name; P9 add/populate activation; reload after switch/rename/add; sample data with no owner/UPI profile; 375 px and light/dark rendering.
+
 ## 6. Bonus requirements
 
-All seven are built. At most six count, so one may fail harmlessly; each is visible, labelled, and reachable in at most two clicks.
+Six bonuses are available: B1 overdue list, B2 edit/delete with recalculation, B3 CSV export, B4 search, B5 UPI pay link, and B6 Hindi/Telugu labels. B7 OCR is not implemented and is unclaimed (score 0) under accepted D17 and P7 evidence (RUN-15/CRITIC-RUN-G7 for P7/manual fallback evidence). Manual payment screenshot attachment and manual amount entry remain available; the screenshot can be saved and displayed while the amount is entered normally. At most six of the seven score, so B7 may fail or remain absent harmlessly.
 
 ### B1 — Overdue list
 
@@ -368,12 +458,12 @@ All seven are built. At most six count, so one may fail harmlessly; each is visi
 
 ## 8. Out of scope
 
-Authentication, accounts, multi-user sync, server or API, database, real payments or payment settlement, notifications beyond the `wa.me` link, analytics, PWA/service worker, currencies other than INR rupees, automated backups, printing, and any AI service.
+Authentication, accounts, multi-user sync, cross-device store sync, server or API, database, real payments or payment settlement, notifications beyond the `wa.me` link, analytics, PWA/service worker, currencies other than INR rupees, automated backups, printing, and any AI service.
 
 ## 9. Ambiguities and decisions
 
-All accepted decisions are in `DECISIONS.md`: D1 overdue threshold, D2 net total, D3 routing, D4 money, D5 OCR, D6 language, D7 empty shop, D8 CSV columns, D9 dedupe, D10 unknown phone, D11 malformed-entry defaults, D12 UPI payee.
+All accepted decisions are in `DECISIONS.md`: D1 overdue threshold, D2 net total, D3 routing, D4 money, D5 OCR, D6 language, D7 empty shop, D8 CSV columns, D9 dedupe, D10 unknown phone, D11 malformed-entry defaults, D12 UPI payee, D18–D20 post-G0 local-store behavior, D21–D24 post-G8 store-workspace/import behavior, D25 post-G9 Shop terminology/workspace presentation, and D26 post-G10 top-left active-shop name presentation.
 
 ## 10. Traceability
 
-`TRACEABILITY.md` maps every R1–R10, B1–B7, and N1–N6 to a phase, the exact selectors, and test case IDs.
+`TRACEABILITY.md` maps every R1–R14, B1–B7, and N1–N6 to a phase, the exact selectors, and test case IDs.

@@ -1,8 +1,9 @@
 # G0 CHECKLIST — Hisaab
 
-Version: 0.1
-Updated: 2026-11-17
+Version: 0.2
+Updated: 2026-11-18
 Owner: Critic (verifies and signs) · Orchestrator (runs the mechanical part)
+Supersedes: G0-CHECKLIST.md v0.1
 Gate: **G0 — docs frozen, contract frozen**
 
 Rule: **PASS only if every box is ticked with evidence.** An unticked box, an empty evidence cell, or an unreviewed judgment item is a FAIL. "Looks complete" is not evidence.

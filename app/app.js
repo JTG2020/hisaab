@@ -2,6 +2,8 @@
   'use strict';
 
   var STORAGE_KEY = 'hisaab.v1';
+  var STORES_KEY = 'hisaab.stores.v1';
+  var ACTIVE_STORE_KEY = 'hisaab.activeStore.v1';
   var ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
   var MAX_PAISE = 9000000000000000;
   var MAX_RUPEES = 90000000000000;
@@ -17,6 +19,9 @@
     en: {
       brandSub: 'Shop ledger',
       language: 'Language',
+      navLabel: 'Shop sections',
+      navOverview: 'Overview',
+      navMore: 'More',
       customerViewTitle: 'Customer',
       balanceLabel: 'Balance (Rs)',
       entriesTitle: 'Entries',
@@ -75,11 +80,35 @@
       nothingShow: 'Nothing to show for this phone.',
       noCustomerSelected: 'No customer selected.',
       noCustomersYet: 'No customers yet',
-      phonePrefix: 'Phone: '
+      phonePrefix: 'Phone: ',
+      storeManagerTitle: 'Shop Manager',
+      activeStoreLabel: 'Active shop',
+      storeSelectLabel: 'Select Shop',
+      storeNameLabel: 'Shop name',
+      storeCreate: 'Create Shop',
+      storeRename: 'Rename Shop',
+      storeDelete: 'Delete Shop',
+      storeConfirmPrompt: 'Delete this shop?',
+      storeConfirmDelete: 'Confirm delete',
+      storeCancelDelete: 'Cancel',
+      storeCreated: 'Shop created.',
+      storeRenamed: 'Shop renamed.',
+      storeDeleted: 'Shop deleted.',
+      storeBlank: 'Enter a shop name.',
+      storeTooLong: 'Shop name must be 60 characters or fewer.',
+      storeDuplicate: 'A shop with this name already exists.',
+      storeLast: 'The last shop cannot be deleted.',
+      storeStorageWarning: 'Could not save shop changes.',
+      importAddStore: 'Add as store',
+      importStoreName: 'Proposed store name',
+      importStoreConfirm: 'Confirm store'
     },
     hi: {
       brandSub: 'दुकान का खाता',
       language: 'भाषा',
+      navLabel: 'दुकान के अनुभाग',
+      navOverview: 'सारांश',
+      navMore: 'और',
       customerViewTitle: 'ग्राहक',
       balanceLabel: 'बाकी (रु.)',
       entriesTitle: 'प्रविष्टियाँ',
@@ -138,11 +167,35 @@
       nothingShow: 'इस फ़ोन के लिए कुछ नहीं है।',
       noCustomerSelected: 'कोई ग्राहक चयनित नहीं।',
       noCustomersYet: 'अभी कोई ग्राहक नहीं',
-      phonePrefix: 'फ़ोन: '
+      phonePrefix: 'फ़ोन: ',
+      storeManagerTitle: 'दुकान प्रबंधन',
+      activeStoreLabel: 'सक्रिय दुकान',
+      storeSelectLabel: 'दुकान चुनें',
+      storeNameLabel: 'दुकान का नाम',
+      storeCreate: 'दुकान बनाएँ',
+      storeRename: 'दुकान का नाम बदलें',
+      storeDelete: 'दुकान हटाएँ',
+      storeConfirmPrompt: 'क्या इस दुकान को हटाएँ?',
+      storeConfirmDelete: 'हटाने की पुष्टि करें',
+      storeCancelDelete: 'रद्द करें',
+      storeCreated: 'दुकान बनाई गई।',
+      storeRenamed: 'दुकान का नाम बदला गया।',
+      storeDeleted: 'दुकान हटाई गई।',
+      storeBlank: 'दुकान का नाम दर्ज करें।',
+      storeTooLong: 'दुकान का नाम 60 अक्षरों से अधिक नहीं होना चाहिए।',
+      storeDuplicate: 'इस नाम की दुकान पहले से मौजूद है।',
+      storeLast: 'आख़िरी दुकान नहीं हटाई जा सकती।',
+      storeStorageWarning: 'दुकान के बदलाव सहेजे नहीं जा सके।',
+      importAddStore: 'दुकान के रूप में जोड़ें',
+      importStoreName: 'सुझाया गया दुकान नाम',
+      importStoreConfirm: 'दुकान की पुष्टि करें'
     },
     te: {
       brandSub: 'దుకాణం లెడ్జర్',
       language: 'భాష',
+      navLabel: 'షాప్ విభాగాలు',
+      navOverview: 'సారాంశం',
+      navMore: 'మరిన్ని',
       customerViewTitle: 'కస్టమర్',
       balanceLabel: 'బాకీ (రూ.)',
       entriesTitle: 'నమోదులు',
@@ -201,7 +254,28 @@
       nothingShow: 'ఈ ఫోన్ కోసం చూపించడానికి ఏమీ లేదు.',
       noCustomerSelected: 'కస్టమర్ ఎంచుకోలేదు.',
       noCustomersYet: 'ఇంకా కస్టమర్లు లేరు',
-      phonePrefix: 'ఫోన్: '
+      phonePrefix: 'ఫోన్: ',
+      storeManagerTitle: 'దుకాణం నిర్వహణ',
+      activeStoreLabel: 'ప్రస్తుత దుకాణం',
+      storeSelectLabel: 'దుకాణాన్ని ఎంచుకోండి',
+      storeNameLabel: 'దుకాణం పేరు',
+      storeCreate: 'దుకాణాన్ని సృష్టించండి',
+      storeRename: 'దుకాణం పేరు మార్చండి',
+      storeDelete: 'దుకాణాన్ని తొలగించండి',
+      storeConfirmPrompt: 'ఈ దుకాణాన్ని తొలగించాలా?',
+      storeConfirmDelete: 'తొలగింపును నిర్ధారించండి',
+      storeCancelDelete: 'రద్దు చేయండి',
+      storeCreated: 'దుకాణం సృష్టించబడింది.',
+      storeRenamed: 'దుకాణం పేరు మార్చబడింది.',
+      storeDeleted: 'దుకాణం తొలగించబడింది.',
+      storeBlank: 'దుకాణం పేరు నమోదు చేయండి.',
+      storeTooLong: 'దుకాణం పేరు 60 అక్షరాలకు మించకూడదు.',
+      storeDuplicate: 'ఈ పేరుతో దుకాణం ఇప్పటికే ఉంది.',
+      storeLast: 'చివరి దుకాణాన్ని తొలగించలేరు.',
+      storeStorageWarning: 'దుకాణం మార్పులను సేవ్ చేయలేకపోయాము.',
+      importAddStore: 'దుకాణంగా జోడించండి',
+      importStoreName: 'ప్రస్తావిత దుకాణం పేరు',
+      importStoreConfirm: 'దుకాణాన్ని నిర్ధారించండి'
     }
   };
 
@@ -960,6 +1034,15 @@
   var LANG = 'en';
   var shopUpi = '';
   var profile = { ownerName: '', address: '', upi: '', logo: '', brand: null };
+  var portfolio = [];
+  var activeStoreId = '';
+  var storeStorageWarning = false;
+  var storeReadFailed = false;
+  var storeNotice = '';
+  var storeNoticeError = false;
+  var storeNoticeReason = '';
+  var deleteConfirmationOpen = false;
+  var pendingAddImport = null;
   var editingEntryId = null;
   var editingEntryPhone = null;
 
@@ -1086,42 +1169,162 @@
     return { customers: customers, entries: entries };
   }
 
-  function loadState() {
-    var raw;
+  function newStoreId() {
+    var randomPart = '';
     try {
-      raw = window.localStorage.getItem(STORAGE_KEY);
+      randomPart = window.crypto && window.crypto.randomUUID
+        ? window.crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
+    } catch (error) {
+      randomPart = Math.random().toString(36).slice(2);
+    }
+    return 'store-' + Date.now().toString(36) + '-' + randomPart;
+  }
+
+  function cleanProfile(value) {
+    var stored = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    return {
+      ownerName: typeof stored.ownerName === 'string' ? stored.ownerName : '',
+      address: typeof stored.address === 'string' ? stored.address : '',
+      upi: typeof stored.upi === 'string' ? stored.upi.trim() : '',
+      logo: usableLogo(stored.logo) ? stored.logo : '',
+      brand: normalizeBrand(stored.brand)
+    };
+  }
+
+  function cleanLedger(value) {
+    var ledger = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    var parsed = {
+      shop: typeof ledger.shop === 'string' ? ledger.shop : '',
+      customers: Array.isArray(ledger.customers) ? ledger.customers : [],
+      entries: Array.isArray(ledger.entries) ? ledger.entries : []
+    };
+    var loaded = coerceLoadedState(parsed);
+    return { shop: parsed.shop, customers: loaded.customers, entries: loaded.entries };
+  }
+
+  function storeForActiveId(id) {
+    for (var index = 0; index < portfolio.length; index += 1) {
+      if (portfolio[index].id === id) {
+        return portfolio[index];
+      }
+    }
+    return null;
+  }
+
+  function bindActiveStore(store) {
+    activeStoreId = store.id;
+    state = store.ledger;
+    profile = store.profile;
+    shopUpi = profile.upi;
+  }
+
+  function currentStore() {
+    return storeForActiveId(activeStoreId);
+  }
+
+  function makeStore(name, ledger, storedProfile, id) {
+    return {
+      id: id || newStoreId(),
+      name: name,
+      ledger: cleanLedger(ledger),
+      profile: cleanProfile(storedProfile)
+    };
+  }
+
+  function readLegacyValue(key) {
+    try {
+      return window.localStorage.getItem(key);
     } catch (error) {
       readWarning = 'Browser storage is unavailable. Your changes are kept in this tab only.';
-      return;
+      storeStorageWarning = true;
+      storeReadFailed = true;
+      return null;
     }
-    if (raw === null || raw === undefined || raw === '') {
-      return;
+  }
+
+  function loadState() {
+    var rawPortfolio = readLegacyValue(STORES_KEY);
+    var storedActiveId = readLegacyValue(ACTIVE_STORE_KEY);
+    var loadedPortfolio = false;
+    if (rawPortfolio) {
+      try {
+        var parsedPortfolio = JSON.parse(rawPortfolio);
+        var stores = parsedPortfolio && Array.isArray(parsedPortfolio.stores)
+          ? parsedPortfolio.stores
+          : [];
+        var usedIds = Object.create(null);
+        for (var index = 0; index < stores.length; index += 1) {
+          var candidate = stores[index];
+          if (!candidate || typeof candidate !== 'object' ||
+              typeof candidate.id !== 'string' || !candidate.id || usedIds[candidate.id]) {
+            continue;
+          }
+          var name = typeof candidate.name === 'string' && normalizeName(candidate.name)
+            ? normalizeName(candidate.name)
+            : 'My Store';
+          portfolio.push(makeStore(name, candidate.ledger, candidate.profile, candidate.id));
+          usedIds[candidate.id] = true;
+        }
+        loadedPortfolio = portfolio.length > 0;
+      } catch (error) {
+        readWarning = 'Saved store data could not be read. Starting with an empty store.';
+      }
     }
-    var parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (error) {
-      readWarning = 'Saved data could not be read. Starting with an empty shop.';
-      return;
+
+    if (!loadedPortfolio) {
+      var legacyRaw = readLegacyValue(STORAGE_KEY);
+      var legacyLedger = { shop: '', customers: [], entries: [] };
+      if (legacyRaw) {
+        try {
+          var legacyParsed = JSON.parse(legacyRaw);
+          if (legacyParsed && typeof legacyParsed === 'object' && !Array.isArray(legacyParsed)) {
+            legacyLedger = legacyParsed;
+          } else {
+            readWarning = 'Saved data had an unexpected format. Starting with an empty store.';
+          }
+        } catch (error) {
+          readWarning = 'Saved data could not be read. Starting with an empty store.';
+        }
+      }
+      var legacyProfile = {};
+      var profileRaw = readLegacyValue(PROFILE_KEY);
+      if (profileRaw) {
+        try {
+          var parsedProfile = JSON.parse(profileRaw);
+          if (parsedProfile && typeof parsedProfile === 'object' && !Array.isArray(parsedProfile)) {
+            legacyProfile = parsedProfile;
+          }
+        } catch (error) {
+          readWarning = readWarning || 'Saved profile could not be read.';
+        }
+      }
+      if (!(typeof legacyProfile.upi === 'string' && legacyProfile.upi.trim())) {
+        var legacyUpi = readLegacyValue(UPI_STORE_KEY);
+        if (typeof legacyUpi === 'string' && legacyUpi.trim()) {
+          legacyProfile.upi = legacyUpi.trim();
+        }
+      }
+      var legacyName = typeof legacyLedger.shop === 'string' ? normalizeName(legacyLedger.shop) : '';
+      portfolio.push(makeStore(legacyName || 'My Store', legacyLedger, legacyProfile));
     }
-    if (
-      !parsed ||
-      typeof parsed !== 'object' ||
-      Array.isArray(parsed) ||
-      !Array.isArray(parsed.customers) ||
-      !Array.isArray(parsed.entries)
-    ) {
-      readWarning = 'Saved data had an unexpected format. Starting with an empty shop.';
-      return;
+
+    if (!portfolio.length) {
+      portfolio.push(makeStore('My Store', { shop: '', customers: [], entries: [] }, {}));
     }
-    var loaded = coerceLoadedState(parsed);
-    state.shop = typeof parsed.shop === 'string' ? parsed.shop : '';
-    state.customers = loaded.customers;
-    state.entries = loaded.entries;
+    var selected = storeForActiveId(typeof storedActiveId === 'string' ? storedActiveId : '');
+    if (!selected) {
+      selected = portfolio[0];
+    }
+    bindActiveStore(selected);
+    renderStoreManager();
+    if (!loadedPortfolio || !storedActiveId || !storeForActiveId(storedActiveId)) {
+      persist();
+    }
   }
 
   function serialiseState() {
-    return JSON.stringify({
+    return {
       shop: typeof state.shop === 'string' ? state.shop : '',
       customers: state.customers.map(function (customer) {
         return { name: customer.name, phone: customer.phone };
@@ -1140,18 +1343,28 @@
         }
         return stored;
       })
-    });
+    };
+  }
+
+  function serialisePortfolio() {
+    var current = currentStore();
+    if (current) {
+      current.ledger = serialiseState();
+      current.profile = cleanProfile(profile);
+    }
+    return JSON.stringify({ stores: portfolio });
   }
 
   function tryWriteState() {
     var payload;
     try {
-      payload = serialiseState();
+      payload = serialisePortfolio();
     } catch (error) {
       return false;
     }
     try {
-      window.localStorage.setItem(STORAGE_KEY, payload);
+      window.localStorage.setItem(STORES_KEY, payload);
+      window.localStorage.setItem(ACTIVE_STORE_KEY, activeStoreId);
       return true;
     } catch (error) {
       return false;
@@ -1161,17 +1374,26 @@
   function persist() {
     if (tryWriteState()) {
       writeWarning = '';
-      readWarning = '';
+      if (!storeReadFailed) {
+        readWarning = '';
+        storeStorageWarning = false;
+      }
     } else {
       writeWarning = STORAGE_WARNING;
+      storeStorageWarning = true;
     }
+    renderStoreMessage();
     renderStorageMessage();
   }
 
   function persistEntryWithShot(entry) {
     if (tryWriteState()) {
       writeWarning = '';
-      readWarning = '';
+      if (!storeReadFailed) {
+        readWarning = '';
+        storeStorageWarning = false;
+      }
+      renderStoreMessage();
       renderStorageMessage();
       return { photoDropped: false };
     }
@@ -1180,12 +1402,18 @@
       delete entry.shot;
       if (tryWriteState()) {
         writeWarning = PHOTO_WARNING;
-        readWarning = '';
+        if (!storeReadFailed) {
+          readWarning = '';
+          storeStorageWarning = false;
+        }
+        renderStoreMessage();
         renderStorageMessage();
         return { photoDropped: true };
       }
     }
     writeWarning = hadShot ? STORAGE_WARNING + ' ' + PHOTO_WARNING : STORAGE_WARNING;
+    storeStorageWarning = true;
+    renderStoreMessage();
     renderStorageMessage();
     return { photoDropped: hadShot };
   }
@@ -1204,8 +1432,9 @@
     }
     var out = [];
     for (var index = 0; index < 3; index += 1) {
-      var channel = Math.round(Number(value[index]));
-      if (!isFinite(channel) || channel < 0 || channel > 255) {
+      var channel = value[index];
+      if (typeof channel !== 'number' || !isFinite(channel) ||
+          Math.floor(channel) !== channel || channel < 0 || channel > 255) {
         return null;
       }
       out.push(channel);
@@ -1508,36 +1737,7 @@
   }
 
   function loadProfile() {
-    var stored = null;
-    var raw = null;
-    try {
-      raw = window.localStorage.getItem(PROFILE_KEY);
-    } catch (error) {
-      raw = null;
-    }
-    if (raw) {
-      try {
-        stored = JSON.parse(raw);
-      } catch (error) {
-        stored = null;
-      }
-    }
-    if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
-      profile.ownerName = typeof stored.ownerName === 'string' ? stored.ownerName : '';
-      profile.address = typeof stored.address === 'string' ? stored.address : '';
-      profile.upi = typeof stored.upi === 'string' ? stored.upi.trim() : '';
-      profile.logo = usableLogo(stored.logo) ? stored.logo : '';
-      profile.brand = normalizeBrand(stored.brand);
-    }
-    if (!profile.upi) {
-      var legacy = null;
-      try {
-        legacy = window.localStorage.getItem(UPI_STORE_KEY);
-      } catch (error) {
-        legacy = null;
-      }
-      profile.upi = typeof legacy === 'string' ? legacy.trim() : '';
-    }
+    profile = cleanProfile(profile);
     shopUpi = profile.upi;
     syncProfileInputs();
     renderProfile();
@@ -1599,43 +1799,41 @@
 
   function saveProfile() {
     var message = byId('profile-msg');
-    try {
-      window.localStorage.setItem(PROFILE_KEY, profilePayload(true));
-      setMessage(message, '', false);
-      return true;
-    } catch (error) {
-      if (profile.logo) {
-        try {
-          window.localStorage.setItem(PROFILE_KEY, profilePayload(false));
-          setMessage(
-            message,
-            'The logo could not be stored; your other shop details were saved. The logo is shown in this tab only.',
-            false
-          );
-          return true;
-        } catch (ignored) {
-          /* fall through to the general storage warning */
-        }
+    if (tryWriteState()) {
+      writeWarning = '';
+      if (!storeReadFailed) {
+        readWarning = '';
+        storeStorageWarning = false;
       }
-      setMessage(
-        message,
-        'Could not save the shop profile to browser storage; it is used in this tab only.',
-        false
-      );
-      return false;
+      setMessage(message, '', false);
+      renderStoreMessage();
+      renderStorageMessage();
+      return true;
     }
+    writeWarning = STORAGE_WARNING;
+    storeStorageWarning = true;
+    renderStoreMessage();
+    renderStorageMessage();
+    setMessage(message, 'Could not save the shop profile to browser storage; it is used in this tab only.', false);
+    return false;
   }
 
   function saveShopUpi() {
-    try {
-      window.localStorage.setItem(UPI_STORE_KEY, shopUpi);
+    if (tryWriteState()) {
+      writeWarning = '';
+      if (!storeReadFailed) {
+        readWarning = '';
+        storeStorageWarning = false;
+      }
       setMessage(byId('upi-msg'), '', false);
-    } catch (error) {
-      setMessage(
-        byId('upi-msg'),
-        'Could not save the UPI ID to browser storage; it is used in this tab only.',
-        false
-      );
+      renderStoreMessage();
+      renderStorageMessage();
+    } else {
+      writeWarning = STORAGE_WARNING;
+      storeStorageWarning = true;
+      renderStoreMessage();
+      renderStorageMessage();
+      setMessage(byId('upi-msg'), 'Could not save the UPI ID to browser storage; it is used in this tab only.', false);
     }
   }
 
@@ -1707,6 +1905,199 @@
     var text = writeWarning || readWarning || '';
     message.textContent = text;
     message.className = text ? 'msg msg-warn' : 'msg';
+  }
+
+  function renderStoreMessage() {
+    var message = byId('store-msg');
+    if (!message) {
+      return;
+    }
+    var reasonKey = storeNoticeReason === 'blank'
+      ? 'storeBlank'
+      : storeNoticeReason === '60'
+        ? 'storeTooLong'
+        : storeNoticeReason === 'duplicate'
+          ? 'storeDuplicate'
+          : '';
+    var text = storeStorageWarning
+      ? t('storeStorageWarning')
+      : reasonKey
+        ? t(reasonKey)
+        : storeNotice
+          ? t(storeNotice)
+          : '';
+    message.textContent = text;
+    message.className = text
+      ? 'msg ' + (storeStorageWarning || storeNoticeError ? 'msg-warn' : '')
+      : 'msg';
+  }
+
+  function renderStoreManager() {
+    var select = byId('store-select');
+    var activeName = byId('active-store-name');
+    if (select) {
+      while (select.firstChild) {
+        select.removeChild(select.firstChild);
+      }
+      portfolio.forEach(function (store) {
+        var option = document.createElement('option');
+        option.value = store.id;
+        option.textContent = store.name;
+        select.appendChild(option);
+      });
+      select.value = activeStoreId;
+    }
+    var active = currentStore();
+    if (activeName) {
+      activeName.textContent = active ? active.name : 'My Store';
+    }
+    var activeShopDisplay = document.querySelector('.active-shop-display');
+    if (activeShopDisplay) {
+      activeShopDisplay.textContent = activeName ? activeName.textContent : (active ? active.name : 'My Store');
+    }
+    var confirmation = document.querySelector('.store-confirmation');
+    if (confirmation) {
+      confirmation.hidden = !deleteConfirmationOpen;
+    }
+    var confirmationName = document.querySelector('.store-confirm-name');
+    if (confirmationName) {
+      confirmationName.textContent = active ? active.name : 'My Store';
+    }
+    renderStoreMessage();
+  }
+
+  function setStoreNotice(messageKey, isError, reason) {
+    storeNotice = messageKey || '';
+    storeNoticeError = !!isError;
+    storeNoticeReason = reason || '';
+    renderStoreMessage();
+  }
+
+  function clearCustomerRoute() {
+    try {
+      var url = new URL(window.location.href);
+      url.searchParams.delete('customer');
+      window.history.pushState({}, '', url.pathname + url.search + url.hash);
+    } catch (error) {
+      /* Keep the current in-memory route if history is unavailable. */
+    }
+    STATE = readRoute();
+  }
+
+  function activateStore(store, clearCustomer) {
+    if (!store) {
+      return;
+    }
+    bindActiveStore(store);
+    editingEntryId = null;
+    editingEntryPhone = null;
+    endEdit(true);
+    if (clearCustomer) {
+      clearCustomerRoute();
+    } else {
+      STATE = readRoute();
+    }
+    persist();
+    syncProfileInputs();
+    applyBrandTheme(profile.brand);
+    renderAll();
+  }
+
+  function normalizedStoreName(raw) {
+    return normalizeName(raw);
+  }
+
+  function storeNameError(name, creating) {
+    if (!name) {
+      return 'blank';
+    }
+    if (Array.from(name).length > 60) {
+      return '60';
+    }
+    var active = currentStore();
+    for (var index = 0; index < portfolio.length; index += 1) {
+      if ((!creating && active && portfolio[index].id === active.id)) {
+        continue;
+      }
+      if (portfolio[index].name.toLowerCase() === name.toLowerCase()) {
+        return 'duplicate';
+      }
+    }
+    return '';
+  }
+
+  function handleStoreCreate() {
+    var name = normalizedStoreName(byId('store-name').value);
+    var reason = storeNameError(name, true);
+    if (reason) {
+      setStoreNotice('', true, reason);
+      return;
+    }
+    var store = makeStore(name, { shop: '', customers: [], entries: [] }, {});
+    portfolio.push(store);
+    deleteConfirmationOpen = false;
+    bindActiveStore(store);
+    clearCustomerRoute();
+    setStoreNotice('storeCreated', false);
+    persist();
+    syncProfileInputs();
+    applyBrandTheme(profile.brand);
+    renderAll();
+  }
+
+  function handleStoreRename() {
+    var active = currentStore();
+    if (!active) {
+      return;
+    }
+    var name = normalizedStoreName(byId('store-name').value);
+    var reason = storeNameError(name, false);
+    if (reason) {
+      setStoreNotice('', true, reason);
+      return;
+    }
+    active.name = name;
+    setStoreNotice('storeRenamed', false);
+    persist();
+    renderAll();
+  }
+
+  function handleStoreDeleteRequest() {
+    deleteConfirmationOpen = true;
+    if (portfolio.length <= 1) {
+      setStoreNotice('storeLast', true);
+    } else {
+      setStoreNotice('', false);
+    }
+    renderStoreManager();
+  }
+
+  function handleStoreDeleteConfirm() {
+    if (portfolio.length <= 1) {
+      setStoreNotice('storeLast', true);
+      deleteConfirmationOpen = false;
+      renderStoreManager();
+      return;
+    }
+    var oldIndex = portfolio.findIndex(function (store) {
+      return store.id === activeStoreId;
+    });
+    if (oldIndex < 0) {
+      return;
+    }
+    portfolio.splice(oldIndex, 1);
+    var next = portfolio[oldIndex] || portfolio[oldIndex - 1] || portfolio[0];
+    deleteConfirmationOpen = false;
+    bindActiveStore(next);
+    clearCustomerRoute();
+    editingEntryId = null;
+    editingEntryPhone = null;
+    endEdit(true);
+    setStoreNotice('storeDeleted', false);
+    persist();
+    syncProfileInputs();
+    applyBrandTheme(profile.brand);
+    renderAll();
   }
 
   function renderTotal(balances) {
@@ -2207,6 +2598,7 @@
 
   function renderAll() {
     var balances = computeBalances();
+    renderStoreManager();
     renderStorageMessage();
     renderTotal(balances);
     renderCustomers(balances);
@@ -2916,6 +3308,295 @@
     setMessage(message, success, false);
   }
 
+  function blankProfile() {
+    return { ownerName: '', address: '', upi: '', logo: '', brand: null };
+  }
+
+  function csvProposedName(text) {
+    try {
+      var parsed = parseCsvRows(text);
+      var rows = [];
+      var index;
+      for (index = 0; index < parsed.length; index += 1) {
+        var sourceRow = parsed[index];
+        var hasContent = sourceRow.some(function (cell) {
+          return String(cell === null || cell === undefined ? '' : cell).trim() !== '';
+        });
+        if (hasContent) {
+          rows.push(sourceRow);
+        }
+      }
+      if (!rows.length) {
+        return '';
+      }
+      var header = rows[0].map(normalizeCsvHeader);
+      var shopIndex = header.indexOf('shop');
+      if (shopIndex === -1) {
+        return '';
+      }
+      for (index = 1; index < rows.length; index += 1) {
+        var value = csvCell(rows[index], header, 'shop').trim();
+        if (value) {
+          return value;
+        }
+      }
+    } catch (error) {
+      /* malformed CSV is handled by the normal CSV builder */
+    }
+    return '';
+  }
+
+  function importedProfile(root) {
+    var profileValue = root.profile;
+    var result = blankProfile();
+    var warnings = [];
+    if (!profileValue || typeof profileValue !== 'object' || Array.isArray(profileValue)) {
+      if (profileValue !== undefined) {
+        warnings.push('Warning: invalid profile; profile fields were blanked.');
+      }
+      return { profile: result, warnings: warnings };
+    }
+    if (typeof profileValue.ownerName === 'string') {
+      result.ownerName = profileValue.ownerName;
+    } else if (profileValue.ownerName !== undefined) {
+      warnings.push('Warning: invalid ownerName was blanked.');
+    }
+    if (typeof profileValue.address === 'string') {
+      result.address = profileValue.address;
+    } else if (profileValue.address !== undefined) {
+      warnings.push('Warning: invalid address was blanked.');
+    }
+    if (typeof profileValue.upi === 'string') {
+      result.upi = profileValue.upi.trim();
+    } else if (profileValue.upi !== undefined) {
+      warnings.push('Warning: invalid upi was blanked.');
+    }
+    if (profileValue.logo !== undefined) {
+      if (usableLogo(profileValue.logo)) {
+        result.logo = profileValue.logo;
+      } else {
+        warnings.push('Warning: invalid logo was blanked.');
+      }
+    }
+    if (profileValue.brand === undefined || profileValue.brand === null) {
+      result.brand = null;
+    } else if (normalizeBrand(profileValue.brand)) {
+      result.brand = normalizeBrand(profileValue.brand);
+    } else {
+      warnings.push('Warning: invalid brand was blanked.');
+    }
+    return { profile: result, warnings: warnings };
+  }
+
+  function prepareAddImport(rawText, filename) {
+    var text = String(rawText === null || rawText === undefined ? '' : rawText).replace(/^\uFEFF/, '');
+    var trimmed = text.trim();
+    if (!trimmed) {
+      throw new Error('No import data was selected.');
+    }
+    var proposedName = '';
+    var ledger;
+    var warnings = [];
+    var cleanProfileValue = blankProfile();
+    if (trimmed.charAt(0) === '{') {
+      var root = JSON.parse(trimmed);
+      if (!root || typeof root !== 'object' || Array.isArray(root)) {
+        throw new Error('The JSON must be an object.');
+      }
+      var built = buildImportState(root);
+      ledger = built.state;
+      warnings = built.warnings.slice();
+      proposedName = typeof root.shop === 'string' ? root.shop : '';
+      var profileCheck = importedProfile(root);
+      cleanProfileValue = profileCheck.profile;
+      warnings = warnings.concat(profileCheck.warnings);
+    } else if (trimmed.charAt(0) === '[') {
+      throw new Error('The JSON must be an object.');
+    } else {
+      var csvBuilt = buildCsvImportState(trimmed, filename);
+      ledger = csvBuilt.state;
+      warnings = csvBuilt.warnings.slice();
+      proposedName = csvProposedName(trimmed);
+    }
+    return {
+      ledger: ledger,
+      profile: cleanProfileValue,
+      proposedName: proposedName,
+      warnings: warnings
+    };
+  }
+
+  function setImportStoreResolution(prepared, reason) {
+    var resolution = document.querySelector('.import-store-resolution');
+    var nameInput = byId('import-store-name');
+    var message = byId('import-store-msg');
+    pendingAddImport = prepared;
+    if (nameInput) {
+      nameInput.value = normalizedStoreName(prepared.proposedName);
+    }
+    if (resolution) {
+      resolution.hidden = false;
+    }
+    var warning = reason === 'blank'
+      ? 'Store name is missing. Enter a name and confirm.'
+      : 'That store name collides with an existing store. Enter another name and confirm.';
+    if (prepared.warnings.length) {
+      warning += ' ' + prepared.warnings.join(' ');
+    }
+    setMessage(message, warning, true);
+    if (nameInput) {
+      try {
+        nameInput.focus();
+      } catch (error) {
+        /* focusing is best effort */
+      }
+    }
+  }
+
+  function pristineBootstrapStore() {
+    if (portfolio.length !== 1) {
+      return null;
+    }
+    var store = portfolio[0];
+    var ledger = store.ledger;
+    var clean = cleanProfile(store.profile);
+    var emptyLedger = !!ledger && ledger.customers.length === 0 && ledger.entries.length === 0 &&
+      (!ledger.shop || String(ledger.shop).trim() === '');
+    var emptyProfile = clean.ownerName === '' && clean.address === '' && clean.upi === '' &&
+      clean.logo === '' && clean.brand === null;
+    return emptyLedger && emptyProfile ? store : null;
+  }
+
+  function activatePreparedAdd(prepared, name) {
+    var bootstrap = pristineBootstrapStore();
+    var target;
+    if (bootstrap) {
+      bootstrap.name = name;
+      bootstrap.ledger = cleanLedger(prepared.ledger);
+      bootstrap.profile = cleanProfile(prepared.profile);
+      target = bootstrap;
+    } else {
+      target = makeStore(name, prepared.ledger, prepared.profile);
+      portfolio.push(target);
+    }
+    pendingAddImport = null;
+    activateStore(target, true);
+    var resolution = document.querySelector('.import-store-resolution');
+    if (resolution) {
+      resolution.hidden = true;
+    }
+    var message = byId('import-store-msg');
+    var text = 'Store added and activated: ' + name + '.';
+    if (prepared.warnings.length) {
+      text += ' ' + prepared.warnings.join(' ');
+    }
+    if (storeStorageWarning) {
+      text += ' ' + t('storeStorageWarning');
+    }
+    setMessage(message, text, !!storeStorageWarning);
+  }
+
+  function processAddStoreImport(rawText, filename) {
+    var prepared;
+    try {
+      prepared = prepareAddImport(rawText, filename);
+    } catch (error) {
+      setMessage(
+        byId('import-store-msg'),
+        'Could not import: ' + (error && error.message ? error.message : 'the data could not be read.') +
+          ' No store was changed.',
+        true
+      );
+      return;
+    }
+    var normalized = normalizedStoreName(prepared.proposedName);
+    var bootstrap = pristineBootstrapStore();
+    var reason = bootstrap ? ( !normalized ? 'blank' : Array.from(normalized).length > 60 ? '60' : '' ) : storeNameError(normalized, true);
+    if (!normalized) {
+      setImportStoreResolution(prepared, 'blank');
+      return;
+    }
+    if (reason) {
+      setImportStoreResolution(prepared, reason);
+      return;
+    }
+    activatePreparedAdd(prepared, normalized);
+  }
+
+  function openAddImportPicker() {
+    var input = byId('import-add-file');
+    if (input) {
+      try {
+        input.click();
+      } catch (error) {
+        /* opening the picker is best effort */
+      }
+    }
+  }
+
+  function handleAddStoreImport() {
+    var box = byId('import-box');
+    var rawText = box ? String(box.value || '') : '';
+    if (!rawText.trim()) {
+      openAddImportPicker();
+      return;
+    }
+    processAddStoreImport(rawText, '');
+  }
+
+  function handleAddImportFile(file) {
+    if (!file) {
+      return;
+    }
+    readFileText(file)
+      .then(
+        function (text) {
+          processAddStoreImport(text, file.name || '');
+        },
+        function () {
+          setMessage(
+            byId('import-store-msg'),
+            'Could not import: the file could not be read. No store was changed.',
+            true
+          );
+        }
+      )
+      .then(function () {
+        var input = byId('import-add-file');
+        if (input) {
+          try {
+            input.value = '';
+          } catch (error) {
+            /* resetting the file input is best effort */
+          }
+        }
+      });
+  }
+
+  function handleImportStoreConfirm() {
+    if (!pendingAddImport) {
+      setMessage(byId('import-store-msg'), 'No pending store import to confirm.', true);
+      return;
+    }
+    var nameInput = byId('import-store-name');
+    var name = normalizedStoreName(nameInput ? nameInput.value : '');
+    var bootstrap = pristineBootstrapStore();
+    var reason = bootstrap ? ( !name ? 'blank' : Array.from(name).length > 60 ? '60' : '' ) : storeNameError(name, true);
+    if (reason) {
+      setMessage(
+        byId('import-store-msg'),
+        reason === 'blank'
+          ? 'Store name is blank.'
+          : reason === '60'
+            ? 'Store name must be 60 characters or fewer.'
+            : 'That store name is a duplicate.',
+        true
+      );
+      return;
+    }
+    activatePreparedAdd(pendingAddImport, name);
+  }
+
   function openImportPicker() {
     var input = byId('import-file');
     if (input) {
@@ -2928,7 +3609,6 @@
   }
 
   function handleImportFile(file) {
-    var message = byId('import-msg');
     if (!file) {
       return;
     }
@@ -2939,7 +3619,7 @@
         },
         function () {
           setMessage(
-            message,
+            byId('import-msg'),
             'Could not import: the file could not be read. The previous shop is unchanged.',
             true
           );
@@ -2998,6 +3678,45 @@
     for (var index = 0; index < forms.length; index += 1) {
       forms[index].addEventListener('submit', function (event) {
         event.preventDefault();
+      });
+    }
+
+    var storeSelect = byId('store-select');
+    if (storeSelect) {
+      storeSelect.addEventListener('change', function () {
+        var selectedStore = storeForActiveId(storeSelect.value);
+        if (selectedStore && selectedStore.id !== activeStoreId) {
+          activateStore(selectedStore, true);
+        }
+      });
+    }
+
+    var storeCreate = byId('store-create');
+    if (storeCreate) {
+      storeCreate.addEventListener('click', handleStoreCreate);
+    }
+
+    var storeRename = byId('store-rename');
+    if (storeRename) {
+      storeRename.addEventListener('click', handleStoreRename);
+    }
+
+    var storeDelete = byId('store-delete');
+    if (storeDelete) {
+      storeDelete.addEventListener('click', handleStoreDeleteRequest);
+    }
+
+    var storeConfirmDelete = byId('store-confirm-delete');
+    if (storeConfirmDelete) {
+      storeConfirmDelete.addEventListener('click', handleStoreDeleteConfirm);
+    }
+
+    var storeCancelDelete = byId('store-cancel-delete');
+    if (storeCancelDelete) {
+      storeCancelDelete.addEventListener('click', function () {
+        deleteConfirmationOpen = false;
+        setStoreNotice('', false);
+        renderStoreManager();
       });
     }
 
@@ -3150,6 +3869,35 @@
       });
     }
 
+    var importAddStore = byId('import-add-store');
+    if (importAddStore) {
+      importAddStore.addEventListener('click', function (event) {
+        event.preventDefault();
+        handleAddStoreImport();
+      });
+    }
+
+    var importStoreConfirm = byId('import-store-confirm');
+    if (importStoreConfirm) {
+      importStoreConfirm.addEventListener('click', function (event) {
+        event.preventDefault();
+        handleImportStoreConfirm();
+      });
+    }
+
+    var importStoreCancel = byId('import-store-cancel');
+    if (importStoreCancel) {
+      importStoreCancel.addEventListener('click', function (event) {
+        event.preventDefault();
+        pendingAddImport = null;
+        var resolution = document.querySelector('.import-store-resolution');
+        if (resolution) {
+          resolution.hidden = true;
+        }
+        setMessage(byId('import-store-msg'), 'Store add cancelled. No store or URL state changed.', false);
+      });
+    }
+
     var importChoose = byId('import-choose');
     if (importChoose) {
       importChoose.addEventListener('click', function (event) {
@@ -3164,6 +3912,16 @@
         var files = importFile.files;
         if (files && files.length) {
           handleImportFile(files[0]);
+        }
+      });
+    }
+
+    var importAddFile = byId('import-add-file');
+    if (importAddFile) {
+      importAddFile.addEventListener('change', function () {
+        var files = importAddFile.files;
+        if (files && files.length) {
+          handleAddImportFile(files[0]);
         }
       });
     }
