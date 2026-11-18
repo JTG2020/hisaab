@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Hisaab — Shop ledger</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=6.1">
 </head>
 <body>
   <header class="topbar">
@@ -55,6 +55,7 @@
     <section class="card search-bar" aria-label="Search customers">
       <label class="search-label" for="search" data-i18n="searchLabel">Search name or phone</label>
       <input id="search" type="search" placeholder="Search name or phone" autocomplete="off" spellcheck="false">
+      <p class="empty small search-empty" id="search-empty" data-i18n="searchEmpty" hidden>No customers match your search.</p>
     </section>
 
     <section id="overdue" class="card" aria-labelledby="overdue-title">
@@ -96,6 +97,7 @@
           <select id="entry-customer" name="customer">
             <option value="">No customers yet</option>
           </select>
+          <p class="small muted field-hint" id="entry-customer-hint" data-i18n="entryCustomerHint">Use Add entry on a customer row, or choose a customer here.</p>
         </div>
         <div class="field">
           <label for="entry-type" data-i18n="typeLabel">Type</label>
@@ -156,6 +158,6 @@
     </section>
   </main>
 
-  <script src="./app.js" defer></script>
+  <script src="./app.js?v=6.1" defer></script>
 </body>
 </html>

@@ -22,6 +22,7 @@
       backAll: 'All customers',
       totalLabel: 'Total outstanding (Rs)',
       searchLabel: 'Search name or phone',
+      searchEmpty: 'No customers match your search.',
       overdueTitle: 'Overdue (30+ days)',
       overdueEmpty: 'No customers overdue right now.',
       customersTitle: 'Customers',
@@ -32,7 +33,9 @@
       addCustomerBtn: 'Add customer',
       entryAddTitle: 'Add entry',
       entryEditTitle: 'Edit entry',
+      addEntry: 'Add entry',
       customerLabel: 'Customer',
+      entryCustomerHint: 'Use Add entry on a customer row, or choose a customer here.',
       typeLabel: 'Type',
       credit: 'Credit',
       payment: 'Payment',
@@ -75,6 +78,7 @@
       backAll: 'सभी ग्राहक',
       totalLabel: 'कुल बकाया (रु.)',
       searchLabel: 'नाम या फ़ोन खोजें',
+      searchEmpty: 'आपकी खोज से कोई ग्राहक नहीं मिला।',
       overdueTitle: 'बकाया — Overdue (30+ days)',
       overdueEmpty: 'अभी कोई ग्राहक बकाया नहीं है।',
       customersTitle: 'ग्राहक',
@@ -85,7 +89,9 @@
       addCustomerBtn: 'ग्राहक जोड़ें',
       entryAddTitle: 'प्रविष्टि जोड़ें',
       entryEditTitle: 'प्रविष्टि संपादित करें',
+      addEntry: 'प्रविष्टि जोड़ें',
       customerLabel: 'ग्राहक',
+      entryCustomerHint: 'किसी ग्राहक पंक्ति पर प्रविष्टि जोड़ें दबाएँ, या यहाँ ग्राहक चुनें।',
       typeLabel: 'प्रकार',
       credit: 'उधार',
       payment: 'भुगतान',
@@ -128,6 +134,7 @@
       backAll: 'అందరు కస్టమర్లు',
       totalLabel: 'మొత్తం బాకీ (రూ.)',
       searchLabel: 'పేరు లేదా ఫోన్ వెతకండి',
+      searchEmpty: 'మీ వెతుకుడుకు సరిపోయే కస్టమర్‌లు లేరు.',
       overdueTitle: 'గడువు మీరినవి — Overdue (30+ days)',
       overdueEmpty: 'ప్రస్తుతం ఎవరూ గడువు మీరలేదు.',
       customersTitle: 'కస్టమర్లు',
@@ -138,7 +145,9 @@
       addCustomerBtn: 'కస్టమర్‌ను జోడించండి',
       entryAddTitle: 'నమోదు జోడించండి',
       entryEditTitle: 'నమోదును సవరించండి',
+      addEntry: 'నమోదు జోడించండి',
       customerLabel: 'కస్టమర్',
+      entryCustomerHint: 'కస్టమర్ వరుసపై నమోదు జోడించండి నొక్కండి, లేదా ఇక్కడ కస్టమర్‌ను ఎంచుకోండి.',
       typeLabel: 'రకం',
       credit: 'అప్పు',
       payment: 'చెల్లింపు',
@@ -1268,6 +1277,9 @@
     var openLink = makeElement('a', 'btn ghost', t('open'));
     openLink.setAttribute('href', '?customer=' + customer.phone);
     openLink.setAttribute('data-open-customer', '');
+    var addEntryButton = makeElement('button', 'btn ghost customer-add-entry', t('addEntry'));
+    addEntryButton.setAttribute('type', 'button');
+    addEntryButton.setAttribute('data-add-entry-for', customer.phone);
     var payLink = makeElement('a', 'btn ghost', t('payUpi'));
     payLink.setAttribute('href', buildUpiHref(customer, balance));
     payLink.setAttribute('data-upi-pay', '');
@@ -1275,6 +1287,7 @@
     remindLink.setAttribute('data-remind', customer.phone);
     remindLink.setAttribute('href', buildReminderHref(customer, balance));
     actions.appendChild(openLink);
+    actions.appendChild(addEntryButton);
     actions.appendChild(payLink);
     actions.appendChild(remindLink);
 
@@ -1294,13 +1307,13 @@
       var empty = makeElement('p', 'empty', t('customersEmpty'));
       empty.id = 'customers-empty';
       container.appendChild(empty);
-      return;
+    } else {
+      var fragment = document.createDocumentFragment();
+      for (var index = 0; index < state.customers.length; index += 1) {
+        fragment.appendChild(buildCustomerRow(state.customers[index], balances));
+      }
+      container.appendChild(fragment);
     }
-    var fragment = document.createDocumentFragment();
-    for (var index = 0; index < state.customers.length; index += 1) {
-      fragment.appendChild(buildCustomerRow(state.customers[index], balances));
-    }
-    container.appendChild(fragment);
     applySearchFilter();
   }
 
@@ -1312,6 +1325,7 @@
       return;
     }
     var rows = container.querySelectorAll('[data-customer]');
+    var matched = 0;
     for (var index = 0; index < rows.length; index += 1) {
       var row = rows[index];
       var phone = String(row.getAttribute('data-customer') || '').toLowerCase();
@@ -1321,8 +1335,17 @@
         query === '' || phone.indexOf(query) !== -1 || name.indexOf(query) !== -1;
       if (matches) {
         row.removeAttribute('hidden');
+        matched += 1;
       } else {
         row.setAttribute('hidden', 'hidden');
+      }
+    }
+    var emptyNode = byId('search-empty');
+    if (emptyNode) {
+      if (query !== '' && matched === 0) {
+        emptyNode.removeAttribute('hidden');
+      } else {
+        emptyNode.setAttribute('hidden', 'hidden');
       }
     }
   }
@@ -1827,6 +1850,38 @@
     setMessage(byId('entry-msg'), '', false);
   }
 
+  function startEntryFor(phone) {
+    if (!phone || !findCustomer(phone)) {
+      return;
+    }
+    if (editingEntryId) {
+      endEdit(true);
+      var resetDate = byId('entry-date');
+      if (resetDate) {
+        resetDate.value = STATE.today;
+      }
+    }
+    if (STATE.customerPhone !== null && STATE.customerPhone !== phone) {
+      navigate('?customer=' + encodeURIComponent(phone));
+    }
+    var select = byId('entry-customer');
+    if (select) {
+      select.value = phone;
+    }
+    var form = byId('entry-form');
+    if (form && form.scrollIntoView) {
+      try {
+        form.scrollIntoView({ block: 'start' });
+      } catch (error) {
+        form.scrollIntoView();
+      }
+    }
+    var amountInput = byId('entry-amount');
+    if (amountInput && amountInput.focus) {
+      amountInput.focus();
+    }
+  }
+
   function startEditEntry(id) {
     var index = indexOfEntry(id);
     if (index === -1) {
@@ -2319,10 +2374,19 @@
     var customersContainer = byId('customers');
     if (customersContainer) {
       customersContainer.addEventListener('click', function (event) {
+        if (!event.target || !event.target.closest) {
+          return;
+        }
+        var addEntryButton = event.target.closest('button[data-add-entry-for]');
+        if (addEntryButton) {
+          event.preventDefault();
+          startEntryFor(addEntryButton.getAttribute('data-add-entry-for'));
+          return;
+        }
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
           return;
         }
-        var link = event.target && event.target.closest ? event.target.closest('a[data-open-customer]') : null;
+        var link = event.target.closest('a[data-open-customer]');
         if (!link) {
           return;
         }

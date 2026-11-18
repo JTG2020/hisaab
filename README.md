@@ -30,8 +30,45 @@ This folder is self-contained. Do not mix in the other project.
 | `docs/` | living documents (versioned) — see `AGENTS.md` §4 for sync rules |
 | `tests/README.md` | test layout, commands, gate policy |
 
-Deployable unit is `app/` (not created yet). Start by pasting the Phase 0 prompt from `AGENTS.md` §1.
+Deployable unit is `app/` — static HTML/CSS/JS, no build step.
 
-## First action
+## Run locally
 
-Build the contract skeleton + replica harness (see `WIN-PLAN.md` §9), then submit early and iterate.
+No build step and no package install is needed for the app itself. From this folder:
+
+```bash
+python3 -m http.server 4173 --directory app
+```
+
+Open <http://localhost:4173>.
+
+Useful routes:
+
+- `/` — customer list, import, add customer/entry, bonuses
+- `/?customer=9000000101` — that customer's page
+- `/?today=2026-11-15` — date-dependent views (overdue/day counts)
+
+To see data immediately, open [`sample-data.json`](sample-data.json), paste its contents into the `Import shop JSON` box, and press **Import**. Import replaces the current shop; it never merges. Data is stored in the browser's `localStorage` (`hisaab.v1`), so clear this site's data to reset.
+
+To add an entry from the list page, either choose the customer in the **Customer** dropdown inside the entry form, or press **Add entry** on that customer's row. Both select the customer and scroll to the form.
+
+## Test
+
+Playwright is a dev-only dependency under `tests/`; it is not part of the deployed app. Keep the local server running in one terminal, then:
+
+```bash
+cd tests
+npm install
+npx playwright install chromium   # first run only
+npx playwright test
+```
+
+The suite covers the contract selector smoke, the sample import (`11820`, 8 rows), the P1 data core, reminders/screenshot, bonuses, 375 px/dark mode, the full journey, and the 50/200-shop fuzz.
+
+## Deploy
+
+Deploy `app/` as a static site. On Vercel choose **Root Directory = `app`**, framework preset **Other**, no build command. The app reads no environment variables, uses no auth/cookies, and makes no network calls.
+
+## Current status
+
+All technical gates G0–G6.1 are green; the final suite is 57/57 and the final model score is 100/100 (floor 97 under the strict B6-placeholder reading). The only remaining step is the human deployment/submission: deploy `app/`, paste the live URL into the judges' note in `docs/IMPLEMENTATION-PLAN.md` §3, and submit before **Sun 22 Nov 2026, 10:00 IST**.

@@ -215,6 +215,18 @@ a {
   font-weight: 600;
 }
 
+.search-empty {
+  margin: 8px 0 0;
+}
+
+.field-hint {
+  margin: 0;
+}
+
+.customer-add-entry {
+  flex: 0 1 auto;
+}
+
 form {
   display: grid;
   gap: 12px;

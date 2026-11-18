@@ -306,3 +306,28 @@ Remaining human steps:
 3. Approve and submit before **Sun 22 Nov 2026, 10:00 IST** (tie-break: earlier).
 4. If `app/` changes after this gate, re-run `cd tests && npx playwright test` before submitting.
 Next: awaits human deployment/live URL and submission approval; do not submit automatically.
+
+## 2026-11-18 10:20 — P6.1 — Coder
+Action: fixed the reported UX issues. Added `#search-empty` (no-results message), a per-row `button[data-add-entry-for="<phone>"]` that selects the customer in `#entry-customer`, scrolls to `#entry-form`, and focuses `#entry-amount`, `#entry-customer-hint`, en/hi/te keys, and `?v=6.1` cache-busted asset URLs. No contract node changed.
+Evidence: `app/index.html`, `app/app.js`, `app/styles.css`; fresh-browser search `ravi`/`zzz`/clear; 9-option picker; list-page add-entry credit 10 → 680/11830; row Add entry for 9000000102 → 3475/11835; 375 px button 45×154, no sideways scroll; 56/56 suite.
+Result: PASS (Coder handoff; Tester verification)
+Next: Tester P6.1
+
+## 2026-11-18 10:30 — P6.1 — Tester
+Action: added E2E-P6-03 (search empty state, picker save, per-row Add entry, 375 px) and strengthened E2E-P4-04 (search empty-state visibility); `TEST-CASES.md` v0.12. RUN-12 **57/57**, no bugs.
+Evidence: `cd tests && npx playwright test` → 57/57 (29.5s), re-run by the Orchestrator; `ravi` → 1 visible, `zzz` → 0 visible + `#search-empty`, 8 rows in DOM, total 11820; picker credit 10 → 680/11830; Add entry 9000000102 → 3475/11835; 375/375.
+Result: PASS (RUN-12)
+Next: Planner sync + Critic G6.1
+
+## 2026-11-18 10:35 — P6.1 — Planner
+Action: `TRACEABILITY.md` v1.10 maps B4/R2 to E2E-P6-03; `IMPLEMENTATION-PLAN.md` v1.10 P6 gate cites E2E-P6-01–03 + F-02, adds the post-G6 UX note and the search/Add-entry judges' note line. No CONTRACT change.
+Evidence: 23 rows, 0 TBD; 23/0/0; 29/29 selectors; headers 4/4; judges' note `pending deployment`, no OCR claim.
+Result: PASS (docs)
+Next: Critic G6.1
+
+## 2026-11-18 10:45 — P6.1 — Orchestrator — GATE G6.1
+Action: recorded **G6.1 technical PASS** after the user-reported search/customer-selection fix. Added user-requested local build/start/test/deploy instructions to `README.md`. Committed/tagged the fixed build as `g6.1`.
+Evidence: `docs/scorecards.md` GATE G6.1; RUN-12 **57/57**; CRITIC-RUN-8 **57/57**; independent CRITIC-G61 **58/58** (search, no-results, picker, Add entry, Open/reminder/UPI, 375, hi/te); contract audit 100%; F-02 200-shop green; Vercel PASS; **MODEL SCORE 100/100** (floor 97 strict B6); B7 0 (OCR unavailable, fallback works).
+README: `python3 -m http.server 4173 --directory app`; routes; sample import; `cd tests && npm install && npx playwright install chromium && npx playwright test`; Vercel Root Directory `app`, no build; localStorage reset note.
+Remaining human steps: deploy `app/` to Vercel, paste the live URL into `IMPLEMENTATION-PLAN.md` §3, approve/submit before **Sun 22 Nov 2026, 10:00 IST**; re-run the suite if `app/` changes.
+Next: awaits human deployment/live URL and submission approval; do not submit automatically.

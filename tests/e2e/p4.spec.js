@@ -379,6 +379,7 @@ test('E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, 
 
   await page.fill('#search', 'sunita');
   expect(await visiblePhones(page)).toEqual(['9000000102']);
+  await expect(page.locator('#search-empty'), 'a matching query must not show the empty state').toBeHidden();
   expect((await page.locator('#total-outstanding').textContent()).trim()).toBe(totalBefore);
   await expect(page.locator('#import-box')).toBeVisible();
   await expect(page.locator('#import-go')).toBeVisible();
@@ -393,10 +394,14 @@ test('E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, 
   expect(await visiblePhones(page)).toEqual([]);
   expect((await page.locator('#total-outstanding').textContent()).trim()).toBe(totalBefore);
   expect(await page.locator('[data-customer]').count(), 'rows are hidden, never removed').toBe(8);
+  await expect(page.locator('#search-empty'), 'a no-match query must show the empty state').toBeVisible();
+  expect(((await page.locator('#search-empty').textContent()) || '').trim().length).toBeGreaterThan(0);
+  await expect(page.locator('#search-empty')).toContainText('No customers');
 
   await page.fill('#search', '');
   expect((await visiblePhones(page)).length).toBe(8);
   expect((await page.locator('#total-outstanding').textContent()).trim()).toBe(totalBefore);
+  await expect(page.locator('#search-empty'), 'clearing the query must hide the empty state').toBeHidden();
 
   const reloaded = await open(page, '/');
   expect((await visiblePhones(page)).length).toBe(8);

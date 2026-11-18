@@ -462,3 +462,101 @@ test('E2E-P6-02 duplicate phone: later empty name keeps the earlier name and war
 
   await expectClean(diagnostics, expect);
 });
+
+test('E2E-P6-03 post-G6 UX: search empty state, customer picker, add-entry button', async ({ page }) => {
+  test.setTimeout(90000);
+  const { diagnostics } = await open(page, '/');
+  await importPaste(page, SAMPLE);
+  await expect(page.locator('[data-customer]')).toHaveCount(8);
+
+  const visiblePhones = () =>
+    page.locator('[data-customer]').evaluateAll((nodes) =>
+      nodes
+        .filter((node) => !node.hasAttribute('hidden') && node.getClientRects().length > 0)
+        .map((node) => node.getAttribute('data-customer'))
+        .sort()
+    );
+
+  // 1. A matching name query: one row, no empty state, total untouched.
+  await page.fill('#search', 'ravi');
+  expect(await visiblePhones()).toEqual(['9000000101']);
+  await expect(page.locator('#search-empty')).toBeHidden();
+  expect(await machineTotal(page)).toBe('11820');
+
+  // 2. A no-match query: zero visible rows, empty state visible, DOM intact, total untouched.
+  await page.fill('#search', 'zzz-no-match');
+  expect(await visiblePhones()).toEqual([]);
+  await expect(page.locator('#search-empty')).toBeVisible();
+  await expect(page.locator('#search-empty')).toContainText('No customers');
+  expect(await page.locator('[data-customer]').count(), 'rows are hidden, never removed').toBe(8);
+  expect(await machineTotal(page)).toBe('11820');
+
+  // 3. Clearing restores every row and hides the empty state.
+  await page.fill('#search', '');
+  expect((await visiblePhones()).length).toBe(8);
+  await expect(page.locator('#search-empty')).toBeHidden();
+
+  // 4. The picker lists the placeholder plus every customer.
+  expect(await page.locator('#entry-customer option').count()).toBe(9);
+
+  // 5. Save through the picker on the list page.
+  await page.selectOption('#entry-customer', '9000000101');
+  await fillEntry(page, { amount: '10', type: 'credit', date: '2026-10-01', note: 'picker entry' });
+  await page.click('#entry-save');
+  await expect(page.locator('[data-customer="9000000101"] [data-balance]')).toHaveText('680');
+  expect(await rowBalance(page, '9000000101')).toEqual({ text: '680', attribute: '680' });
+  expect(await machineTotal(page)).toBe('11830');
+  await page.reload();
+  expect(await rowBalance(page, '9000000101')).toEqual({ text: '680', attribute: '680' });
+  expect(await machineTotal(page)).toBe('11830');
+
+  // 6. Add-entry button targets its row's customer, scrolls to the form and focuses the amount.
+  const addButton = page.locator('button[data-add-entry-for="9000000102"]');
+  await expect(page.locator('[data-customer="9000000102"] button[data-add-entry-for="9000000102"]')).toHaveCount(1);
+  await addButton.click();
+  expect(await page.locator('#entry-customer').inputValue()).toBe('9000000102');
+  expect(
+    await page.evaluate(() => (document.activeElement ? document.activeElement.id : null)),
+    '#entry-amount must receive focus'
+  ).toBe('entry-amount');
+  const formTop = await page.locator('#entry-form').evaluate((element) => element.getBoundingClientRect().top);
+  expect(formTop, 'the form must be scrolled into view').toBeLessThan(812);
+
+  await fillEntry(page, { amount: '5', type: 'credit', date: '2026-10-02', note: 'add-entry button' });
+  await page.click('#entry-save');
+  // sample-expected.json gives 9000000102 a balance of 3470; +5 = 3475, and 11830 + 5 = 11835.
+  await expect(page.locator('[data-customer="9000000102"] [data-balance]')).toHaveText('3475');
+  expect(await rowBalance(page, '9000000102')).toEqual({ text: '3475', attribute: '3475' });
+  expect(await machineTotal(page)).toBe('11835');
+  await expect(page.locator('#entry-customer')).toHaveValue('9000000102');
+
+  // 7. At 375 px the add-entry button is a real tap target and nothing scrolls sideways.
+  await page.setViewportSize({ width: 375, height: 812 });
+  const box = await page
+    .locator('button[data-add-entry-for="9000000102"]')
+    .evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return { height: rect.height, right: rect.right, width: rect.width };
+    });
+  expect(box.height, 'add-entry button height').toBeGreaterThanOrEqual(40);
+  expect(box.width).toBeGreaterThan(0);
+  expect(box.right).toBeLessThanOrEqual(376);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(375);
+
+  await page.screenshot({ path: path.join(ARTIFACTS, 'p6-ux-375.png') });
+  fs.writeFileSync(
+    path.join(ARTIFACTS, 'p6-ux-fix.txt'),
+    [
+      'search ravi: 1 visible row (9000000101), #search-empty hidden, total 11820',
+      'search zzz-no-match: 0 visible, #search-empty visible, 8 rows in DOM, total 11820',
+      'clear: 8 visible, #search-empty hidden',
+      '#entry-customer options after import: 9',
+      'picker save credit 10 -> 9000000101 balance 680, total 11830, persists on reload',
+      'add-entry 9000000102 -> select value 9000000102, focus ' + 'entry-amount' + ', credit 5 -> balance 3475, total 11835',
+      '375 px add-entry button: ' + JSON.stringify(box),
+    ].join('\n')
+  );
+
+  await expectClean(diagnostics, expect);
+});

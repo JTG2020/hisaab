@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.12
+Version: 0.13
 Updated: 2026-11-18
 Owner: Tester
-Supersedes: test-results.md v0.11
+Supersedes: test-results.md v0.12
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -806,3 +806,57 @@ Notes:
 - Gate status: every phase case green, F-01 and F-02 green, no open P0/P1 and no open P2; BUG-2 (P3) is closed, so the P6 waiver item is resolved.
 - Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-11 line and the BUG-2 closure; `TRACEABILITY.md` should record F-02 and E2E-P6-01/02.
 - The Tester did not edit `app/`. App checksums at verification time: `app/index.html bd38d3cedfef…`, `app/app.js a62699796a9e…` (BUG-2 fix), `app/styles.css 8b799aa1e618…`.
+
+### RUN-12 | 2026-11-18 05:30 EST | phase P6 | post-G6 UX fix verification
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for the P5 cases, the journey's phone step and the E2E-P6-03 tap check; light plus emulated `prefers-color-scheme: dark` where the cases require it; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 11 spec files.
+
+Cases: 57/57 passed | Failing: none
+- P0 23/23, P1 8/8, P2 5/5, P3 5/5, P4 7/7, P5 4/4
+- F-01 50 datasets (seed `20261117`) and F-02 200 datasets (seed `20261118`) green
+- P6: E2E-P6-01, E2E-P6-02, **E2E-P6-03 (new)**
+
+Bugs filed: none | Bugs closed: none (BUG-1, BUG-2 remain closed)
+
+Evidence:
+
+```
+$ npx playwright test
+Running 57 tests using 1 worker
+  ✓ [chromium] › e2e/p6.spec.js › E2E-P6-03 post-G6 UX: search empty state, customer picker, add-entry button (504ms)
+  ✓ [chromium] › e2e/p4.spec.js › E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, restores on clear and reload (675ms)
+  ... all other 55 cases green ...
+  57 passed (29.4s)
+
+$ npx playwright test --list | tail -1
+Total: 57 tests in 11 files
+```
+
+UX fix evidence (`tests/artifacts/p6-ux-fix.txt`, `tests/artifacts/p6-ux-375.png`):
+
+```
+search ravi:           1 visible row (9000000101), #search-empty hidden, total 11820
+search zzz-no-match:   0 visible, #search-empty visible ("No customers match your search."),
+                       8 rows still in the DOM, total 11820
+clear:                 8 visible, #search-empty hidden
+#entry-customer:       9 options after the sample import (placeholder + 8 customers)
+picker save (10):      9000000101 balance "680" (text and attribute), total 11830, survives reload
+add-entry button:      #entry-customer value "9000000102", #entry-amount focused,
+                       #entry-form scrolled into view; credit 5 -> balance "3475", total 11835
+375 px button:         {"height":45.19,"width":154.42,"right":329}; document and body scrollWidth <= 375
+```
+
+Verdict: PASS
+
+Notes:
+
+- **Test-authoring correction (brief vs arithmetic):** the task text says the add-entry case ends with "row balance `5`", but `sample-expected.json` gives `9000000102` a balance of **3470**, and the same sentence expects total `11835` (11830 + 5). The only value consistent with the sample and with that total is **3475**, which is what the case asserts (`3470 + 5`). No app change is implied; the brief's "5" reads as a slip for the entry amount.
+- `#search-empty` is a new non-contract node (it is not in `CONTRACT.md`); the tests read it only to verify the UX fix and still assert the contract invariants around it: rows are hidden rather than removed, the total never moves, and clearing restores all rows.
+- E2E-P4-04 was strengthened, not weakened: it now also requires `#search-empty` to be visible for a no-match query, hidden for a matching query, and hidden after clearing, while keeping the existing 8-row DOM, total, import-section and reload assertions.
+- The per-row add-entry control is a `button` with `data-add-entry-for`, so the earlier tap-target audit (E2E-P5-04) also covers it as a 44 px `.btn`; E2E-P6-03 re-measures it at 375 px (45.19 px) and checks it stays inside the viewport with no sideways scroll.
+- Asset URLs now carry `?v=6.1`; C-23 still passes because they remain relative `./` paths with no absolute or third-party origin, and C-22 confirms no external request.
+- `docs/TEST-CASES.md` v0.12 adds E2E-P6-03 and the P6.1 mapping (search empty state, add-entry button, picker, hint, cache-busting). No existing ID or expected value changed.
+- Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-12 line and the P6.1 note; `TRACEABILITY.md` should record E2E-P6-03.
+- The Tester did not edit `app/`. App checksums at verification time: `app/index.html ea598661a31a…`, `app/app.js 6d990115fff4…`, `app/styles.css 1a9e3c1e4059…`.
