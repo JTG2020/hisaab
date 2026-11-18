@@ -7,7 +7,7 @@ const BASE_URL = process.env.HISAAB_BASE_URL || 'http://localhost:4173';
 
 module.exports = defineConfig({
   testDir: __dirname,
-  testMatch: ['smoke/**/*.spec.js', 'e2e/**/*.spec.js', 'nonfunctional/**/*.spec.js', 'fuzz/**/*.spec.js'],
+  testMatch: ['smoke/**/*.spec.js', 'unit/**/*.spec.js', 'integration/**/*.spec.js', 'e2e/**/*.spec.js', 'nonfunctional/**/*.spec.js', 'fuzz/**/*.spec.js'],
   globalSetup: path.join(__dirname, 'support', 'preflight.js'),
   fullyParallel: true,
   // One worker: the reference server (`python3 -m http.server`) drops concurrent

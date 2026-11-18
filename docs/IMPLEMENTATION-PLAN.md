@@ -1,10 +1,14 @@
 # IMPLEMENTATION-PLAN — Hisaab
 
-Version: 1.13
+Version: 1.21
 Updated: 2026-11-18
 Owner: Planner
-Supersedes: IMPLEMENTATION-PLAN.md v1.12
-Depends on: `PRD.md` v1.1, `TECH-STACK.md` v1.0, `CONTRACT.md` v1.0
+Supersedes: IMPLEMENTATION-PLAN.md v1.20
+Depends on: `PRD.md` v1.10, `TECH-STACK.md` v1.7, `CONTRACT.md` v1.7
+
+v1.19 changes: reconciles every planning dependency reference with the current PRD v1.8, TECH-STACK v1.6, and CONTRACT v1.6 after the G9 documentation HOLD resolution.
+v1.20 changes: adds the human-approved P10 Shop terminology/workspace presentation amendment (R13), preserving data behavior and requiring full P0–P9 regression plus a G10 Critic re-score.
+v1.21 changes: adds strictly additive P11/R14 header presentation planning. `CONTRACT.md` remains frozen and unchanged; no new machine node or existing node move/rename/formatting change is authorized.
 
 Phases are sequential. No phase starts before the previous gate is recorded in `worklog.md`. E2E runs only at phase gates; every change runs the contract smoke plus the affected unit tests.
 
@@ -29,6 +33,10 @@ Phases are sequential. No phase starts before the previous gate is recorded in `
 | P5 | 375 px, light/dark, long unicode, large numbers | R9, N2, N3 | E2E-P5 |
 | P6 | Hardening: 200-shop fuzz, quota, reload, double import, judges' note | R1–R10, B1–B7, N1–N6 | E2E-P6 (full) |
 | P7 | Owner extras (post-gate, non-scored): file/CSV import, UPI URI in reminder, shop profile/logo/brand, OCR status | none (X1–X5; no R/B/N change) | E2E-P7-01–05 |
+| P8 | Post-G7 local multiple-store management: create/switch/rename/delete, isolation, legacy migration, active-store import and reload behavior | R11 | E2E-P8-01–08 |
+| P9 | Post-G8 store-workspace/profile UI and explicit add-as-new-store JSON/CSV import; pristine-bootstrap population and safe name resolution | R12 | E2E-P9-01–10 |
+| P10 | Post-G9 Shop terminology/localization and existing workspace placement; no data-semantic or import changes | R13 | E2E-P10-01–04 + full P0–P9 regression |
+| P11 | Strictly additive top-left active-shop name line alongside the unchanged owner name/address/UPI display; portfolio-name source only | R14 | C-60 + E2E-P11-01–02 + smoke, targeted unit/regression, full suite, 375/light/dark, Critic G11 |
 
 ## 2. Phase details
 
@@ -124,7 +132,7 @@ The layout fix changes presentation only: the customer view is hidden on `/` and
 - **Selectors (non-contract extensions):** `#import-file`, `#import-choose`, the empty-`#import-go` picker path, the profile/logo controls, `#shop-upi`, and `#shot-ocr-hint`. None of these is a `CONTRACT.md` node; the scored selector set is unchanged.
 - **Files allowed:** `app/index.html`, `app/styles.css`, `app/app.js`, `app/assets/*` (logo preview and profile UI only).
 - **Acceptance:**
-  - **X1 JSON/CSV file import:** `#import-file` and `#import-choose` load a JSON or CSV file; pressing `#import-go` with an empty box opens the file picker; a non-empty paste through `#import-box` keeps the existing path exactly; imported data replaces state atomically and never merges.
+  - **X1 JSON/CSV file import:** `#import-file` and `#import-choose` retain the P7 replacement flow: selecting JSON/CSV immediately replaces the active ledger atomically, including after the empty-`#import-go` picker opens; no second click stages or commits the import. A non-empty paste through `#import-box` and `#import-go` keeps the existing path exactly. E2E-P7-01/02 remain the regression oracles.
   - **X2 CSV schema:** primary columns `shop,phone,name,type,amount,date,note` in any order; a customers-only file `phone,name` imports customers and ignores financial columns with a warning; an entries-only file `phone,type,amount,date,note` imports entries; RFC-4180 quoting, and D4/D9/D10/D11 apply unchanged; shop name comes from the `shop` column or the filename.
   - **X3 UPI URI in the reminder:** the WhatsApp message text carries the same UPI URI as that row's pay anchor; the row still has exactly one `a[href^="upi://pay?pa="]`; the `wa.me` href format and the name plus `Rs` content are unchanged.
   - **X4 Shop profile, logo, brand:** owner name, address, UPI ID, logo and brand colour render in a visible header strip and profile card; the logo is stored as a 128 px data URL; the brand colour is applied as a contrast-safe tint/accent; without a logo the default palette is unchanged.
@@ -133,6 +141,102 @@ The layout fix changes presentation only: the customer view is hidden on `/` and
 - **E2E gate suite (gate-only):** `E2E-P7-01–05` as defined in `TEST-CASES.md` v0.14, one per extra, plus a full regression re-run proving the scored contract is unaffected.
 - **Risks:** an extra hiding, renaming, or reordering a contract node; file import bypassing replace semantics; a brand colour breaking contrast; profile data leaking into machine nodes; any OCR dependency or network call.
 - **Rollback:** revert the P7 files or disable the extras behind a flag; the scored app state and all `CONTRACT.md` nodes remain intact.
+
+### P8 — Multiple local stores (post-G7, human-approved contract extension)
+
+- **Goal:** add full local-store portfolio management after P7 without any backend, account, network dependency, or change to existing scored machine nodes.
+- **R-IDs:** R11.
+- **Selectors:** `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, `#store-msg`, `#active-store-name`, plus active-store readings of `#total-outstanding`, `[data-customer]`, `[data-balance]`, `#shop-upi`, `#shop-logo`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#brand-theme`, `#import-box`, `#import-go`, `#cust-name`, `#cust-balance`, `#entries`.
+- **Files allowed:** planning implementation later would be limited to `app/index.html`, `app/styles.css`, `app/app.js`; no server, dependency, or test/document file in this planning-only task.
+- **Acceptance:**
+  - Given first paint or a customer-view route, `#store-manager` and all six manager controls are visible; `#store-confirm-delete` and `#store-cancel-delete` appear as the inline confirmation row after `#store-delete`, but remain exact nodes and never alter the existing contract nodes.
+  - Given a new store name of 1–60 characters after trim/whitespace collapse, unique case-insensitively, create succeeds: store count increases by exactly 1, its ledger and profile start empty, it becomes active, `#store-select` option count and active selection match, and reload persists the result.
+  - Given blank, 61-character, or duplicate names, create/rename is rejected with no state change and `#store-msg` names the validation reason.
+  - Given two stores A and B with different ledgers/profile/UPI/logo/brand, switching to B makes every existing customer/entry/profile node read B only, then reload restores B as active.
+  - Given a switch while `?customer=<phone>` is present, `customer` is removed from the URL and home rerenders B; the previous store's phone, entries, UPI, logo, and profile are absent.
+  - Given delete is clicked, deletion occurs only after `#store-confirm-delete`; cancel leaves count and active id unchanged.
+  - Given one store remains, delete attempts leave the portfolio unchanged and `#store-msg` contains `last store`.
+  - Given an active store A and a confirmed delete of A, A's complete ledger/profile/UPI/logo is removed, exactly one deterministic next store becomes active, and reload shows the remaining portfolio.
+  - Given import in active store B, only B's ledger is replaced: store count/id/names/profile/UPI/logo and A's ledger remain unchanged; reload restores B as active with B's replaced ledger.
+  - Given legacy `hisaab.v1`, `hisaab.profile.v1`, and `hisaab.upi.v1` with no P8 portfolio, migration creates exactly one store before first paint, preserves legacy customers/entries/profile/UPI/logo and shop name, uses `hisaab.upi.v1` only when profile UPI is empty, and repeats with no duplicate store.
+  - Given storage write/read failure, create/switch/rename/delete/import degrade to in-memory state for the current tab and show `#store-msg` or the existing import/profile warning; no network or blank screen occurs.
+- **E2E gate suite (gate-only):** `C-40–C-48`, `U-15`, `I-11–I-14`, and `E2E-P8-01–E2E-P8-08` as defined in the P8 row of `TRACEABILITY.md`; at least: manager visibility, create/switch/rename/confirmation/last-store/delete isolation, active reload, legacy migration, active-store import replace, customer-view switch, storage failure, 375 px and light/dark recheck, and a full P0–P7 regression. The Tester owns the final exact assertions in `TEST-CASES.md`.
+- **Risks:** hiding manager controls behind a modal/tabs/`<details>`; treating the imported `shop` name as a portfolio rename; deleting or replacing A instead of only the active store; persisting a stale active id; migrating legacy data twice; leaking profile/logo/UPI or customer rows across stores; keeping `?customer=` after switching.
+- **Rollback:** revert P8 implementation to the last G7/P7 green build and retain only the legacy migration/portfolio snapshot if a snapshot exists; never rename or remove existing `CONTRACT.md` §1–§8 nodes, and never reinterpret P8 rollback as a merge of stores.
+
+### P9 — Unified store workspace and add-as-new-store import (post-G8, human-approved)
+
+- **Goal:** combine Store management and Shop profile into one active-store workspace, add separate JSON/CSV portfolio import, and preserve every P0–P8 ledger, route, and machine-node behavior.
+- **R-IDs:** R12.
+- **Selectors:** existing P8 `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, `#store-msg`, `#active-store-name`, `#shop-upi`, `#shop-logo`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#brand-theme`; P9 `#store-workspace`, `#store-profile-editor`, the existing controls `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, `#upi-msg`; plus `#import-add-store`, hidden `#import-add-file`, `#import-store-name`, `#import-store-confirm`, `#import-store-cancel`, `#import-store-msg`, `#import-box`, `#import-go`, P7 `#import-file`/`#import-choose`, `#total-outstanding`, `[data-customer]`, `[data-balance]`, `#cust-name`, `#cust-balance`, `#entries`.
+- **Files allowed:** `app/index.html`, `app/styles.css`, `app/app.js`; no build step, dependency, backend, service, or test/document file in this planning-only task.
+- **Acceptance:**
+  - The active-store workspace visibly combines P8 store controls and `#store-profile-editor`; P9 may move `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, and `#upi-msg` into it, retaining exact IDs, visibility, and input/autosave semantics. Header read-only display nodes and all other P0–P8 nodes stay in place.
+  - No `#profile-save`, `#profile-brand-input`, or duplicate brand UI is required. Profile edits autosave on input and survive reload. Blank profile defaults are `ownerName/address/upi/logo=""` and `brand=null`.
+  - A brand is accepted only as null or an RGB array of exactly three integer channels 0..255; a logo is accepted only as `data:image/...` at or below `LOGO_STORE_MAX_CHARS`. Invalid subfields blank to the defaults, show a visible add-import warning, and make no network request.
+  - JSON pasted into `#import-box` and confirmed by `#import-add-store` creates a new store with the imported ledger and optional `profile`; old JSON with no `profile` creates blank profile fields.
+  - If `#import-box` is empty, clicking `#import-add-store` opens the dedicated hidden `#import-add-file`; selecting JSON/CSV immediately enters the P9 add-store validation/name-confirm path. If the box is nonempty, `#import-add-store` parses its pasted content instead. JSON `profile` is honored only in this add path; CSV `shop` supplies the name and all profile fields are blank.
+  - Existing P7 `#import-choose`/`#import-file` selection, including selection from the empty-`#import-go` picker, immediately performs active-ledger replacement as before (E2E-P7-01/02); it is never staged for a later click. `#import-go` paste and file replacement paths never create/rename/merge stores or apply an imported JSON profile.
+  - `shop` supplies the store name in both JSON and CSV add paths; it is not silently used to rename a store through the replacement path.
+  - Missing or collision-name resolution opens inline controls prefilled or blank as appropriate, and does not mutate the portfolio. `#import-store-confirm` creates only after a valid normalized 1–60-character, case-insensitive-unique name; `#import-store-cancel` leaves state unchanged.
+  - The first-import bootstrap rule requires both ledger and profile to be empty and exactly one store. If true, it may repurpose that one store; otherwise it creates a separate store. It never discards existing ledger/profile data.
+  - Successful add/populate activates the new store and removes only `customer` from the URL, preserving `today` and all P8 route semantics.
+  - Manual `#store-create` starts a fully blank ledger and profile. Add operations never merge existing store ledgers or alter other stores.
+- **E2E gate suite (gate-only):** `C-49–C-58`, `U-16`, `I-15–I-18`, and `E2E-P9-01–E2E-P9-10`, plus full P0–P8 contract smoke/regression, 375 px/light/dark, and a 200-shop fuzz rerun. Minimum cases:
+  - `E2E-P9-01` workspace/profile UI and all existing P9/P8 nodes first paint.
+  - `E2E-P9-02` JSON paste add as a separate store with profile.
+  - `E2E-P9-03` old JSON add compatibility and blank profile defaults.
+  - `E2E-P9-04` JSON/CSV file add through hidden `#import-add-file`, with `shop` name, blank CSV profile, and existing P9 validation/name-confirm behavior.
+  - `E2E-P9-05` existing P7 `#import-choose`/`#import-file` selection still immediately replaces only the active ledger, and `#import-go` paste/file picker semantics remain unchanged; preserve E2E-P7-01/02 exactly.
+  - `E2E-P9-06` missing/collision name resolution, confirm/cancel, and no overwrite.
+  - `E2E-P9-07` pristine bootstrap population versus user-data no-populate.
+  - `E2E-P9-08` activation, `customer` removal, `today` preservation, reload.
+  - `E2E-P9-09` manual-store blank state and storage failure.
+  - `E2E-P9-10` 375 px/dark and full P0–P8 regression.
+- **Risks:** using `#import-go` for portfolio creation; silently merging or overwriting a collision; applying CSV profile claims; replacing a user-populated bootstrap store; hiding existing P8 or import nodes; changing URL params beyond `customer`; profile/logo cross-store leakage.
+- **Rollback:** revert P9 `app/` changes to the G8 build; keep the P8 portfolio and all P0–P8 contract nodes intact; do not remove, merge, or migrate existing stores as rollback.
+
+### P10 — Shop terminology and workspace presentation (post-G9, human-approved contract amendment)
+
+- **Goal:** consistently present the existing manager in English, Hindi, and Telugu as Shops/Shop, arrange the existing controls within the approved workspace, and leave all P0–P9 data and machine behavior intact.
+- **R-IDs:** R13.
+- **Selectors:** `#store-workspace`, `#store-manager`, `#store-select`, `#store-name`, `#store-create`, `#store-rename`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, `#store-msg`, `#active-store-name`, `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#shop-logo`, `#brand-theme`.
+- **Files allowed:** Coder: `app/index.html`, `app/styles.css`, `app/app.js` only for existing UI copy/layout/localization; Tester: `tests/**`, `docs/TEST-CASES.md`, `docs/test-results.md`; Critic: `docs/scorecards.md`; Orchestrator: `docs/worklog.md`. No role edits another role's scope.
+- **Acceptance:**
+  - English visible copy is exact: heading `Shop Manager`, active label `Active shop`, selector label `Select Shop`, name label `Shop name`, and actions `Create Shop`, `Rename Shop`, `Delete Shop`. Confirmation and all manager success/error/validation/storage messages use Shop terminology; `Store` must not appear in the visible manager/workspace copy.
+  - Selecting `en`, `hi`, or `te` localizes all P10 heading, labels, actions, confirmation, and manager messages consistently. Existing P0–P9 localization behavior and all machine values remain unchanged.
+  - In `#store-workspace`, shop selection remains at the top. The existing shop-name field and create/rename/delete actions are visually grouped at the bottom of the Shop profile workspace. All existing controls remain visible, usable, unique, and under their existing IDs.
+  - The owner name/address/UPI read-only display stays at the top-left and updates for the active shop as it does today. `#active-store-name` continues to expose only the active shop's exact name.
+  - Manual creation activates an empty ledger and blank profile `{ownerName:"", address:"", upi:"", logo:"", brand:null}`. Subsequent profile-input edits autosave to that new active shop and update only its display; another shop remains unchanged, including across reload.
+  - No change to import replacement/add-shop flows, ledger calculations, scoring, storage keys/schema, profile defaults, or any P0–P9 behavior. Preserve all machine IDs, attributes, and data semantics.
+- **Focused cases required from Tester:** add `C-59` and `E2E-P10-01–04` to `TEST-CASES.md` before the P10 gate. Cover exact English text and all three locales; top-versus-bottom placement and top-left owner display; blank manual-create profile followed by autosave to the active shop; and unchanged create/rename/delete/import/store-isolation behavior. Do not remove or relax any existing assertion. If a P0–P9 test has a literal visible-copy expectation that conflicts with the approved Shop terminology, update only that expected copy to the exact P10 wording while preserving its prior behavior, boundary, and regression assertions.
+- **Test and gate order:** each app/test change runs the 10-second contract smoke and affected unit tests. E2E runs only at the P10 gate. After the final app/test change, Tester reruns the complete suite, retaining all P0–P9 tests unweakened and adding the focused P10 cases; report acceptance and regression separately. Critic independently audits the amended contract, re-scores before G10, and confirms no open P0/P1. No G10 PASS is recorded until the full suite, contract audit, doc sync, and scorecard are green.
+- **Risks:** visible Store/Shop vocabulary drift across locales; copy tests accidentally asserting the obsolete label; moving a selector or owner display; profile inputs saving to the previously active shop; an accidental change to blank defaults, imports, or ledger behavior.
+- **Rollback:** revert only P10 presentation/localization changes to the G9 build. Preserve the approved contract note and all P0–P9 state semantics; do not roll back or migrate portfolio data.
+
+### P11 — Active shop name in the top-left header (post-G10, strictly additive)
+
+- **Goal:** add a human-only active-shop name line in the top-left header, sourced exactly from the active portfolio shop name while preserving the existing owner name/address/UPI display and every P0–P10 behavior and contract node.
+- **R-IDs:** R14.
+- **Selectors:** existing `#active-store-name`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`. The added shop-name line is ordinary class-only presentation markup with no `id`, `data-*` selector, or machine role; it must not replace or duplicate `#active-store-name`. No `CONTRACT.md` node is added or changed.
+- **Files allowed:** Coder may change `app/index.html`, `app/styles.css`, and `app/app.js` only as needed for the presentation line and active-name synchronization. No role may change `CONTRACT.md`, `TECH-STACK.md`, or P10 `TEST-CASES.md`/test evidence scope outside its role.
+- **Acceptance:**
+  - Given the active shop is shown, the top-left header contains a new ordinary shop-name line whose text exactly equals `#active-store-name` text for the active portfolio shop.
+  - Switching or renaming the active shop updates both `#active-store-name` and the added line to the active portfolio name; adding and activating a manual or P9-imported shop does the same.
+  - Replacement import never changes the portfolio shop name or the added line. A ledger/import `shop` label is display/import data only for replacement flows and is not used as the added line source.
+  - `#owner-display-name`, `#owner-display-address`, and `#owner-display-upi` remain in the top-left and unchanged. They continue to use active-profile values and existing blank fallbacks; sample data can show the shop name with blank owner/UPI profile, never invented owner/UPI values.
+  - The ordinary line remains readable at 375 px and in light/dark; it wraps without horizontal overflow and introduces no hidden, moved, renamed, duplicated, or conditionally absent scored machine node.
+  - No ledger, customer, entry, balance, profile, UPI/logo, import replacement/add-store, storage, route, score, or P10 copy/placement semantics change.
+- **Test and gate order:**
+  - Every app/test change runs the 10-second contract smoke and affected unit tests.
+  - Tester defines and records focused `C-60` and `E2E-P11-01–02` in `docs/TEST-CASES.md` and `docs/test-results.md` before the gate; until those runs exist R14 remains `planned`, and no P11 pass or G11 pass may be claimed.
+  - `C-60` covers source equality, no machine selector on the added line, top-left owner display fallbacks, switch/rename/add synchronization, reload, and replacement-import non-rename.
+  - `E2E-P11-01` covers visible header presentation and the active portfolio name across switch/rename/add/reload.
+  - `E2E-P11-02` covers replacement imports and P9 add/populate activation while proving the portfolio name, owner fallbacks, 375 px, and light/dark behavior remain correct.
+  - At the gate, after any red P11 fix loop, Tester reruns the full P0–P11 regression and the applicable P8–P10 store/import regressions, plus the 375 px and light/dark checks.
+  - Critic independently re-runs the contract smoke, P11 gate E2E, relevant fuzz/regression checks, and full-suite evidence, re-scores, and confirms no open P0/P1. G11 PASS requires phase acceptance 100%, full regression 100%, doc sync, and a PASS scorecard.
+- **Risks:** sourcing the line from an imported ledger label instead of the active portfolio shop; duplicating or repurposing `#active-store-name`; moving or hiding owner display nodes; inventing owner/UPI fallback values; changing P9 replacement behavior or P10 copy/layout.
+- **Rollback:** revert only P11 app presentation/synchronization changes. Preserve P10 copy/layout, P8/P9 portfolio state semantics, and all existing machine nodes; do not rename or migrate any store or profile.
 
 ### G0 sync note (v1.1)
 

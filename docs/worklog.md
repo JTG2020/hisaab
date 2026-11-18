@@ -1,7 +1,7 @@
 # WORKLOG — Hisaab
 
-Version: 0.1
-Updated: 2026-11-17
+Version: 0.4
+Updated: 2026-11-18
 Owner: Orchestrator
 Supersedes: none
 
@@ -379,3 +379,28 @@ Action: recorded **G7 technical PASS** for the owner extras; added `sample-data.
 Evidence: `docs/scorecards.md` GATE G7; RUN-15 **63/63**; CRITIC-RUN-10 **63/63**; independent CRITIC-G7 **50/50 + 6/6** (file/CSV/sample CSV, UPI message, profile/logo/brand, OCR); contract 100%/0 deviations; F-02 200-shop green; final **100/100** (floor 97 strict B6); P7 extras non-scored; B7 0.
 Result: PASS (extras complete; scored contract unchanged)
 Next: no pending code work; awaits human review/use.
+
+## 2026-11-18 11:29 — P8 — Orchestrator — GATE G8
+Action: recorded **G8 technical PASS** for post-G7 local multi-store support after independent Critic review. Updated `TRACEABILITY.md` v1.14 to mark R11 passed; no contract changes were made at this gate.
+Evidence: `docs/scorecards.md` GATE G8, independent Critic **100/100**; RUN-16 and RUN-17; contract smoke **15/15**, P8 focused tests **22/22**, full regression **85/85**; F-01 (50 datasets) and F-02 (200 datasets) passed with zero mismatches; 375 px/dark-mode checks passed. Doc sync: no missing R-IDs, **45/45** contract selector tokens tested; Critic broad audit **48/48**.
+Result: PASS (no open P0/P1; existing behavior and contract nodes preserved)
+Note: `git diff --check` still reports trailing whitespace at `docs/CONTRACT.md:224`; retained as a non-semantic existing line and not changed at G8.
+Next: awaits human review and deployment/submission approval; no live deployment or submission performed.
+
+## 2026-11-18 15:13 — P9 — Orchestrator — GATE G9
+Action: recorded G9 PASS for the unified store workspace and add-store import after the Critic's documentation-sync recheck. The original HOLD remains historical evidence; no app, tests, or CONTRACT changes occurred after the Critic's runtime run.
+Evidence: `docs/scorecards.md` GATE G9 and documentation-sync addendum (Critic, 2026-11-18 15:09:09 EST); `docs/test-results.md` RUN-19 and CRITIC-RUN-G9. Runtime results remain smoke 15/15, focused P9 + P7/P8 regression 27/27, P9 E2E 10/10, full suite 100/100; F-01/F-02 had zero mismatches. Sync checks: no missing PRD R-IDs in PLAN/TRACEABILITY, 60/60 contract selectors in TEST-CASES, and `git diff --check` clean. Verified doc versions/status: PLAN v1.19 dependencies align with PRD v1.8, TECH-STACK v1.6, CONTRACT v1.6; TRACEABILITY v1.18 references TEST-CASES v0.19 and R12 is passed; G0-CHECKLIST v0.2 supersedes v0.1; PRD v1.8 and D17 agree B7 OCR is unimplemented/unclaimed and scores 0.
+Result: PASS (Critic score 100/100; no open P0/P1)
+Next: await human review and deployment/submission approval; no live deployment or submission performed.
+
+## 2026-11-18 16:20 — P10 — Orchestrator — GATE G10
+Action: recorded G10 PASS for the human-approved Shop terminology/workspace amendment. The frozen G9 score is preserved; P10 changed presentation/localized copy only and kept store data, profile defaults, imports, and ledger behavior intact.
+Evidence: `docs/scorecards.md` GATE G10, Critic **100/100**; Tester RUN-21 and CRITIC-RUN-G10; smoke **15/15**, P8/P10 targeted regression **23/23**, full P0–P10 suite **105/105**, F-01 (50 datasets) and F-02 (200 datasets) with zero mismatches; C-59/E2E-P10-01–04 pass; BUG-5 closed. Doc sync: no missing PRD R-IDs in PLAN/TRACEABILITY, no missing traceability case IDs, all **60/60** contract selectors covered by TEST-CASES, and `git diff --check` PASS. Versions: PRD v1.9, TECH-STACK v1.7, PLAN v1.20, CONTRACT v1.7, DECISIONS v2.0, TRACEABILITY v1.20, TEST-CASES v0.21.
+Result: PASS (Critic score 100/100; no open P0/P1)
+Next: await human review and deployment/submission approval; no live deployment or submission performed.
+
+## 2026-11-18 16:44 — P11 — Orchestrator — GATE G11
+Action: recorded G11 PASS for the strictly additive top-left active-shop name line requested after G10. The line reflects the active portfolio name; the existing owner/address/UPI profile display and blank-profile fallbacks remain unchanged. No contract selector or data semantics changed.
+Evidence: `docs/scorecards.md` GATE G11, Critic **100/100**; Tester RUN-22 and CRITIC-RUN-G11; smoke **15/15**, affected P8/P9 unit tests **2/2**, P8–P10 regressions **32/32**, P11 focused cases **3/3**, full P0–P11 suite **108/108**; F-01 (50 datasets) and F-02 (200 datasets) had zero mismatches. C-60/E2E-P11-01–02 verified name synchronization for switch/rename/create/P9 activation/reload, replacement-import non-rename, existing owner/UPI fallbacks, and 375 px/light/dark. Doc sync: 14/14 PRD R-IDs mapped in PLAN/TRACEABILITY, all **163** traceability case IDs exist, all **60/60** contract selectors are covered, and `git diff --check` PASS. Versions: PRD v1.10, PLAN v1.21, CONTRACT v1.7, TECH-STACK v1.7, DECISIONS v2.1, TRACEABILITY v1.22, TEST-CASES v0.22.
+Result: PASS (Critic score 100/100; no open P0/P1)
+Next: await human review and deployment/submission approval; no live deployment or submission performed.

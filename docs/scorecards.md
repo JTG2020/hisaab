@@ -1,9 +1,9 @@
 # SCORECARDS — Hisaab
 
-Version: 0.6
-Updated: 2026-11-17
+Version: 0.9
+Updated: 2026-11-18
 Owner: Critic
-Supersedes: none
+Supersedes: scorecards.md v0.8
 
 Append-only, one entry per gate. Evidence only; no encouragement.
 
@@ -2791,6 +2791,71 @@ OCR hint                     : "Enter the amount manually; the screenshot is sav
 OCR upload                   : #entry-amount stays ""; #entry-save enabled; 0 ocr/tesseract requests;
                                app/ has no OCR asset; manual 1500 saves with exactly 1 img[data-shot]
 noise                        : 0 console errors, 0 page errors, 0 failed requests, 0 external requests
+
+### GATE G8 | 2026-11-18 | phase P8
+Build: HEAD `812377665e98` (working tree), static app under `app/`   Runs cited: RUN-16, RUN-17, CRITIC-RUN-G8
+Hidden-data: 60/60   Bonus: 30/30 (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 0)   Phone/theme: 10/10
+MODEL SCORE: 100/100
+Deductions:
+- None. The 200-dataset hidden-data run, P8 isolation suite, complete regression, and 375/dark checks passed with zero mismatches or open P0/P1.
+Contract audit: 48/48 pass under the broad selector audit; the documented sweep also reports 45/45 contract selector tokens; 0 deviations
+Doc sync: PASS — stable `R[0-9]+` diffs were empty between PRD, IMPLEMENTATION-PLAN, and TRACEABILITY; `48/48` broad contract selectors are present in TEST-CASES (documented sweep `45/45`; no untested selector). P8 C-40–C-48, U-15, I-11–I-14, and E2E-P8-01–08 are defined and executed.
+Vercel readiness: PASS — `python3 -m http.server 4173 --directory app` served `/` 200; app is static, asset paths remain relative, no service worker/auth/cookie/build/backend dependency, and direct `?customer=`/`?today=` routes work locally.
+Score risks: Contract-node integrity PASS; Hidden-data/fuzz PASS (F-01 50/50, F-02 200/200, 0 mismatches); Store isolation PASS (ledger/profile/UPI/logo/brand, same-phone independence); Import isolation PASS; Legacy migration PASS; Route switching PASS; Storage failure PASS in memory; 375 px/dark PASS.
+Verdict: PASS
+Required before re-gate: None for the technical P8 gate. Process-only follow-up: the Planner/Orchestrator should update TRACEABILITY R11 status from `planned` to the executed/passed gate state and record the G8 gate/worklog entry; this Critic is limited to `docs/scorecards.md` and did not make that change.
+
+#### Independent Critic runs
+Actual local date/time of verification: `2026-11-18 11:24:42 EST`.
+
+Exact server command:
+```text
+python3 -m http.server 4173 --directory app
+```
+Server verification:
+```text
+curl -sS -I http://localhost:4173/
+HTTP/1.0 200 OK
+Content-type: text/html
+grep -m1 'store-manager' -> <section id="store-manager" class="card store-manager" aria-label="Store manager">
+```
+
+Exact contract smoke command and output:
+```text
+$ cd tests && npx playwright test smoke
+Running 15 tests using 1 worker
+15 passed (5.6s)
+```
+
+Exact P8 focused command and output:
+```text
+$ cd tests && npx playwright test unit/p8.spec.js integration/p8.spec.js e2e/p8.spec.js
+Running 22 tests using 1 worker
+22 passed (4.8s)
+```
+
+Exact complete-suite command and output:
+```text
+$ cd tests && npx playwright test
+Running 85 tests using 1 worker
+F-01 seed 20261117 datasets 50 :: shops=50, customers=160, entries=297, 0 mismatches
+F-02 seed 20261118 datasets 200 :: shops=200, customers=805, entries=1401, 0 mismatches
+85 passed (38.7s)
+```
+
+Doc-sync commands and results:
+```text
+$ grep -oE '\bR[0-9]+\b' docs/PRD.md | sort -u | comm -23 - <(grep -oE '\bR[0-9]+\b' docs/IMPLEMENTATION-PLAN.md | sort -u)
+# no output
+$ grep -oE '\bR[0-9]+\b' docs/PRD.md | sort -u | comm -23 - <(grep -oE '\bR[0-9]+\b' docs/TRACEABILITY.md | sort -u)
+# no output
+$ python3 contract/TEST-CASES selector audit
+48 selector_tokens / 48 covered / missing=[]  (broad audit)
+```
+
+Pre-existing trailing whitespace: `docs/CONTRACT.md:224` contains trailing whitespace and was not modified.
+
+Confidence / unknown about the real tester: The independent and documented suites cover the P8 DOM contract, fuzz math, route switching, migration, profile/logo/UPI isolation, write/storage failure, and 375/dark behavior. The real tester could additionally exercise storage read failure, corruption of the P8 portfolio blob, malformed store ids/names, or browser-specific history/storage behavior; the app has in-memory fallback and input validation, but these remain best verified by hostile real-tester probes. The assumption most likely to affect the mark is whether the real tester permits paise fractional rendering versus only whole-rupee machine values; P8 imports retain the existing approved machine-node rules and the suite observed fractional `250.50` correctly.
 ```
 
 #### CRITIC-G7X — default palette diff and CSV note round-trip
@@ -2888,3 +2953,203 @@ Versions this gate: PRD **1.1**, TECH-STACK **1.0**, IMPLEMENTATION-PLAN **1.13*
 3. Approve the judges' note and submit before **Sun 22 Nov 2026, 10:00 IST** (tie-break: earlier submission).
 4. Optional but recommended: commit and tag the graded P7 build (`32fb0468…`, `c52f8e01…`, `e562933e…`) so the submission is reproducible.
 5. If any `app/` change is made after this gate, re-run `cd tests && npx playwright test` and the CRITIC-G7 probe before submitting; otherwise ship the pinned build.
+
+### GATE G9 | 2026-11-18 | phase P9
+Build: HEAD `812377665e98` plus current uncommitted P9 workspace (`app/`)   Runs cited: RUN-19, CRITIC-RUN-G9
+Hidden-data: 60/60   Bonus: 30/30 (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 0)   Phone/theme: 10/10
+MODEL SCORE: 100/100
+Deductions:
+- None from the published 100-mark rubric. F-01/F-02 had zero mismatches; six bonuses passed and B7 is the documented dropped seventh; 375 px and light/dark checks passed.
+Contract audit: 60/60 extracted selector tokens referenced in TEST-CASES; 19/19 always-rendered nodes pass first-paint smoke; P9 workspace/import nodes resolve as required; no runtime contract deviation found.
+Doc sync: FAIL — all R-IDs are present in PLAN and TRACEABILITY; all 60 extracted selector tokens are referenced by test cases. However, PLAN v1.18 still says it depends on PRD v1.6 / TECH-STACK v1.5 / CONTRACT v1.5 (current: v1.7 / v1.6 / v1.6); TRACEABILITY R12 remains `planned` after the executed gate; G0-CHECKLIST.md lacks the required `Supersedes` header; and PRD §6 says all seven bonuses are built while D17 and the test evidence declare B7 unavailable. These are documentation-sync blockers, not runtime deductions.
+Vercel readiness: PASS — local static server returned HTTP 200; contract smoke and C-23 pass; relative assets, no build/backend/service worker/auth/cookies, clean console, and P9 invalid-logo probe made no external requests.
+Score risks: Contract nodes/import replacement PASS; P9 profile IDs/autosave and D12 display defaults PASS; add JSON/CSV and separate P7 immediate replacement PASS; RGB/null and bounded data-image logo validation PASS; safe name confirm/cancel and pristine bootstrap PASS; cross-store ledger/profile isolation and storage failure PASS; route activation/customer removal/today preservation PASS; accessibility/labels/translations PASS; 375 px/light/dark PASS; no existing assertions weakened. No P0/P1 runtime bug found.
+Verdict: HOLD — model score meets G8's 100/100, but the documentation-sync findings above remain unresolved; do not record G9 as PASS yet.
+Required before re-gate:
+1. Planner reconciles IMPLEMENTATION-PLAN.md dependency versions, the G0-CHECKLIST.md header, TRACEABILITY R12 status, and PRD B7 wording with the accepted decisions and evidence.
+2. Orchestrator records the G9 gate entry after the documentation sync is verified.
+Confidence / unknown about the real tester: The independent Playwright suite, seeded 200-shop oracle, and direct profile/picker/network probes cover the published local checks. The real tester's file-picker behavior and browser-specific storage limits remain uncertain; the highest-impact assumption is that its JSON/CSV import and static-host URL behavior matches the tested Playwright flows.
+
+#### Independent Critic runs — G9
+Actual local date/time: `2026-11-18 14:43:02 EST (-0500)`.
+
+Exact commands and outputs:
+```text
+$ cd tests && npx playwright test smoke
+Running 15 tests using 1 worker
+15 passed (5.6s)
+
+$ cd tests && npx playwright test unit/p9.spec.js integration/p9.spec.js e2e/p7.spec.js e2e/p8.spec.js
+Running 27 tests using 1 worker
+27 passed (7.7s)
+
+$ cd tests && npx playwright test e2e/p9.spec.js
+Running 10 tests using 1 worker
+10 passed (2.1s)
+
+$ cd tests && npx playwright test
+Running 100 tests using 1 worker
+F-01 seed 20261117 datasets 50 :: shops=50, customers=160, entries=297, 0 mismatches
+F-02 seed 20261118 datasets 200 :: shops=200, customers=805, entries=1401, 0 mismatches
+100 passed (40.9s)
+
+$ curl -sS -I http://localhost:4173/
+HTTP/1.0 200 OK
+Content-type: text/html
+
+$ git diff --check
+(no output; exit 0)
+```
+
+Doc-sync audit output:
+```text
+R IDs missing PLAN: []
+R IDs missing TRACEABILITY: []
+Contract selector tokens: 60, uncovered: []
+Missing header fields: docs/G0-CHECKLIST.md ['Supersedes']
+PLAN dependency line: PRD v1.6 / TECH-STACK v1.5 / CONTRACT v1.5
+Current documents: PRD v1.7 / TECH-STACK v1.6 / CONTRACT v1.6
+TRACEABILITY R12 status: planned
+```
+
+Independent P9 adversarial probe:
+```text
+Profile on input: ownerName/address/upi persisted immediately; display nodes updated; reload retained values.
+Empty #import-box + #import-add-store opened filechooser for #import-add-file.
+Missing-name file import showed confirmation; cancel left store count at 1.
+brand null / RGB [0,128,255]: PASS; short / fractional / string RGB: blanked to null with warning.
+External https logo / over-limit data:image logo: blanked with warning; external requests: [].
+```
+
+No weakened existing assertions were found. `tests/e2e/p3.spec.js` changes only its storage reader to inspect the active P8 portfolio while retaining its assertions; test configuration now includes the unit/integration suites. No current trailing whitespace was found by `git diff --check` or the explicit CONTRACT whitespace scan.
+
+#### G9 documentation-sync addendum | 2026-11-18 15:09:09 EST (-0500)
+Rechecked only the prior documentation-sync findings; no app, tests, or CONTRACT changes occurred after CRITIC-RUN-G9, so the suite was not rerun.
+
+- PASS: IMPLEMENTATION-PLAN.md v1.19 now depends on PRD v1.8, TECH-STACK v1.6, and CONTRACT v1.6.
+- PASS: TRACEABILITY.md v1.18 references TEST-CASES.md v0.19; R12 is `passed`, and the P9 note cites RUN-19/CRITIC-RUN-G9.
+- PASS: G0-CHECKLIST.md v0.2 is updated 2026-11-18 and supersedes v0.1.
+- PASS: PRD.md v1.8 states B1–B6 are available and B7 OCR is unimplemented, unclaimed, and scores 0, consistent with accepted DECISIONS.md D17.
+- PASS: Orchestrator doc-sync reports no missing PRD R-IDs and 60/60 contract selectors in TEST-CASES.md; independently confirmed. `git diff --check` is clean.
+
+**G9 verdict: PASS at 100/100.** This follow-up resolves the documentation-only HOLD above; the original HOLD remains as historical evidence. Prior RUN-19 and CRITIC-RUN-G9 runtime results stand unchanged.
+
+### GATE G10 | 2026-11-18 | phase P10
+Build: current working tree, POST-BUG-5 P10 build (HEAD base `812377665e98`)   Runs cited: RUN-21, CRITIC-RUN-G10
+Hidden-data: 60/60   Bonus: 30/30 (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 0)   Phone/theme: 10/10
+MODEL SCORE: 100/100
+Deductions:
+- None from the published 100-mark rubric. CRITIC-RUN-G10 passed all 105/105 tests; F-01 and F-02 reported zero mismatches; 375 px and light/dark checks passed.
+- R13 changes presentation/localization only. No P10 deduction is taken and no P0–P9 behavior is weakened.
+
+Contract audit: 60/60 AGENTS-style contract selector tokens pass coverage and direct runtime checks; P10 CONTRACT §10.6 copy, layout, and blank-profile/autosave amendments pass C-59 and E2E-P10-01–04. No machine ID, data semantic, import, calculation, or storage-key change was found.
+
+P10 audit:
+- English and approved hi/te copy are exact for heading, active label, selector/name labels, actions, confirmation/cancel, success, validation, duplicate, delete-protection, and storage-status paths.
+- `#store-select` and its label remain above `#store-name`; the name field and create/rename/delete actions form the bottom action group; owner name/address/UPI remain top-left.
+- Manual create produces an empty ledger and exact blank/null profile, and subsequent profile input autosaves only to the active shop.
+- C-59 and E2E-P10-01–04 pass with no P0–P9 assertion removed or relaxed; BUG-5 is closed and RUN-20 pre-fix evidence remains historical.
+
+Doc sync: PASS — every PRD R-ID is present in IMPLEMENTATION-PLAN.md and TRACEABILITY.md; 60/60 AGENTS-style contract selector tokens are covered in TEST-CASES.md; all 11 living/appended docs have Version, Updated, Owner, and Supersedes; PRD/PLAN/CONTRACT/TEST-CASES/TRACEABILITY versions are mutually consistent at PRD v1.9, PLAN v1.20, CONTRACT v1.7, TEST-CASES v0.21, and TRACEABILITY v1.20.
+
+Vercel readiness: PASS — local static server returned HTTP 200 for `/`; `app/index.html` uses relative `./styles.css` and `./app.js`, no build step or app asset is absolute/localhost, no service worker/auth/cookies/backend runtime is present, and the full Chromium run was clean. No P10 route or static-shape issue was found.
+
+Score risks:
+- WIN-ANALYSIS §4 selectors/first-paint/import replacement/bare money/unknown-phone/float/375: PASS; full 105-test suite and fuzz runs show no related runtime deviation.
+- WIN-PLAN §4/§11 merge, machine punctuation, unknown phones, stale totals, quota, and 375 overflow: PASS under the independent suite and direct layout/fuzz evidence.
+- P10 copy drift, obsolete Store terminology, layout movement, owner-display movement, and manual blank-profile/autosave: PASS under CONTRACT §10.6 and C-59/E2E-P10-01–04.
+- P0–P9 regression: PASS; full P0–P10 suite green and no open P0/P1 bug.
+
+Verdict: PASS
+Required before re-gate: None. G10 is cleared: 100/100, full regression green, amendment coverage complete, no open P0/P1 blocker.
+
+Confidence / unknown about the real tester:
+- The independent suite covers the published P10 copy, DOM placement, 375 px/dark behavior, fuzz math, and P0–P9 regressions. Highest-impact remaining uncertainty is real-tester browser state and upload/file-picker behavior, especially storage quota and whether it starts from a genuinely clean profile.
+- Assuming its DOM/file/import semantics match Playwright and it does not require a user-facing copy beyond CONTRACT §10.6, the expected model score is 100/100. RUN-20 was preserved as red historical evidence; this PASS relies only on RUN-21 post-fix evidence and CRITIC-RUN-G10.
+
+#### Independent Critic runs — G10
+Actual local date/time: `2026-11-18 16:16 EST (-0500)`.
+
+Exact command and actual result:
+```text
+$ cd tests && npx playwright test
+Running 105 tests using 1 worker
+105 passed (42.3s)
+F-01 seed 20261117: 50 datasets, 0 mismatches
+F-02 seed 20261118: 200 datasets, 0 mismatches
+```
+
+Exact sync output:
+```text
+R missing PLAN: []
+R missing TRACEABILITY: []
+AGENTS-style selectors: 60 uncovered: []
+```
+
+Exact whitespace check:
+```text
+$ git diff --check
+no output; exit 0
+```
+
+**Signed by: GitHub Copilot — Critic — G10**
+
+### GATE G11 | 2026-11-18 | phase P11
+Build: current working tree, strictly additive P11 build (HEAD base `812377665e98`)   Runs cited: RUN-22, CRITIC-RUN-G11
+Hidden-data: 60/60 | Bonus: 30/30 (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 0) | Phone/theme: 10/10
+MODEL SCORE: 100/100
+Deductions:
+- None from the published 100-mark rubric. P11 is presentation-only and non-contract; no hidden-data or bonus regression is found.
+
+P11 audit:
+- `app/index.html` contains exactly one ordinary `<span class="active-shop-display">` in the top-left `.shop-profile`; it has no `id` and no `data-*` attribute.
+- `app/app.js` reads the active portfolio store and assigns the ordinary line's `textContent` from `#active-store-name.textContent`; it neither reuses nor duplicates `#active-store-name`.
+- `#active-store-name` remains exactly once in `#store-manager`; the existing `#owner-display-name`, `#owner-display-address`, and `#owner-display-upi` nodes remain in place with unchanged fallbacks.
+- Init, switch, rename, manual create, P9 activation, reload, and replacement-ledger import paths preserve active portfolio name/equality; replacement ledger `shop` text does not rename the portfolio or added line.
+- Sample/P9 blank profile retains `Your shop`, blank address, and `Demo UPI ID`; no owner or UPI value is invented.
+- C-60 and E2E-P11-01/02 pass, including 375 px and light/dark contrast. No P0–P10 assertion or selector was renamed, hidden, reformatted, or relaxed.
+
+Contract audit: 60/60 AGENTS-style contract selector tokens pass coverage and runtime audit; P11 adds no CONTRACT.md or TECH-STACK.md change and adds no machine selector.
+Doc sync: PASS — R missing in PLAN `[]`; R missing in TRACEABILITY `[]`; 60/60 AGENTS-style contract selectors covered by TEST-CASES.md; all living docs have Version, Updated, Owner, and Supersedes, and PRD v1.10/PLAN v1.21/CONTRACT v1.7/TECH-STACK v1.7/TEST-CASES v0.22/TRACEABILITY v1.22 are mutually consistent. No open P0/P1 bug is reported.
+Vercel readiness: PASS — `/` returned HTTP 200 from `python3 -m http.server 4173 --directory app`; `app/index.html` uses relative `./styles.css` and `./app.js`, no build/backend/service worker/auth/cookie/runtime dependency exists, and the independent full Chromium run was clean. P11 has no absolute or remote asset.
+Score risks:
+- WIN-ANALYSIS §4 hidden-data, merge/import, bare money, unknown-phone, float, 375 px, dark mode: PASS; independent F-01/F-02 and full 108-test run found zero mismatches or regressions.
+- WIN-PLAN §4/§11 merge instead of replace, punctuation, unknown/zero rows, stale totals, quota, sideways scroll, and no harness: PASS under the full suite and direct P11 probes.
+- P11 source/placement/ordinary-node risk: PASS; direct app source plus C-60/E2E-P11-01/02 verify class-only placement, exact active-name equality, no move/duplicate `#active-store-name`, and replacement non-rename.
+- Existing owner/address/UPI fallbacks and P9/P10 blank-profile behavior: PASS; sample/replacement/reload checks retain existing values and no invented profile.
+- P0–P10 regression and assertion integrity: PASS; the independent 108-test full suite is green and no P0–P10 test assertion was weakened or removed.
+Verdict: PASS
+Required before re-gate: None. G11 is cleared: 100/100, P11 acceptance and P0–P11 full regression green, no open P0/P1 blocker.
+Confidence / unknown about the real tester:
+- The independent run covers P11 switch/rename/create/reload/replacement/P9 activation, F-01/F-02, 375 px, and light/dark contrast. Highest-impact remaining uncertainty is real-tester browser/storage and file-picker behavior, plus whether it starts from a clean profile.
+- Assuming the real tester uses the same static DOM/file/import semantics and does not mistake the ordinary class-only line for a machine node, the 100/100 model score remains intact.
+
+#### Independent Critic runs — G11
+Actual local date/time: `2026-11-18 16:41 EST (-0500)`.
+
+CRITIC-RUN-G11 exact command and actual result:
+```text
+$ cd tests && npx playwright test
+Running 108 tests using 1 worker
+108 passed (41.8s)
+F-01 seed 20261117: 50 datasets, 0 mismatches
+F-02 seed 20261118: 200 datasets, 0 mismatches
+```
+
+CRITIC-RUN-G11 exact sync output:
+```text
+R missing PLAN: []
+R missing TRACEABILITY: []
+contract selectors: 60
+untested contract selectors: []
+header audit: all 11 living docs PASS
+```
+
+Exact server probe:
+```text
+$ curl -sSf http://localhost:4173/ >/dev/null
+$ curl -sSf http://localhost:4173/app.js >/dev/null
+server-ready
+```
+
+**Signed by: GitHub Copilot — Critic — G11**

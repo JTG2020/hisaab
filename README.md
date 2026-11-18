@@ -94,7 +94,22 @@ The suite covers the contract selector smoke, the sample import (`11820`, 8 rows
 
 ## Deploy
 
-Deploy `app/` as a static site. On Vercel choose **Root Directory = `app`**, framework preset **Other**, no build command. The app reads no environment variables, uses no auth/cookies, and makes no network calls.
+Deploy `app/` as a static site. No build step, dependency install, environment variable, serverless function, rewrite, or `vercel.json` is required.
+
+### Deploy with the Vercel dashboard
+
+1. Push this repository to a Git provider supported by Vercel.
+2. In Vercel, choose **Add New → Project**, import the repository, and open the project configuration.
+3. Set **Root Directory** to `app`. This is important: `app/index.html` is the deploy entry point.
+4. Choose **Other** for **Framework Preset**. Leave the build and install commands empty. If Vercel asks for an output directory, use `.` so the files in `app/` are served directly.
+5. Choose **Deploy**. No environment variables are needed.
+6. Open the deployment URL and verify `/`, `/?customer=9000000101`, and `/?today=2026-11-15`. The app uses relative asset paths and query-string views, so no rewrite is needed.
+
+After connecting the Git repository, Vercel can create preview deployments for branches and production deployments for the configured production branch.
+
+### Data and privacy
+
+This is a static, browser-local app: shop ledgers and profiles are saved in that browser's `localStorage`, not on Vercel and not synchronized across devices or users. The deployed site has no authentication; do not treat a public deployment as a private customer-data service.
 
 ## Current status
 

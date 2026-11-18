@@ -32,9 +32,13 @@ async function fillEntry(page, options) {
 
 async function storedEntries(page) {
   return page.evaluate(() => {
-    const raw = window.localStorage.getItem('hisaab.v1');
-    if (!raw) return null;
-    return JSON.parse(raw).entries;
+    const portfolioRaw = window.localStorage.getItem('hisaab.stores.v1');
+    const activeId = window.localStorage.getItem('hisaab.activeStore.v1');
+    if (!portfolioRaw) return null;
+    const portfolio = JSON.parse(portfolioRaw);
+    const active = (portfolio.stores || []).find((store) => store.id === activeId) ||
+      (portfolio.stores || [])[0];
+    return active && active.ledger ? active.ledger.entries : null;
   });
 }
 
