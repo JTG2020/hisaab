@@ -248,3 +248,32 @@ Notes:
 - F-3 cross-gate traceability citations are by owning phase; F-4 non-contract hooks only; F-5 P5/P6 deferred; F-6 `#shop-upi` is stored separately and import ignores a JSON VPA (D12).
 - **Stop at G4.** P5 (responsive/theme re-audit) and P6 (200-shop fuzz, hardening, final judges' note) remain.
 Next: P5 on human go; do not start automatically.
+
+## 2026-11-18 02:45 — P5 — Coder
+Action: CSS-only responsive/theme pass. At 375×812 with the sample and a 200-customer adversarial shop (40+ char unicode names, 100-char unbroken notes, `250000.50`, thumbnails): no sideways scroll, no clipped amounts, all rows in DOM, tap targets >=44 px, light/dark contrast >=5.02:1 text, no `overflow-x` masking, no fixed/sticky overlay. No contract node or behavior changed.
+Evidence: `app/styles.css`; existing suite 49/49; self-audit 200 rows/375; no console errors.
+Result: PASS (Coder handoff; Tester verification)
+Next: Tester P5
+
+## 2026-11-18 02:55 — P5 — Tester
+Action: added `tests/e2e/p5.spec.js` (E2E-P5-01–04); `TEST-CASES.md` v0.10; RUN-9. Verified sample 375, adversarial 200 rows/unicode/unbroken notes/`250000.50`/thumbnail, light/dark contrast, tap sizes, no masking, no fixed/sticky overlay. No bugs.
+Evidence: `cd tests && npx playwright test` → **53/53 passed (26.9s)** (23 P0 + 8 P1 + 5 P2 + 5 P3 + 7 P4 + 4 P5 + F-01), re-run independently by the Orchestrator; 200 rows in DOM; 375/375; text contrast 5.02/6.78; borders 3.82/3.69; min tap 44; screenshots in `tests/artifacts/`.
+Result: PASS (RUN-9)
+Next: Planner sync + Critic G5
+
+## 2026-11-18 03:00 — P5 — Planner
+Action: `TRACEABILITY.md` v1.8 maps R9/N2/N3 to E2E-P5-01–04; `IMPLEMENTATION-PLAN.md` v1.8 P5 gate suite cites them. No CONTRACT change.
+Evidence: 23 rows, 0 TBD; 23/0/0; 29/29 selectors; headers 4/4.
+Result: PASS (docs)
+Next: Critic G5
+
+## 2026-11-18 03:30 — P5 — Orchestrator — GATE G5
+Action: recorded G5 PASS from the Critic's signed scorecard; P5 responsive/theme complete; committed the P5 build and created gate tag `g5`.
+Evidence: `docs/scorecards.md` GATE G5; RUN-9 (Tester) **53/53**; CRITIC-RUN-6 **53/53**; sample and 200-customer adversarial shop at 375×812 with all 200 rows in DOM; `scrollWidth` 375/375; min text contrast 5.02 light / 6.78 dark; borders 3.82/3.69; min tap 44 px; no `overflow-x` masking; no fixed/sticky overlay; contract audit **34/34 P5-observable**; doc sync PASS; Vercel PASS; hidden-data **60/60**, bonus **30/30** via best six (B7 0, OCR unavailable), phone/theme **10/10** final audit; provisional **MODEL SCORE 100/100** (floor 97 under the strict B6-placeholder reading).
+G5 checklist: Tester RUN-9 present; P5 acceptance 100%; full regression 53/53; no open P0/P1/P2; contract audit 34/34; doc sync PASS; score 100 >= 75; `Next:` present.
+Notes:
+- F-1 resolved by the `g5` commit/tag.
+- F-2 B6 input placeholders stay English because attributes must be byte-identical; only a strict placeholder-as-label reading gives 97.
+- F-3 UA form-control `overflow-x` is not page masking; F-4 `.entry` border 3.34/3.37 to recheck on any palette change; F-5 file-selector button 40 px meets the floor; F-7 B7 remains 0.
+- **P6 remains:** 200-shop fuzz F-02, hardening, the final judges' note, and submission (human gate).
+Next: P6 on human go; do not start automatically.

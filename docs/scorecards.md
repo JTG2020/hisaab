@@ -1662,3 +1662,340 @@ The 10 phone/theme marks are earned provisionally with the graded flows at 375×
 - What cannot be known is **how strictly B6 is screenshot-diffed**: labels, headings, buttons, empty states and the demo note translate, but placeholders stay English (F-2). This is the single most likely way to lose 2–3 bonus marks; it cannot take the score below 95.
 - **B7 is scored 0** and is the dropped seventh item, so the bonus block does not depend on whether the hidden tester scripts the prefill or accepts the manual fallback. The earlier provisional B7 credit at G3 is now resolved to 0, not carried forward.
 - D1's no-payment exclusion and D2's signed-net total remain the hidden-data assumptions most likely to differ from an independent grader; both are stated in the visible overdue label and must be repeated in the judges' note at P6.
+
+### GATE G5 | 2026-11-18 | phase P5
+
+Build: uncommitted working tree at `/Users/akanse/Documents/FWAIProjects/batch10/hisaasb`, served by `python3 -m http.server 4173 --directory app` from that directory; SHA-256 `app/index.html bd38d3cedfef…` (7,794 B), `app/styles.css 8b799aa1e618…` (9,227 B), `app/app.js b8d2194e4f5…` (71,079 B); deployable total **88,100 B**; mtimes `index.html` 18:05, `app.js` 18:06, `styles.css` 18:29. `index.html`/`app.js` are byte-identical to the G4 build (`bd38d3ce…`, `b8d2194e…`) and only `styles.css` differs (`19681390…` → `8b799aa1…`), so P5 is CSS-only as planned. These are exactly RUN-9's handoff checksums. Git HEAD is `54c8a36` (tag `g4`); `app/styles.css` is modified and `tests/e2e/p5.spec.js` is untracked, so the P5 build is uncommitted and untagged — the checksums pin it (F-1).
+Runs cited: RUN-9 (Tester), **CRITIC-RUN-6** (full-suite re-run), **CRITIC-P5-A** (sample 375 layout), **CRITIC-P5-B** (200-customer adversarial layout), **CRITIC-P5-C** (light/dark contrast), **CRITIC-P5-D** (tap targets, masking, overlays, contract, Vercel, regression probes), **CRITIC-FUZZ-G5** (62-shop independent fuzz), **CRITIC-BONUS-G5** (B1–B6 probes). Each `/tmp/hisaab-g5/*.js` script imports only the Playwright module; no `app/**` or `tests/**` helper is imported and every expected value is computed in the script from `CONTRACT.md`, `sample-data.json`, `sample-expected.json` or an integer-paise oracle written there.
+Hidden-data: **60/60** | Bonus: **30/30** (B1 5, B2 5, B3 5, B4 5, B5 5, B6 5, B7 **0** — six best count) | Phone/theme: **10/10** (final P5 audit: 5 for 375 px with the sample and the 200-row adversarial shop, 5 for light/dark readability)
+MODEL SCORE: **100/100** (up from G0 5, G1 10, G2 70, G3 75, G4 100 → "not lower than the previous gate" holds. Floor **97/100** if B6 input placeholders are read as labels; the final ≥95 floor holds either way)
+Deductions:
+- Hidden-data: **none.** 53/53 in the suite (F-01: 50 shops, seed `20261117`) and **311/311** assertions in my own 62-shop fuzz (seed `20261118`, different generator and integer-paise oracle). Sample: total `11820`, 8 rows, all 8 balances text = attribute = `sample-expected.json`. The P5 CSS pass moves no parse, balance or render code (checksums above). `60 × 0/total = 0`.
+- Bonus: **none.** B1–B6 each earned 5 on a DOM-read probe on this build (overdue `61/44/43/42`; edit→300 with stable id and total 400, delete→0/100; both CSV headers and current-state rows; search 1 visible / 8 in DOM / total unchanged; one UPI link per row with `am`=`max(balance,0)`, `cu=INR`, `tn`=name; `hi`/`te` labels change while ids, attributes, balances and hrefs stay byte-identical). **B7 is 0, declared failed, not faked:** no OCR engine ships (D5), so the amount is never read from the screenshot; the manual fallback is verified (upload never blocks or overwrites, save works) but the brief's item is *reading the amount*, and the fallback is not awarded. B7 is the dropped seventh, so the block is 30/30.
+- Phone/theme: **none.** 375×812 `documentElement.scrollWidth` and `body.scrollWidth` are **375/375** with the sample and with the 200-customer adversarial shop; 0 visible right edges > 376 in either state; all 202 amount nodes are bare, unclipped and inside the viewport; the 47-character unicode name (283 px) and 100-character unbroken unicode note (283 px) wrap; thumbnail 64 px, `max-width: 100%`, right 110. Light/dark: `color-scheme: light dark`; lowest text 5.02:1 light (white on accent button) and 6.78:1 dark (muted), body 17.47/17.1; control borders 3.82/3.69, container borders 3.34/3.37, thumbnail 3.82/3.69, placeholders 5.97/6.78. 53 controls sampled, **minimum 44 px**, none under 40.
+Contract audit: **34/34 P5-observable items pass**, **0 `CONTRACT-<n>` deviations** (table below). The 19 §2 nodes resolve **exactly once** and visibly at first paint; the seven data-dependent §1 selectors have **0** matches at empty state; no node was moved, renamed, hidden, duplicated or conditionally rendered by the P5 CSS (empty, sample, customer-view and `te` states all checked); no duplicate element ids; `#import-box`, `#import-go`, `#shot-input`, `#total-outstanding`, `[data-customer]`, `[data-balance]` and `a[data-remind]` are visible in every state. Deferred P6 items are named, not G5 failures.
+Doc sync: **PASS** — literal `R-` check vacuous (0), corrected `[RNB][0-9]+` **23 IDs, 0 missing / 0 extra** in PLAN and TRACEABILITY, **29/29** contract selector tokens found in `TEST-CASES.md`, **0** `TBD`/`TODO`/`(Planner)`, **23/23** traceability rows phased, **E2E-P5-01…04 4/4 defined + 4/4 cited + 4/4 implemented** (PLAN v1.8 cites the range `E2E-P5-01–04`), **103/103** case IDs cited ↔ defined (0 undefined / 0 uncited), headers **4/4** (Version, Updated, Owner, Supersedes) on all six docs, versions PRD **1.1** / TECH-STACK **1.0** / CONTRACT **1.0 — FROZEN at gate G0** / DECISIONS **1.3** / PLAN **1.8** / TRACEABILITY **1.8**, TEST-CASES **0.10**, results RUN-9. No removed R-ID is referenced. No CONTRACT change since G0, so no human gate was triggered.
+Vercel readiness: **PASS** — `app/` is exactly `index.html` + `styles.css` + `app.js` (88,100 B); `./styles.css` and `./app.js` are the only asset paths, the favicon is `data:,`; no absolute/localhost path, build file, manifest, `vercel.json`, service worker, cookie, password field, analytics, `fetch` or `XMLHttpRequest`; `/`, `/index.html`, `/?customer=…`, `/?today=2026-11-15`, `/?today=not-a-date` all return 200; in fresh contexts 0 service-worker registrations, empty `document.cookie`, 0 console errors, 0 page errors, 0 failed requests, 0 external requests.
+Score risks: WIN-ANALYSIS §4 (13 rows) → **PASS 13** (item 10 "sideways scroll at 375 / unreadable dark" is now **closed**: 375/375 with 200 rows, tap 44, borders ≥3.34, dark ≥6.78). WIN-PLAN §4 (18 rows) → **PASS 18**. WIN-PLAN §11 (8 rows) → **PASS 8** (item 7 "sideways scroll from a table/unbreakable name" closed with the 200-row adversarial shop).
+Verdict: **PASS**
+Required before re-gate: see "Required before P6" below.
+Confidence / unknown about the real tester: (1) The scored surfaces are backed by 53 suite cases plus **739 independent assertions** on this exact build (87 layout + 33 adversarial + 147 contrast + 135 hygiene/contract/Vercel + 311 fuzz + 26 bonus), all reading the DOM and computing expectations outside `app/`; a false PASS would need every oracle to share a wrong reading of §3.3/§5. (2) The single most likely score loss is **B6 placeholder translation**: `<label>`s, headings, buttons, empty states and `#upi-demo-note` translate, input placeholders stay English (F-2); a screenshot grader that diffs every visible string could call B6 partial (2–3), giving **97–98/100**, still above the final 95 floor. (3) **B7 is 0** and is the dropped seventh, so the bonus block does not depend on whether the hidden tester scripts the prefill or accepts the fallback. (4) What cannot be known: whether the grader's hidden shop exercises a normalisation corner outside the 112 fuzzed shops (200-shop F-02 is P6), how strictly it emulates dark mode, and how it buffers the file upload; the largest single risk remains a hidden-data mismatch, not the P5 layout.
+
+#### CRITIC-RUN-6 — independent re-execution of the full suite
+
+Command: `cd tests && npx playwright test` (config `workers: 1`, `retries: 0`, base `http://localhost:4173`, Chromium via `@playwright/test` 1.65.1, default 1280×800, 375×812 where a case sets it, locale `en-IN`, `Asia/Kolkata`).
+
+```
+$ cd tests && npx playwright test
+Running 53 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/p0-gate.spec.js:59:1 › C-23 Vercel shape: app/index.html, relative assets, no build step, no service worker (377ms)
+  ✓   2 [chromium] › e2e/p0-gate.spec.js:95:1 › N-05 no service worker, cookie gate, password field, analytics, or third-party origin (249ms)
+  ✓   3 [chromium] › e2e/p0-gate.spec.js:121:1 › E2E-P0-01 first paint: 19 §2 nodes resolve, data selectors are empty, customer view resolves (487ms)
+  ✓   4 [chromium] › e2e/p0-gate.spec.js:148:1 › E2E-P0-02 all query-string routes render the same first paint (1.1s)
+  ✓   5 [chromium] › e2e/p0-gate.spec.js:176:1 › E2E-P0-03 phone + theme baseline and offline-safe load (415ms)
+  ✓   6 [chromium] › e2e/p1.spec.js:66:1 › E2E-P1-01 add customers and four entries: exact paise balances, total, amounts, rejections (575ms)
+  ✓   7 [chromium] › e2e/p1.spec.js:161:1 › E2E-P1-02 reload keeps everything; a storage failure keeps the save in memory with a visible warning (538ms)
+  ✓   8 [chromium] › e2e/p1.spec.js:211:1 › E2E-P1-03 row link and direct ?customer= both open the same correct view (559ms)
+  ✓   9 [chromium] › e2e/p1.spec.js:249:1 › E2E-P1-04 ?today=2026-11-15 sets the default entry date and the saved data-date (369ms)
+  ✓  10 [chromium] › e2e/p1.spec.js:270:1 › E2E-P1-05 375x812 with long unicode name, long unicode note, and a fractional amount (345ms)
+  ✓  11 [chromium] › e2e/p1.spec.js:325:1 › E2E-P1-06 money parsing and rendering through the entry form (D4, N4) (606ms)
+  ✓  12 [chromium] › e2e/p1.spec.js:384:1 › E2E-P1-07 entries with equal dates keep the newest-saved first (R4, U-04) (421ms)
+  ✓  13 [chromium] › e2e/p1.spec.js:413:1 › E2E-P1-08 a later successful save clears the storage warning and persists (N5) (560ms)
+  ✓  14 [chromium] › e2e/p2.spec.js:52:1 › E2E-P2-01 (C-04/C-05/C-06/C-34) sample import: 11820, 8 rows, every balance matches sample-expected.json (348ms)
+  ✓  15 [chromium] › e2e/p2.spec.js:100:1 › E2E-P2-02 (I-01) a second import replaces the first shop and reload keeps the second (500ms)
+  ✓  16 [chromium] › e2e/p2.spec.js:144:1 › E2E-P2-03 (C-33/I-10) malformed JSON keeps state; missing lists warn; empty arrays render an empty shop (454ms)
+  ✓  17 [chromium] › e2e/p2.spec.js:191:1 › E2E-P2-04 (I-04/I-05/I-06/I-07/U-02/U-03) dedupe, unknown phone, zero entries, decorated amounts, type casing (332ms)
+  ✓  18 [chromium] › e2e/p2.spec.js:282:1 › E2E-P2-05 imported sample at 375x812: no sideways scroll, balances not clipped (439ms)
+  ✓  19 [chromium] › e2e/p3.spec.js:69:1 › E2E-P3-01 (C-07) reminder href for normal, &, +/%, Telugu, Devanagari, zero and negative balances (350ms)
+E2E-P3-02 image sizes: original 5280583 bytes, stored 157319 chars
+  ✓  20 [chromium] › e2e/p3.spec.js:138:1 › E2E-P3-02 (I-03/N-03) payment with a 3 MB+ image: thumbnail in the right entry, stored under 200 KB, survives reload (1.0s)
+  ✓  21 [chromium] › e2e/p3.spec.js:195:1 › E2E-P3-03 credit with an image and payment without one both save with no img[data-shot] (438ms)
+  ✓  22 [chromium] › e2e/p3.spec.js:232:1 › E2E-P3-04 (I-08/N-03) quota failure saves the payment without the image and warns; a later save persists (752ms)
+  ✓  23 [chromium] › e2e/p3.spec.js:290:1 › E2E-P3-05 a non-image file and an undecodable image save the entry without a photo and warn (391ms)
+  ✓  24 [chromium] › e2e/p4.spec.js:131:1 › E2E-P4-01 (C-14/C-28) overdue: 4 sample rows in day order, bare data-days, no data-customer, no-payment excluded, empty state (476ms)
+  ✓  25 [chromium] › e2e/p4.spec.js:208:1 › E2E-P4-02 (C-36) edit 500->800 and delete: amounts, balances, total, id, image, reload, other customer untouched (752ms)
+  ✓  26 [chromium] › e2e/p4.spec.js:288:1 › E2E-P4-03 (C-29) CSV export: exact headers, one row each, newest-first entries, RFC-4180 quoting, current state (415ms)
+  ✓  27 [chromium] › e2e/p4.spec.js:370:1 › E2E-P4-04 (C-30) search filters by name and phone, keeps total and state, restores on clear and reload (499ms)
+  ✓  28 [chromium] › e2e/p4.spec.js:410:1 › E2E-P4-05 (C-35) UPI pay links: one per row, am = max(balance,0), cu=INR once, tn decodes, default and shop VPA (397ms)
+  ✓  29 [chromium] › e2e/p4.spec.js:475:1 › E2E-P4-06 (C-13/N-06) language switch translates labels and leaves every id, attribute, name, date, money text and href byte-identical (592ms)
+  ✓  30 [chromium] › e2e/p4.spec.js:599:1 › E2E-P4-07 (C-38) OCR fallback: upload does not block or overwrite; manual amount saves (3.5s)
+  ✓  31 [chromium] › e2e/p5.spec.js:166:1 › E2E-P5-01 (R9/N2) sample at 375x812: no sideways scroll, every node reachable, amounts not clipped (401ms)
+  ✓  32 [chromium] › e2e/p5.spec.js:203:1 › E2E-P5-02 (R9/N2) adversarial 200-customer shop at 375x812: all rows in DOM, long text wraps, thumbnail safe (546ms)
+  ✓  33 [chromium] › e2e/p5.spec.js:297:1 › E2E-P5-03 (N3) contrast in light and dark: text >= 4.5:1, large text and control borders >= 3:1 (480ms)
+  ✓  34 [chromium] › e2e/p5.spec.js:409:1 › E2E-P5-04 (N2/N3) tap targets >= 40px, no overflow masking, no fixed/sticky overlay (304ms)
+F-01 seed 20261117 datasets 50 :: {"shops":50,"customers":160,"entries":297,"duplicatePhoneShops":21,"negativeBalanceRows":56,"zeroBalanceRows":98,"unknownPhoneEntries":203,"unicodeNames":41,"stringAmounts":172,"missingAmounts":31,"missingTypes":27,"missingDates":64,"negativeTotalShops":17,"emptyShops":1}
+  ✓  35 [chromium] › fuzz/p2-fuzz.spec.js:210:1 › F-01 50-shop fuzz: every balance and the total equal the independent computation (398ms)
+  ✓  36 [chromium] › nonfunctional/p0.spec.js:10:3 › 375x812 viewport › C-20 document scrollWidth is 375 or less at empty state (213ms)
+  ✓  37 [chromium] › nonfunctional/p0.spec.js:30:3 › prefers-color-scheme: dark › C-21 dark baseline keeps key nodes visible and text at >= 4.5:1 (268ms)
+  ✓  38 [chromium] › nonfunctional/p0.spec.js:63:1 › C-22 no external network request on load (same-origin or data: only) (587ms)
+  ✓  39 [chromium] › smoke/contract.spec.js:45:1 › C-01 #total-outstanding resolves on load with text 0 (253ms)
+  ✓  40 [chromium] › smoke/contract.spec.js:54:1 › C-02 #import-box and #import-go are visible at first paint (270ms)
+  ✓  41 [chromium] › smoke/contract.spec.js:61:1 › C-03 #shot-input exists inside the payment form at first paint (255ms)
+  ✓  42 [chromium] › smoke/contract.spec.js:68:1 › C-09 every CONTRACT §2 node resolves and is visible before interaction (266ms)
+  ✓  43 [chromium] › smoke/contract.spec.js:91:1 › C-10 #total-outstanding text and data-value are exactly 0 (bare), Rs lives in a sibling (246ms)
+  ✓  44 [chromium] › smoke/contract.spec.js:114:1 › C-11 #import-box is a textarea, #import-go a button, #shot-input a file input accepting image/* (260ms)
+  ✓  45 [chromium] › smoke/contract.spec.js:141:1 › C-12 #entry-type options are exactly credit and payment (261ms)
+  ✓  46 [chromium] › smoke/contract.spec.js:153:1 › C-13 #lang-switch is a select with exactly en, hi, te and defaults to en (248ms)
+  ✓  47 [chromium] › smoke/contract.spec.js:175:1 › C-14 #overdue heading contains Overdue and 30+ days, with an empty-state line (263ms)
+  ✓  48 [chromium] › smoke/contract.spec.js:194:1 › C-15 #customers shows a visible empty-state message and no rows (264ms)
+  ✓  49 [chromium] › smoke/contract.spec.js:205:1 › C-16 empty storage renders zero data-dependent nodes (248ms)
+  ✓  50 [chromium] › smoke/contract.spec.js:216:1 › C-39 first paint raises no console error, failed request, or rejection (826ms)
+  ✓  51 [chromium] › smoke/routes.spec.js:28:1 › C-17 ?customer=unknown renders the not-found view and keeps every list node (282ms)
+  ✓  52 [chromium] › smoke/routes.spec.js:54:1 › C-18 ?today=2026-11-15 loads cleanly with the full empty-state contract (262ms)
+  ✓  53 [chromium] › smoke/routes.spec.js:66:1 › C-19 invalid ?today values load cleanly and do not crash (429ms)
+
+  53 passed (26.7s)
+```
+
+`53 = 23 P0 + 8 P1 + 5 P2 + 5 P3 + 7 P4 + 4 P5 + F-01`. The count and every pass/fail match RUN-9. P5 is not vacuous: RUN-9 records four mutants in `/tmp` (rows forced to 400 px, border lightened to 1.18, `--tap` 24 px, `body { overflow-x: hidden }`) that each fail the matching E2E-P5 case.
+
+#### CRITIC-P5-A — sample at 375×812 (87/87)
+
+`node /tmp/hisaab-g5/layout.js` — sample imported, `/?today=2026-11-15&customer=9000000101`:
+
+```
+--- SAMPLE 375x812 ---
+{"htmlSW":375,"bodySW":375,"rows":8,"rowsVisible":8,"wide":[]}
+layout: 87/87 assertions passed
+```
+
+- `innerWidth` 375, `documentElement.scrollWidth` **375**, `body.scrollWidth` **375**, **0** visible elements with a right edge > 376.
+- Exactly **8** `[data-customer]` rows, all visible; every balance text = attribute = `sample-expected.json`; `#total-outstanding` `11820` with `data-value` identical.
+- `#total-outstanding`, `#cust-balance`, all 8 row balances: machine shape, `scrollWidth <= clientWidth + 1`, right edge ≤ 376.
+- Reachable and inside the viewport: `#total-outstanding`, `#customers`, `#import-box`, `#import-go`, `#shot-input`, `#overdue`, `#entries`, `#lang-switch`, `#cust-name`, `#cust-balance`.
+- 0 console errors, 0 page errors, 0 failed requests, 0 external requests.
+
+#### CRITIC-P5-B — 200-customer adversarial shop at 375×812 (33/33)
+
+`node /tmp/hisaab-g5/adversarial.js` — 200 customers with 45-character Telugu names, 100-character unbroken Telugu notes, `250000.50` credits, 300000/100000.25 payments, then one real payment of 100 with a JPEG thumbnail:
+
+```
+{"rows":200,"visibleRows":200,"htmlSW":375,"bodySW":375,"wide":[],
+ "name":{"clipped":false,"width":283,"right":329,"textLength":47},
+ "note":{"clipped":false,"width":283,"right":329,"textLength":100},
+ "shot":{"width":64,"right":110,"maxWidth":"100%","srcIsData":true},
+ "total":"35099992.75","balance0":"-150099.75",
+ "expectedTotal":"35099992.75","expected9000":"-150099.75"}
+adversarial: 33/33 assertions passed
+```
+
+- **200** `[data-customer]` rows in the DOM and visible: no pagination, no virtualisation; `#import-msg` reports 200 customers.
+- `scrollWidth` **375/375**; **0** visible right edges > 376.
+- All **202** amount nodes (200 row balances + `#cust-balance` + `#total-outstanding`) are bare, not clipped and inside the viewport; the total and the altered row equal my integer-paise oracle exactly (`35099992.75`, `-150099.75`), so nothing is abbreviated.
+- The 45-character name and 100-character unbroken note both wrap (283 px, right 329); thumbnail 64 px, `max-width: 100%`, right 110, stored `data:image/`.
+- `#total-outstanding`, `#import-box`, `#import-go`, `#shot-input`, `#overdue`, `#lang-switch` reachable in the same state; 0 console/page/failed/external.
+
+#### CRITIC-P5-C — light and emulated dark contrast (147/147)
+
+`node /tmp/hisaab-g5/contrast.js` — sample imported, one payment with a screenshot, `?customer=9000000101`, then `prefers-color-scheme: dark`:
+
+```
+light:  #total-outstanding 18.51 | #cust-balance 18.51 | row [data-balance] 16.16
+        body 17.47 | #total-human 5.97 | #import-go 5.02 | row link 16.16
+        #search/#import-box/#lang-switch 18.51 | #overdue [data-days] 16.16
+        .entry-note 16.16 | #cust-name 18.51 | #upi-demo-note 5.97
+        borders: 12 inputs/selects 3.82 | cards 5.02 | .entry 3.34 | thumbnail 3.82
+        placeholder 5.97        color-scheme "light dark"
+dark:   #total-outstanding 15.73 | #cust-balance 15.73 | row [data-balance] 14.40
+        body 17.10 | #total-human 6.78 | #import-go 8.63 | row link 14.40
+        #search/#import-box/#lang-switch 15.73 | #overdue [data-days] 14.40
+        .entry-note 14.40 | #cust-name 15.73 | #upi-demo-note 6.78
+        borders: 12 inputs/selects 3.69 | cards 8.31 | .entry 3.37 | thumbnail 3.69
+        placeholder 6.78        color-scheme "light dark"
+contrast: 147/147 assertions passed
+```
+
+- Every sampled text meets **≥4.5:1** (≥3:1 where the text is large: the 27 px/700 totals and the 20 px/700 name/balance); labels, inputs, placeholders, buttons, row links, overdue days, entry notes and muted text all pass in both schemes.
+- Every control border and container/thumbnail border meets **≥3:1**; the thumbnail is 64 px in both schemes.
+- `color-scheme` on `:root` contains both `light` and `dark` in both audits.
+
+#### CRITIC-P5-D — tap targets, masking, overlays, contract and Vercel (135/135)
+
+`node /tmp/hisaab-g5/hygiene.js`:
+
+```
+--- TAP / MASK / OVERLAY (sample, customer view) ---
+controls sampled: 53, min height: 44px
+overflow-x: [{"tag":"html","overflowX":"visible"},{"tag":"body","overflowX":"visible"},{"tag":"main","overflowX":"visible"}]
+fixed/sticky overlays: []
+elements with overflow hidden/clip (excluding .visually-hidden): []
+--- VERCEL SHAPE ---
+app/: app.js, index.html, styles.css | app.js:71079, index.html:7794, styles.css:9227
+hygiene: 135/135 assertions passed
+```
+
+- **53** visible interactive controls (row Open/UPI/remind links, every button, input, select, textarea, `#shot-input`); **minimum rendered height 44 px**, none under 40, none under 44.
+- `overflow-x` is `visible` on `html`, `body` and `main`; **no** non-control element uses `overflow-x: hidden`/`clip` (`.visually-hidden` is the only masked element and is allowed; native form controls report a UA `overflow-x: hidden` and cannot mask page overflow — recorded as F-3).
+- **Zero** fixed or sticky elements exist, so no bar can cover the import section or the last customer row; the non-intersection rule is still asserted.
+- Contract: at empty first paint all **19** §2 nodes resolve **exactly once and visibly**; the seven data-dependent selectors have **0** matches; `#total-outstanding` `0`; empty-state message visible; no duplicate ids. With the sample and on the customer view the same 19 nodes still resolve exactly once and visibly, 8 reminders and 8 row balances exist, and no duplicate ids appear.
+- Regression probes on this build: second import replaces (1 row, `9000.25`, no sample row); reload keeps it; sample total `11820`; overdue `61/44/43/42` with 0 `data-customer` inside; machine snapshot byte-identical in `en`/`hi`/`te`; CSV download fires.
+- Vercel: exactly three static files, relative asset paths, no localhost/absolute path, no service worker/fetch/XHR/cookie/password/analytics, no `vercel.json`; five direct routes return 200; 0 SW registrations; empty cookie; 0 console/page/failed/external.
+
+#### CRITIC-FUZZ-G5 — independent 62-shop fuzz (311/311)
+
+`node /tmp/hisaab-g5/fuzz.js` — own generator (seed `20261118`) and own integer-paise parser/renderer; shops mix duplicate phones, same-name/different-phone, unknown-phone entries, decorated/string/fractional/negative amounts, type casing and missing types/dates, unicode and `&` names, plus empty and exact-duplicate shops:
+
+```
+FUZZ seed 20261118 shops 62, 311/311 assertions passed
+```
+
+Row count, every balance (text **and** attribute) and the total equal the oracle in all 62 shops; no `NaN`/`undefined`/`Infinity` rendered; 0 console errors.
+
+#### CRITIC-BONUS-G5 — bonus probes on the P5 build (26/26)
+
+`node /tmp/hisaab-g5/bonus.js` — B1 heading/order/attribute, B2 edit→300 + stable id + total 400 + delete→0/100, B3 both CSV headers and the current-state row, B4 search 1 visible / 8 in DOM / total unchanged / clear restores, B5 one `am`/`cu`/`tn`-correct link per row, B6 label translation with byte-identical machine state:
+
+```
+NOTE B6 placeholders (English in every language): {"search":"Search name or phone","importBox":"Paste shop JSON","newName":"Full name"}
+bonus: 26/26 assertions passed
+```
+
+B6's English placeholders are the pre-existing F-2 risk, not a P5 regression; every `<label>`, heading, button and empty state translates and every id/attribute/balance/href stays byte-identical.
+
+#### Contract audit — P5 scope (34/34)
+
+| # | CONTRACT rule | Result | Evidence |
+|---|---|---|---|
+| CA-P5-01 | 19 §2 nodes resolve exactly once and visibly at first paint (§2) | PASS | hygiene empty-state audit 19/19; CRITIC-RUN-6 C-09/E2E-P0-01 |
+| CA-P5-02 | Seven data-dependent §1 selectors have 0 matches at empty state (§1, §2, N1) | PASS | `[data-customer]`, `[data-remind]`, `img[data-shot]`, `[data-entry-id]`, `[data-amount]`, `[data-days]`, `[data-overdue]` all 0 |
+| CA-P5-03 | `#total-outstanding` `0` at empty, `11820` with the sample, text = `data-value` (§1.1) | PASS | 0 / 11820 / identical strings |
+| CA-P5-04 | Exactly 8 rows with the sample; one row-scoped `[data-balance]` each (§1.2) | PASS | 8/8; text = attribute = `sample-expected.json` |
+| CA-P5-05 | Machine shape on every amount node (`^-?(0|[1-9][0-9]*)(\.[0-9]{2})?$`) (§3.3) | PASS | 9 nodes sample, 202 nodes adversarial |
+| CA-P5-06 | Amounts are never clipped (`scrollWidth <= clientWidth + 1`) or abbreviated (§3.3, R9) | PASS | every amount node in both states; oracle totals exact |
+| CA-P5-07 | Amounts stay inside the viewport (right edge ≤ 376) (§3.3, R9) | PASS | all amount nodes |
+| CA-P5-08 | No visible element right edge > 376 with the sample (N2, R9) | PASS | `wide: []` |
+| CA-P5-09 | No visible element right edge > 376 with 200 adversarial rows (N2, R9) | PASS | `wide: []` |
+| CA-P5-10 | `documentElement.scrollWidth <= 375` in both states (N2, R9) | PASS | 375 / 375 |
+| CA-P5-11 | `body.scrollWidth <= 375` in both states (N2, R9) | PASS | 375 / 375 |
+| CA-P5-12 | All 200 customers stay in the DOM and are visible; no pagination/virtualisation (§1.2) | PASS | 200/200; `#import-msg` reports 200 |
+| CA-P5-13 | A 40+ character unicode name wraps and does not push the page (§1.2, R9) | PASS | 47 chars, 283 px, right 329, unclipped |
+| CA-P5-14 | A 100-character unbroken note wraps and does not push the page (§1.8, R9) | PASS | 100 chars, 283 px, right 329, unclipped |
+| CA-P5-15 | Thumbnail ≤64 px, `max-width: 100%`, inside the viewport, `data:` src (§1.5, R5) | PASS | 64 px, right 110, `100%`, `data:image/` |
+| CA-P5-16 | `#import-box`, `#import-go`, `#shot-input` reachable at 375 in both states (§1.4, §1.5, R9) | PASS | visible, right ≤376 |
+| CA-P5-17 | `#overdue`, `#entries`, `#lang-switch`, `#total-outstanding`, `#customers` reachable (§2, R9) | PASS | visible in both states |
+| CA-P5-18 | Customer-view `#cust-name`, `#cust-balance`, `#entries` visible, list nodes retained (§1.7) | PASS | reachable at 375; 8 rows still present |
+| CA-P5-19 | `color-scheme` contains `light` and `dark` (N3) | PASS | `"light dark"` in both audits |
+| CA-P5-20 | Light body/UI text ≥4.5:1, large ≥3:1 (N3) | PASS | min text 5.02; totals 18.51; labels 18.51 |
+| CA-P5-21 | Dark body/UI text ≥4.5:1, large ≥3:1 (N3) | PASS | min text 6.78; totals 15.73 |
+| CA-P5-22 | Light control borders ≥3:1 (N3) | PASS | 12 controls 3.82 |
+| CA-P5-23 | Dark control borders ≥3:1 (N3) | PASS | 12 controls 3.69 |
+| CA-P5-24 | Light container and thumbnail borders ≥3:1 (N3) | PASS | cards 5.02, `.entry` 3.34, thumbnail 3.82 |
+| CA-P5-25 | Dark container and thumbnail borders ≥3:1 (N3) | PASS | cards 8.31, `.entry` 3.37, thumbnail 3.69 |
+| CA-P5-26 | Placeholders resolve to a real colour and are readable (N3) | PASS | 5.97 light / 6.78 dark |
+| CA-P5-27 | Every interactive control ≥40 px (§2–§5, N3) | PASS | 53 controls, min 44, none under 40 |
+| CA-P5-28 | `overflow-x` on `html`/`body`/`main` is not `hidden` or `clip` (N2) | PASS | all `visible` |
+| CA-P5-29 | No page element masks horizontal overflow (§N2; `.visually-hidden` allowed) | PASS | none outside `.visually-hidden`/native controls |
+| CA-P5-30 | No fixed/sticky overlay covers the import section or the last row (§2, N2) | PASS | 0 fixed/sticky elements |
+| CA-P5-31 | No contract node moved, renamed, hidden, duplicated or conditionally rendered (§1–§2) | PASS | 19/19 in empty, sample, customer and `te` states; unique ids |
+| CA-P5-32 | `#import-box`, `#import-go`, `#shot-input`, `#total-outstanding`, `[data-customer]`, `[data-balance]`, `a[data-remind]` never hidden by P5 (§5 lock) | PASS | visible in every state |
+| CA-P5-33 | Direct routes work and no console/network error is raised (N6, R10) | PASS | 5 routes 200; 0 console/page/failed/external |
+| CA-P5-34 | Static `app/` shape, relative assets, no build/service worker/auth (§8) | PASS | three files; `./styles.css`, `./app.js`; no SW/cookie/fetch/XHR |
+
+**`CONTRACT-<n>` deviations at P5: none.** Deferred by plan and therefore not G5 failures: **P6** — 200-shop fuzz (F-02), storage-cleared / double-import / quota hardening pass, judges' note, gallery screenshots; **B7 OCR** — no self-hosted engine approved (human gate), scored 0.
+
+#### Doc sync — output
+
+```
+$ grep -o 'R-[0-9]\+' docs/PRD.md | sort -u | wc -l                        → 0   (literal AGENTS.md §4 regex is vacuous)
+$ grep -oE '\b[RNB][0-9]+' docs/PRD.md | sort -u | wc -l                  → 23
+$ comm -23 /tmp/g5_r /tmp/g5_p   (PRD IDs missing from PLAN)              → (empty)  0
+$ comm -23 /tmp/g5_r /tmp/g5_t   (PRD IDs missing from TRACE)             → (empty)  0
+$ comm -13 /tmp/g5_r /tmp/g5_p ; comm -13 /tmp/g5_r /tmp/g5_t            → (empty)  0 extra
+$ grep -o '`[#\[][^`]*`' docs/CONTRACT.md | tr -d '`' | sort -u | wc -l   → 29
+$ while read -r sel; do grep -qF "$sel" docs/TEST-CASES.md || echo UNTESTED
+                                                                          → (no output) 29/29
+$ grep -nE 'TBD|TODO|\(Planner\)' docs/{PRD,TECH-STACK,IMPLEMENTATION-PLAN,
+  CONTRACT,DECISIONS,TRACEABILITY,TEST-CASES}.md                          → none
+traceability rows                                                         → rows=23, with_phase=23
+E2E-P5-01…04                                                              → 4/4 defined (TEST-CASES v0.10),
+                                                                            4/4 cited (TRACEABILITY v1.8),
+                                                                            4/4 implemented (tests/e2e/p5.spec.js),
+                                                                            PLAN v1.8 cites the range E2E-P5-01–04
+case IDs                                                                  → 103 defined, 103 cited, 0 undefined, 0 uncited
+headers                                                                   → 4/4 (Version, Updated, Owner, Supersedes) on all six docs
+removed-ID scan (R11+/B8+/N7+)                                            → none
+```
+
+Versions this gate: PRD **1.1**, TECH-STACK **1.0**, CONTRACT **1.0 — FROZEN at gate G0** (unchanged since G0), DECISIONS **1.3**, IMPLEMENTATION-PLAN **1.8**, TRACEABILITY **1.8**; all `Updated: 2026-11-17`. TEST-CASES **0.10**, test-results RUN-9. No CONTRACT change, so no human gate was triggered.
+
+#### Vercel readiness — PASS
+
+- Deployable set is exactly `app/index.html` (7,794 B), `app/styles.css` (9,227 B), `app/app.js` (71,079 B) — **88,100 B** total. No `package.json`, lockfile, manifest, bundler config, `dist/`, `build/`, or `vercel.json` in `app/`; no build step.
+- The only asset paths are `./styles.css` and `./app.js`; the favicon is `data:,`; 0 absolute or `localhost` paths. The only absolute URLs are outbound `https://wa.me/…` reminders and `upi://` pay links, which produce no request.
+- No service worker (0 registrations at runtime), no `document.cookie`, no password input, no auth gate, no analytics, no `fetch`, no `XMLHttpRequest` in `app/`.
+- Direct loads `/`, `/index.html`, `/?customer=…`, `/?today=2026-11-15`, `/?today=not-a-date` → 200; every audited state ran in a fresh context from a cold direct load.
+- Every fresh context: 0 console errors, 0 page errors, 0 failed requests, 0 external requests.
+
+#### Score-risk review — WIN-ANALYSIS §4 and WIN-PLAN §4/§11
+
+WIN-ANALYSIS §4 (why we may lose), P5 build:
+
+| # | Failure mode | Status | Evidence |
+|---|---|---|---|
+| 1 | Selector missing / renamed / conditional | **PASS** | 19/19 §2 nodes, exactly once, visible |
+| 2 | Tester reads before first paint | **PASS** | first paint complete in a fresh context |
+| 3 | `.value` set without events; app reads state | **PASS** | every import in CRITIC-P5-A…D, FUZZ and BONUS set `.value` directly |
+| 4 | Import merges instead of replaces | **PASS** | replace probe 1 row / 9000.25; 112 fuzzed shops |
+| 5 | Punctuation/commas/₹ in machine nodes | **PASS** | bare regex on every amount node, both states |
+| 6 | Zero-balance / unknown-phone rows dropped | **PASS** | fuzz covers zero rows and unknown phones; row counts exact |
+| 7 | Float money | **PASS** | 62-shop integer-paise oracle; `-150099.75`, `35099992.75` exact |
+| 8 | Screenshot quota loses the save | **PASS (closed at P3)** | suite E2E-P3-04 green on this build |
+| 9 | `?today=` ignored → overdue days wrong | **PASS (closed at P4)** | 61/44/43/42 re-verified on this build |
+| 10 | Sideways scroll / unreadable dark | **PASS (closed at P5)** | 375/375 sample and 200 rows; 0 wide elements; min text 5.02 |
+| 11 | `[data-customer]` count ≠ customer count | **PASS** | 200 rows for 200 customers; 8 for the sample |
+| 12 | Virtualised / paginated list | **PASS** | every row in `#customers`; 200/200 visible |
+| 13 | No harness | **PASS** | 53-case suite + 739 independent assertions |
+
+WIN-PLAN §4 edge-case matrix — **PASS 18/18**: zero-entry customer; overpayment → negative; same name/different phones; duplicate phone; unknown phone; `"1,500"`/`Rs 1500`; `type` casing; same-date entries; future-dated entry; empty note; large numbers (`250000.50`, 200 rows); unicode names; `entries: []`; malformed JSON; import twice; reload after import; `?today=2026-11-15`; 3 MB screenshot.
+
+WIN-PLAN §11 (if we lose), P5 build:
+
+| # | Cause | P5 status |
+|---|---|---|
+| 1 | Import merging instead of replacing | **PASS** |
+| 2 | Punctuation in `#total-outstanding` | **PASS** |
+| 3 | Dropping zero-entry / unknown-phone rows | **PASS** |
+| 4 | Contract nodes rendered after a delay | **PASS** |
+| 5 | Float money | **PASS** |
+| 6 | Screenshot upload fails on quota | **PASS (closed)** |
+| 7 | Sideways scroll at 375 from a table/long name/image | **PASS (closed at P5)** — 200 rows, 45-char name, 100-char unbroken note, 64 px thumbnail |
+| 8 | No harness | **PASS** |
+
+#### G5 gate checklist (PLAN §4)
+
+- [x] **Tester RUN id present with commands and evidence** — RUN-9: `cd tests && npx playwright test` → 53/53, E2E-P5-01…04 with 375/200-row/contrast/tap evidence, artifacts and `/tmp` non-vacuity mutants.
+- [x] **Phase acceptance 100%, regression 100%** — E2E-P5-01…04 4/4 in RUN-9 and CRITIC-RUN-6; P0 23/23, P1 8/8, P2 5/5 + F-01, P3 5/5, P4 7/7 in the same run; every PLAN P5 acceptance bullet independently reproduced (375 sample, 200 rows + unicode + `250000.50` + thumbnail, wraps, unclipped amounts, tap ≥40, 4.5:1/3:1 both schemes, `color-scheme: light dark`, no `overflow-x` masking, no fixed/sticky overlay).
+- [x] **No open P0/P1** — none filed in RUN-1…9 and none found by the 53-case suite or 739 independent assertions. BUG-1 (P2) remains closed; no P2 is open.
+- [x] **Contract audit 100%** — 34/34 P5-observable items; 0 `CONTRACT-<n>`; deferred P6/B7 items named and owned.
+- [x] **Doc sync check passes** — output pasted above: 23/0/0 IDs, 29/29 selectors, 0 TBD, 23/23 rows phased, E2E-P5 4/4 defined+cited+implemented, headers 4/4, versions as required.
+- [x] **Critic scorecard written; model score not lower than the previous gate** — **100/100** vs 100/100 at G4 (floor 97/100 if B6 placeholders are read as labels; both ≥ the final 95 threshold).
+- [x] **`worklog.md` entry with `Next:`** — the latest entry (03:00, Planner) ends `Next: Critic G5`; the Orchestrator must append the G5 gate entry ending `Next: P6 — Coder` after this scorecard is recorded.
+
+**Verdict: PASS.**
+
+#### Findings / notes (none blocks G5; no veto raised)
+
+- **F-1 [process]** The P5 build is uncommitted: HEAD is `54c8a36` (tag `g4`), `app/styles.css` is modified and `tests/e2e/p5.spec.js` is untracked. The Orchestrator should commit and tag `g5` so the graded build is reproducible; the checksums above pin it for this scorecard.
+- **F-2 [residual i18n gap, non-blocking]** Input **placeholders** stay English in `hi`/`te` (`#search`, `#new-name`, `#import-box`, etc.). Every `<label>`, heading, button, empty state and `#upi-demo-note` translates; CONTRACT §5.5 scopes translation to visible UI labels, so B6 is credited 5. A screenshot grader that diffs every visible string could call B6 partial (2–3), putting the model at 97–98/100 — above the final 95 floor.
+- **F-3 [measurement note]** Native form controls report a UA-computed `overflow-x: hidden`; the masking audit excludes `input`/`select`/`textarea`/`button` and `.visually-hidden`, and no page-level container masks overflow (`html`, `body`, `main` all `visible`). This is not a P5 defect.
+- **F-4 [contrast margin]** `.entry` and `.customer-row` borders sit at **3.34:1** light / **3.37:1** dark — above the 3:1 floor but the closest margin in the system. Any P6 palette tweak must re-check these before the final gate.
+- **F-5 [tap margin]** The `input[type=file]::file-selector-button` is 40 px tall: it meets the hard 40 px floor but not the 44 px design token. The file control itself measures 44 px, so the audited control list is compliant.
+- **F-6 [scope, by plan]** P6 (200-shop F-02 fuzz, quota/reload/double-import hardening, judges' note) remains; P5 is green and must not regress.
+- **F-7 [declared failure]** B7 OCR remains 0 — no self-hosted OCR asset is approved (human gate); the manual fallback works and B7 is the dropped seventh, so the bonus block stays 30/30.
+
+#### Required before P6
+
+1. Orchestrator: append the G5 gate entry to `worklog.md` with `Next: P6 — Coder`; commit and tag the P5 build (`bd38d3ce…`, `8b799aa1…`, `b8d2194e…`).
+2. Coder (P6): run the 200-shop fuzz (F-02) to zero mismatches, and harden storage-cleared, quota, reload and double-import paths. No new features; no selector, attribute or machine-value changes.
+3. Tester (P6): E2E-P6 full journey plus the 200-shop fuzz and non-functional suite; file any P0/P1 before the gate.
+4. Draft the judges' note: routes, import replace, net total, 30+ day overdue, 375 px + light/dark, demo UPI disclosure, and "no login" — URL marked "pending deployment" until the human submits.
+5. Preserve the P5 guarantees: no `overflow-x` masking, ≥40 px (44 token) targets, 200 rows in the DOM, 4.5:1 text / 3:1 borders in both schemes, and the sample/adversarial `scrollWidth` at 375.
+6. Optional (P6): translate the input placeholders (F-2) only if it can be done without changing any attribute the contract reads; keep B7 declared failed unless a self-hosted OCR asset is approved.
+
+#### Confidence / unknown about the real tester
+
+- The scored surfaces are backed by 53 suite cases plus **739 independent assertions** on this exact build, all reading the DOM and computing expectations outside `app/`. A false PASS would need every oracle to share a wrong reading of §3.3/§5.
+- The single most likely score loss is **B6 placeholder translation** (F-2): a strict screenshot diff of every visible string would cost 2–3 bonus marks → 97–98/100, still ≥95.
+- **B7 is 0** and is the dropped seventh, so the bonus block does not depend on whether the hidden tester scripts the prefill or accepts the manual fallback.
+- What cannot be known: a hidden-data corner outside the 112 fuzzed shops (F-02 is P6), the grader's dark-mode emulation and file upload buffering, and whether it clears storage before importing. The largest residual risk is a hidden-data mismatch, not the P5 layout.
