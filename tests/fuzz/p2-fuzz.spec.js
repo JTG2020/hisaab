@@ -118,7 +118,13 @@ function expectedShop(shop) {
       names.set(phone, name);
       continue;
     }
-    if (name) {
+    if (!name) {
+      // A later record with no name keeps the earlier name and warns as a duplicate
+      // phone (BUG-2 fix): only when an earlier non-empty name exists.
+      if (names.get(phone)) duplicatePhones.add(phone);
+      continue;
+    }
+    {
       const existing = names.get(phone);
       if (existing && existing.toLowerCase() !== name.toLowerCase()) duplicatePhones.add(phone);
       names.set(phone, name);
@@ -171,7 +177,8 @@ const COVERAGE_SHOP = {
 
 const EMPTY_SHOP = { shop: 'Empty Shop', customers: [], entries: [] };
 
-function randomShop(rnd, index) {
+function randomShop(rnd, index, amounts) {
+  const pool = amounts || AMOUNTS;
   const customerCount = Math.floor(rnd() * 7);
   const entryCount = Math.floor(rnd() * 13);
   const customers = [];
@@ -184,7 +191,7 @@ function randomShop(rnd, index) {
     const entry = {};
     entry.phone = rnd() < 0.18 ? '90000001' + String(80 + Math.floor(rnd() * 15)) : pick(rnd, PHONES);
     if (rnd() > 0.08) entry.type = pick(rnd, TYPES);
-    if (rnd() > 0.1) entry.amount = pick(rnd, AMOUNTS);
+    if (rnd() > 0.1) entry.amount = pick(rnd, pool);
     if (rnd() > 0.2) entry.date = pick(rnd, DATES);
     if (rnd() > 0.4) entry.note = pick(rnd, NOTES);
     entries.push(entry);
@@ -320,6 +327,198 @@ test('F-01 50-shop fuzz: every balance and the total equal the independent compu
 
     expect(rendered.total, label + ' machine shape').toMatch(/^-?(0|[1-9][0-9]*)(\.[0-9]{2})?$/);
     expect(rendered.total, label + ' no decoration').not.toMatch(/[Rs₹,\s+]/);
+  }
+
+  await expectClean(diagnostics, expect);
+});
+
+
+// --- F-02: 200-shop hardening fuzz ------------------------------------------
+// Same oracle as F-01, plus: a 200-customer shop, a later empty-name duplicate,
+// a clamped value, large amounts and a wider hostile mix.
+
+const P6_SEED = 20261118;
+const P6_DATASETS = 200;
+const P6_AMOUNTS = AMOUNTS.concat(['5000000.75', 99999999, '3,00,000.50']);
+
+const P6_COVERAGE_SHOP = {
+  shop: 'P6 Coverage',
+  customers: [
+    { name: 'Ravi Kumar', phone: '9000000101' },
+    { name: 'Ravi Kumar', phone: '9000000101' }, // exact duplicate
+    { name: 'Ravi K Sharma', phone: '9000000101' }, // same phone, different name
+    { name: '', phone: '9000000101' }, // later empty name (P6 hardening)
+    { name: 'Same Name', phone: '9000000102' },
+    { name: 'Same Name', phone: '9000000103' }, // same name, different phones
+    { name: 'Zero Entry', phone: '9000000104' },
+    { name: 'రవి', phone: '919000000105' }, // 12-digit 91-prefixed phone
+    { name: '', phone: '9000000106' }, // empty name only
+  ],
+  entries: [
+    { phone: '9000000101', type: 'CREDIT', amount: '99999999999999999', date: '2026-10-01' }, // clamped
+    { phone: '9000000101', type: 'payment', amount: '670.50', date: '2026-10-03' },
+    { phone: '9000000101', type: 'credit', amount: 5, date: '2026-10-08' },
+    { phone: '9000000101', type: 'credit', amount: 7, date: '2026-10-08' }, // same-date tie
+    { phone: '9000000109', type: 'udhaar', amount: 250, date: '2026-10-05' }, // unknown phone
+    { phone: '9000000102', type: 'mystery', amount: '5000000.75' }, // unknown type, missing date
+    { phone: '9000000103', amount: 10, date: '2026-10-05' }, // missing type
+    { phone: '9000000106', type: 'received', amount: 99999999, date: '2026-10-05' },
+  ],
+};
+
+function build200Shop() {
+  const longName = 'రవి'.repeat(14) + 'x'; // 43 characters
+  const longNote = 'న'.repeat(100);
+  const customers = [];
+  const entries = [];
+  for (let index = 0; index < 200; index += 1) {
+    const phone = String(9000020000 + index);
+    customers.push({ name: longName + index, phone });
+    if (index % 10 === 0) continue; // zero-entry customer
+    entries.push({
+      phone,
+      type: index % 3 === 0 ? 'payment' : 'credit',
+      amount: index % 2 === 0 ? '250000.50' : 5000000.75,
+      date: '2026-10-05',
+      note: longNote,
+    });
+  }
+  customers.push({ name: 'Duplicate Name', phone: '9000020000' }); // same phone, different name
+  customers.push({ name: '', phone: '9000020001' }); // later empty name
+  entries.push({ phone: '9000029999', type: 'credit', amount: 77, date: '2026-10-05' }); // unknown phone
+  return { shop: 'P6 200 Customers', customers, entries };
+}
+
+function buildP6Datasets() {
+  const shops = [P6_COVERAGE_SHOP, EMPTY_SHOP, build200Shop()];
+  for (let index = 3; index < P6_DATASETS; index += 1) {
+    shops.push(randomShop(mulberry32(P6_SEED + index), index, P6_AMOUNTS));
+  }
+  return shops;
+}
+
+test('F-02 200-shop fuzz (hardening): every balance and total equal the independent computation', async ({ page }) => {
+  test.setTimeout(300000);
+
+  const shops = buildP6Datasets();
+  expect(shops).toHaveLength(P6_DATASETS);
+
+  const coverage = {
+    shops: shops.length,
+    customers: 0,
+    entries: 0,
+    duplicatePhoneShops: 0,
+    emptyNameDuplicateRecords: 0,
+    clampedEntries: 0,
+    negativeBalanceRows: 0,
+    zeroBalanceRows: 0,
+    unknownPhoneEntries: 0,
+    unicodeNames: 0,
+    stringAmounts: 0,
+    missingAmounts: 0,
+    missingTypes: 0,
+    missingDates: 0,
+    negativeTotalShops: 0,
+    emptyShops: 0,
+    customersInLargestShop: 0,
+  };
+  for (const shop of shops) {
+    const customers = Array.isArray(shop.customers) ? shop.customers : [];
+    const entries = Array.isArray(shop.entries) ? shop.entries : [];
+    const expected = expectedShop(shop);
+    coverage.customers += customers.length;
+    coverage.entries += entries.length;
+    coverage.customersInLargestShop = Math.max(coverage.customersInLargestShop, customers.length);
+    if (expected.duplicatePhones.length) coverage.duplicatePhoneShops += 1;
+    if (expected.total < 0) coverage.negativeTotalShops += 1;
+    if (expected.balances.size === 0) coverage.emptyShops += 1;
+    for (const balance of expected.balances.values()) {
+      if (balance < 0) coverage.negativeBalanceRows += 1;
+      if (balance === 0) coverage.zeroBalanceRows += 1;
+    }
+    const seen = new Set();
+    for (const customer of customers) {
+      if (/[^\x00-\x7F]/.test(String(customer.name))) coverage.unicodeNames += 1;
+      const phone = normalizePhone(customer.phone);
+      if (phone && seen.has(phone) && String(customer.name || '').trim() === '') {
+        coverage.emptyNameDuplicateRecords += 1;
+      }
+      if (phone) seen.add(phone);
+    }
+    const known = new Set(customers.map((customer) => normalizePhone(customer.phone)).filter(Boolean));
+    for (const entry of entries) {
+      if (!known.has(normalizePhone(entry.phone))) coverage.unknownPhoneEntries += 1;
+      if (typeof entry.amount === 'string') coverage.stringAmounts += 1;
+      if (!('amount' in entry)) coverage.missingAmounts += 1;
+      if (!('type' in entry)) coverage.missingTypes += 1;
+      if (!('date' in entry)) coverage.missingDates += 1;
+      if (parsePaise(entry.amount) === MAX_PAISE) coverage.clampedEntries += 1;
+    }
+  }
+  console.log('F-02 seed ' + P6_SEED + ' datasets ' + P6_DATASETS + ' :: ' + JSON.stringify(coverage));
+
+  const { diagnostics } = await open(page, '/?today=' + TODAY);
+
+  for (let index = 0; index < shops.length; index += 1) {
+    const shop = shops[index];
+    const expected = expectedShop(shop);
+    const payload = JSON.stringify(shop);
+
+    await page.evaluate((text) => {
+      document.getElementById('import-box').value = text;
+      document.getElementById('import-go').click();
+    }, payload);
+
+    const rendered = await page.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('[data-customer]')).map((row) => {
+        const balance = row.querySelector('[data-balance]');
+        return {
+          phone: row.getAttribute('data-customer'),
+          text: balance ? balance.textContent.trim() : null,
+          attribute: balance ? balance.getAttribute('data-balance') : null,
+        };
+      });
+      const total = document.getElementById('total-outstanding');
+      const message = document.getElementById('import-msg');
+      return {
+        rows,
+        total: total.textContent.trim(),
+        totalAttribute: total.getAttribute('data-value'),
+        message: message ? message.textContent.trim() : '',
+        bodyText: document.body.textContent,
+      };
+    });
+
+    const label = 'F-02 dataset ' + index + ' (seed ' + P6_SEED + ')';
+
+    expect(rendered.message, label + ' must not reject a valid shop').not.toContain('Could not import');
+    expect(rendered.rows.length, label + ' row count must equal the customer count').toBe(expected.balances.size);
+    expect(rendered.bodyText, label + ' must not leak NaN/undefined').not.toMatch(/undefined|NaN/);
+
+    const renderedPhones = rendered.rows.map((row) => row.phone).sort();
+    expect(renderedPhones, label + ' row keys').toEqual(Array.from(expected.balances.keys()).sort());
+
+    for (const row of rendered.rows) {
+      const expectedBalance = expected.balances.get(row.phone);
+      expect(typeof expectedBalance, label + ' unexpected row ' + row.phone).toBe('number');
+      const expectedText = render(expectedBalance);
+      expect(row.text, label + ' ' + row.phone + ' balance text').toBe(expectedText);
+      expect(row.attribute, label + ' ' + row.phone + ' balance attribute').toBe(expectedText);
+    }
+
+    const expectedTotal = render(expected.total);
+    expect(rendered.total, label + ' total').toBe(expectedTotal);
+    expect(rendered.totalAttribute, label + ' total data-value').toBe(expectedTotal);
+    expect(rendered.total, label + ' machine shape').toMatch(/^-?(0|[1-9][0-9]*)(\.[0-9]{2})?$/);
+    expect(rendered.total, label + ' no decoration').not.toMatch(/[Rs₹,\s+]/);
+
+    for (const phone of expected.duplicatePhones) {
+      expect(rendered.message, label + ' duplicate warning for ' + phone).toContain('duplicate');
+      expect(rendered.message, label + ' duplicate warning names ' + phone).toContain(phone);
+    }
+    if (expected.duplicatePhones.length === 0) {
+      expect(rendered.message, label + ' must not warn about duplicates').not.toContain('duplicate');
+    }
   }
 
   await expectClean(diagnostics, expect);

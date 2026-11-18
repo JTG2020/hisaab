@@ -277,3 +277,32 @@ Notes:
 - F-3 UA form-control `overflow-x` is not page masking; F-4 `.entry` border 3.34/3.37 to recheck on any palette change; F-5 file-selector button 40 px meets the floor; F-7 B7 remains 0.
 - **P6 remains:** 200-shop fuzz F-02, hardening, the final judges' note, and submission (human gate).
 Next: P6 on human go; do not start automatically.
+
+## 2026-11-18 04:05 — P6 — Coder
+Action: hardening fix for BUG-2. A duplicate phone whose later record has an empty/whitespace name now keeps the earlier non-empty display name, drops no row, changes no money, and appends a `#import-msg` warning containing `duplicate` and the phone. Later non-empty names still last-name-win; exact duplicates stay silent. No other app change.
+Evidence: `app/app.js`; `node --check`; 56/56 suite; direct repro and adjacent dedupe cases; no console errors.
+Result: PASS (Coder handoff; Tester verification)
+Next: Tester P6 re-run
+
+## 2026-11-18 04:15 — P6 — Tester
+Action: added F-02 (200 shops, seed `20261118`), E2E-P6-01 (full journey), E2E-P6-02 (empty-name duplicate); `TEST-CASES.md` v0.11. RUN-10 56/56 with BUG-2 P3; after the fix, E2E-P6-02 asserts the duplicate warning and RUN-11 is 56/56, BUG-2 closed. F-02: 200 shops / 805 customers / 1,401 entries, 0 mismatches, no row loss, no NaN/undefined. No other bugs.
+Evidence: `cd tests && npx playwright test` → **56/56 passed (28.7s)** (23 P0 + 8 P1 + 5 P2 + 5 P3 + 7 P4 + 4 P5 + 2 P6 + F-01 50 + F-02 200), re-run independently by the Orchestrator; sample `11820`; full journey; 375/dark; quota; `?today`; screenshots in `tests/artifacts/`.
+Result: PASS (RUN-11; BUG-2 closed)
+Next: Planner final sync + Critic G6
+
+## 2026-11-18 04:20 — P6 — Planner
+Action: `IMPLEMENTATION-PLAN.md` v1.9 finalizes the judges' note draft (live link `pending deployment`; sample `11820`; import replaces; signed net total; overdue 30+ days; reminder; screenshot; B1–B6; **B7 OCR prefill unavailable, manual entry works, B7 not claimed**; no login; 375/dark; 56/56 and 200-shop fuzz evidence) and cites the P6 gate `E2E-P6-01/02` + `F-02`. `TRACEABILITY.md` v1.9 adds the P6 final-gate note. No CONTRACT change.
+Evidence: 23 rows, 0 TBD; 23/0/0; 29/29 selectors; headers 4/4; judges' note contains `pending deployment` and does not claim OCR.
+Result: PASS (docs)
+Next: Critic G6 final gate
+
+## 2026-11-18 04:45 — P6 — Orchestrator — GATE G6 (final, technical)
+Action: recorded **G6 technical PASS** from the Critic's final scorecard; P6 hardening complete; committed the P6 build and created gate tag `g6`. The live URL/deployment and submission remain **human gates**.
+Evidence: `docs/scorecards.md` GATE G6; RUN-11 (Tester) **56/56**; CRITIC-RUN-7 **56/56**; independent 200-shop fuzz seed `60511377`, **11,962/11,962** assertions, 0 mismatches; sample **11820**, 8 rows; full journey; contract audit **76/76**, 0 deviations; doc sync PASS; Vercel shape PASS; **FINAL MODEL SCORE 100/100** (floor 97 under the strict B6-placeholder reading); hidden-data 60/60; bonus 30/30 via best six (B1–B6; B7 0, OCR unavailable, fallback works, not faked); phone/theme 10/10.
+G6 checklist: full regression 56/56; contract 100%; docs complete and in sync; no open P0/P1/P2 (BUG-1 and BUG-2 closed); final score 100 >= 95; judges' note drafted; Vercel shape green; live URL pending human deployment.
+Remaining human steps:
+1. Deploy `app/` to Vercel (Root Directory = `app`, no build step); verify `/`, `/?customer=`, `/?today=2026-11-15`, and one import.
+2. Paste the live URL into the judges' note in `IMPLEMENTATION-PLAN.md` §3 (currently `pending deployment`).
+3. Approve and submit before **Sun 22 Nov 2026, 10:00 IST** (tie-break: earlier).
+4. If `app/` changes after this gate, re-run `cd tests && npx playwright test` before submitting.
+Next: awaits human deployment/live URL and submission approval; do not submit automatically.

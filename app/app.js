@@ -478,7 +478,7 @@
     return text.trim() === '' ? '' : text;
   }
 
-  function buildImportWarnings(stats, duplicatePhones) {
+  function buildImportWarnings(stats, duplicatePhones, keptNamePhones) {
     var warnings = [];
     if (stats.missingCustomers) {
       warnings.push(
@@ -504,6 +504,25 @@
     } else if (duplicatePhones.length > 1) {
       warnings.push(
         'Warning: duplicate phones ' + duplicatePhones.join(', ') + '; kept the last name for each row.'
+      );
+    }
+    var keptOnly = [];
+    for (var keptIndex = 0; keptIndex < keptNamePhones.length; keptIndex += 1) {
+      if (duplicatePhones.indexOf(keptNamePhones[keptIndex]) === -1) {
+        keptOnly.push(keptNamePhones[keptIndex]);
+      }
+    }
+    if (keptOnly.length === 1) {
+      warnings.push(
+        'Warning: duplicate phone ' +
+          keptOnly[0] +
+          '; the later record had no name, so the earlier name was kept.'
+      );
+    } else if (keptOnly.length > 1) {
+      warnings.push(
+        'Warning: duplicate phones ' +
+          keptOnly.join(', ') +
+          '; a later record had no name, so the earlier name was kept for each row.'
       );
     }
     if (stats.skippedEntries) {
@@ -577,6 +596,8 @@
     var phoneIndex = Object.create(null);
     var duplicateSeen = Object.create(null);
     var duplicatePhones = [];
+    var keptNameSeen = Object.create(null);
+    var keptNamePhones = [];
     var shop = typeof root.shop === 'string' ? root.shop : '';
 
     var sourceCustomers = root.customers;
@@ -610,6 +631,12 @@
           }
         }
         existing.name = name;
+      } else {
+        var keptCustomer = customers[existingIndex];
+        if (keptCustomer.name && !duplicateSeen[phone] && !keptNameSeen[phone]) {
+          keptNameSeen[phone] = true;
+          keptNamePhones.push(phone);
+        }
       }
     }
 
@@ -646,7 +673,7 @@
 
     return {
       state: { shop: shop, customers: customers, entries: entries },
-      warnings: buildImportWarnings(stats, duplicatePhones)
+      warnings: buildImportWarnings(stats, duplicatePhones, keptNamePhones)
     };
   }
 

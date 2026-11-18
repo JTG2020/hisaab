@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.10
+Version: 0.12
 Updated: 2026-11-18
 Owner: Tester
-Supersedes: test-results.md v0.9
+Supersedes: test-results.md v0.11
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -662,3 +662,147 @@ Notes:
 - `docs/TEST-CASES.md` v0.10 adds E2E-P5-01…04 and the P5 mapping (R9/N2/N3 with N-01/N-02/N-04 executed inside them; B6 stays in E2E-P4-06). No existing case, ID, or expected value changed.
 - Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map R9/N2/N3 and N-01/N-02/N-04 to E2E-P5-01…04; `worklog.md` needs the RUN-9 line and the P5 gate entry.
 - The Tester did not edit `app/`. Coder handoff checksums at verification time: `app/index.html bd38d3cedfef…`, `app/app.js b8d2194ea4f5…`, `app/styles.css 8b799aa1e618…` (CSS-only P5 change).
+
+### RUN-10 | 2026-11-17 19:55 EST | phase P6 | gate P6 (final verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for the P5 cases and the journey's phone step; light scheme plus emulated `prefers-color-scheme: dark` for C-21, E2E-P0-03, E2E-P5-03 and the journey's dark step; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 11 spec files.
+
+Cases: 56/56 passed | Failing: none
+- P0 23/23, P1 8/8, P2 5/5, P3 5/5, P4 7/7, P5 4/4
+- **F-01** 50 datasets (seed `20261117`) and **F-02** **200 datasets (seed `20261118`)**
+- **P6 gate: E2E-P6-01** (full journey) and **E2E-P6-02** (empty-name duplicate)
+
+Bugs filed: **BUG-2 (P3, open)** | Bugs closed in this run: none (BUG-1 closed in RUN-8)
+
+Evidence:
+
+```
+$ npx playwright test
+Running 56 tests using 1 worker
+  ✓ [chromium] › e2e/p6.spec.js › E2E-P6-01 full journey: import, replace, customer, reminder, image, B1–B6, 375, dark, clear, quota, ?today (1.2s)
+  ✓ [chromium] › e2e/p6.spec.js › E2E-P6-02 duplicate phone with a later empty name: one row, documented name choice, no loss
+  ✓ [chromium] › fuzz/p2-fuzz.spec.js › F-02 200-shop fuzz (hardening): every balance and total equal the independent computation (1.0s)
+  ... all other 53 P0–P5 + F-01 cases green ...
+  56 passed (28.8s)
+
+$ npx playwright test --list | tail -1
+Total: 56 tests in 11 files
+```
+
+F-02 (200 datasets, seed `20261118`, independent oracle in the test process):
+
+```
+F-02 seed 20261118 datasets 200 :: {"shops":200,"customers":805,"entries":1401,"duplicatePhoneShops":79,
+  "emptyNameDuplicateRecords":2,"clampedEntries":1,"negativeBalanceRows":293,"zeroBalanceRows":394,
+  "unknownPhoneEntries":868,"unicodeNames":360,"stringAmounts":788,"missingAmounts":134,"missingTypes":107,
+  "missingDates":242,"negativeTotalShops":52,"emptyShops":3,"customersInLargestShop":202}
+0 mismatches: every [data-balance] text/attribute and #total-outstanding text/data-value matched the
+computed §3.3 rendering; row sets matched exactly (no row dropped); no NaN/undefined; no console error.
+```
+
+F-02 coverage includes the required hostile mix: zero-entry customers, over/underpayment with negative balances and 52 negative totals, 79 shops with duplicate phones (same/different names, plus 2 later-empty-name records), 868 entries for unknown phones, string/comma/decimal amounts (788 strings), 134 missing amounts, 107 missing types, 242 missing dates, 360 unicode names, same-date ties, one clamped value (`99999999999999999` → `9000000000000000` paise), 3 empty shops and a 202-customer shop.
+
+E2E-P6-01 journey (single test, one diagnostics object for the whole run):
+
+```
+sample import            total 11820, 8 rows, every balance == sample-expected.json
+second shop              total 749.50, 2 rows, reload keeps it, all 8 sample phones gone
+re-import sample         total 11820, 8 rows
+?customer=9000000101     "Ravi Kumar", balance "670", 6 entries (count derived from sample-data.json)
+reminder                 https://wa.me/919000000101?text= + encodeURIComponent(message); name + "Rs 670";
+                         no extra parameter; re-encoding round-trips
+payment + screenshot     7 entries, #cust-balance 570, exactly one img[data-shot] in that entry; reload keeps it
+B2 edit 100 -> 150       balance 520, image retained; delete -> 670, 6 entries; reload identical
+B1 ?today=2026-11-15     4 rows 61 / 44 / 43 / 42, bare [data-days], 0 data-customer inside #overdue
+B3 CSVs                  customers.csv 8 rows + D8 header; entries.csv 1 + 38 rows; every numeric cell bare
+B4 search                "sunita" -> only 9000000102, total unchanged; clear -> 8 visible
+B5 UPI                   pa=hisaab@upi&am=670&cu=INR&tn=Ravi Kumar (cu=INR once)
+B6 language              hi changes the overdue title; 11820 and 670 unchanged; en restores
+375 px                   documentElement and body scrollWidth <= 375
+dark                     body / #total-outstanding / #cust-balance >= 4.5:1
+clear storage            total 0, 0 rows, "No customers", 19 §2 ids present
+forced quota             entry kept (50), #storage-msg visible; after restore 75 persists through reload
+?today=2026-12-01        8 overdue rows, 9000000105 first at 77 days, days non-increasing
+?today=2026-11-15        first row 61 days
+network                  no third-party request; no console error, failed request or rejection
+```
+
+Artifacts: `tests/artifacts/p6-journey-end.png`, `p6-customers.csv`, `p6-entries.csv`, `p6-empty-name-duplicate.txt` (plus the earlier P4/P5 evidence).
+
+Verdict: PASS (one open P3, BUG-2; no P0/P1)
+
+Notes:
+
+- **BUG-2 | severity P3 | phase P6 | case E2E-P6-02**
+  Expected (P6 hardening rule for a duplicate phone whose later record has an empty name): either keep the earlier non-empty name **with** a `duplicate` warning, or take the later name.
+  Actual: the earlier name `Ravi Kumar` is kept and **no** duplicate warning is emitted; `#import-msg` is only `Imported "Empty Name Case": 1 customer, total 100.`
+  Repro: `python3 -m http.server 4173 --directory app` → open `/` → paste `{"shop":"Empty Name Case","customers":[{"name":"Ravi Kumar","phone":"9000000001"},{"name":"","phone":"9000000001"}],"entries":[{"phone":"9000000001","type":"credit","amount":100,"date":"2026-10-01"}]}` → click `#import-go` → read `#import-msg`.
+  Evidence: `tests/artifacts/p6-empty-name-duplicate.txt` (`duplicate warning present: false`) and the run log line `E2E-P6-02 observed: keptName="Ravi Kumar" duplicateWarning=false`.
+  Suspected layer: import/normalise (the duplicate branch in `buildImportState`).
+  Root cause: stated, not guessed — the duplicate-name comparison is inside `else if (name)`, so a later record with an empty name is skipped entirely: it neither renames nor registers a duplicate.
+  Contract impact: none on machine nodes; D9 speaks of a "different name", and an empty string is arguably not a name, so this is a P3 advisory that needs a Critic waiver and does not block the gate. No row loss, no crash, balance intact.
+- The journey's counts are derived from `sample-data.json` (6 entries for `9000000101`, 38 entries overall) instead of being hardcoded; the first run of the journey caught exactly that mistake (expected 4 entries, received 6) and the test was corrected to the file-derived oracle, not to the app.
+- `docs/TEST-CASES.md` v0.11 adds E2E-P6-01 and E2E-P6-02, makes F-02 concrete (200 datasets, seed `20261118`), and adds the P6 mapping (F-02 for the 60-mark hidden data; E2E-P6-01 re-reads R1–R10 and B1–B6; B7 stays in E2E-P4-07; N1–N6 covered). No existing ID was removed and no expected value was weakened.
+- Gate status: every phase case green, F-01 and F-02 green, no open P0/P1. The only open item is BUG-2 (P3), which requires a Critic waiver under `AGENTS.md` §6.
+- Doc-sync leftovers the Tester may not write: `TRACEABILITY.md` should map F-02 and E2E-P6-01/02 (and mark N6 as covered by the journey); `worklog.md` needs the RUN-10 line, the P6 gate entry and the BUG-2 waiver decision.
+- The Tester did not edit `app/`. App checksums at verification time: `app/index.html bd38d3cedfef…`, `app/app.js b8d2194ea4f5…`, `app/styles.css 8b799aa1e618…`.
+
+### RUN-11 | 2026-11-17 20:32 EST | phase P6 | gate P6 (BUG-2 re-verification)
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time (the previous server had been up 1 h 13 min and stalled; it was stopped and a fresh one started before this run — see Notes); `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for the P5 cases and the journey's phone step; light plus emulated `prefers-color-scheme: dark` for C-21, E2E-P0-03, E2E-P5-03 and the journey's dark step; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 11 spec files.
+
+Cases: 56/56 passed | Failing: none
+- P0 23/23, P1 8/8, P2 5/5, P3 5/5, P4 7/7, P5 4/4
+- **F-01** 50 datasets (seed `20261117`) and **F-02** **200 datasets (seed `20261118`)** — both green
+- **E2E-P6-01** full journey and **E2E-P6-02** duplicate-phone matrix — green
+
+Bugs filed: none | **Bugs closed: BUG-2 (P3, duplicate phone with a later empty name)**
+
+Evidence:
+
+```
+$ npx playwright test
+Running 56 tests using 1 worker
+  ... all 56 cases green ...
+  56 passed (28.7s)
+
+$ npx playwright test --list | tail -1
+Total: 56 tests in 11 files
+```
+
+BUG-2 repro re-run (exact steps from RUN-10), reading `#import-msg`:
+
+```
+empty-name case rows:    [{"phone":"9000000001","name":"Ravi Kumar","balance":"100"}]
+empty-name message:      "Imported \"Empty Name Case\": 1 customer, total 100.
+                          Warning: duplicate phone 9000000001; the later record had no name,
+                          so the earlier name was kept."
+later-name message:      "... Warning: duplicate phone 9000000002; kept the last name for that row."
+exact-duplicate message: "Imported \"Exact Duplicate\": 1 customer, total 5."   (no warning)
+```
+
+F-02 still green on the fixed build (same seed, same 200 datasets):
+
+```
+F-02 seed 20261118 datasets 200 :: {"shops":200,"customers":805,"entries":1401,"duplicatePhoneShops":79,
+  "emptyNameDuplicateRecords":2,"clampedEntries":1,"negativeBalanceRows":293,"zeroBalanceRows":394,
+  "unknownPhoneEntries":868,"unicodeNames":360,"stringAmounts":788,"missingAmounts":134,"missingTypes":107,
+  "missingDates":242,"negativeTotalShops":52,"emptyShops":3,"customersInLargestShop":202}
+0 mismatches; no row dropped; no NaN/undefined; no console error.
+```
+
+Verdict: PASS — **BUG-2 closed**
+
+Notes:
+
+- **New assertions in E2E-P6-02 (same test, no new ID):** the empty-name case now requires exactly one `[data-customer="9000000001"]` row, the display name `Ravi Kumar`, `[data-balance]` text `100`, `#total-outstanding` `100`, a visible `#import-msg` containing both `duplicate` and `9000000001`, and no `Could not import`/console error. The test also adds the two regression guards the fix must not disturb: a later **non-empty** name still wins (`Second Name`, warning with `9000000002`) and an **exact** duplicate stays silent (no `duplicate` in the message, balance `5`). Nothing was removed or weakened.
+- **F-02 changed only in its oracle, not its data:** the seed (`20261118`), the 200 datasets and the 202-customer shop are unchanged. The independent model now also flags a later record with an empty name on an existing phone as a duplicate (when an earlier non-empty name exists), matching the fixed rule — this is the model catching up to the documented behaviour, and it is why F-02 now also protects the fix. F-01 is unaffected (no empty names in its mix) and stayed green.
+- **Discarded attempt:** an earlier invocation of the full suite at 20:06 ran for 11.3 min and timed out C-03 after 30 s. The failure was infrastructure: the server process had been running for 1 h 13 min and had stopped serving promptly (page snapshot rendered, `goto` stalled). The server was stopped and restarted; a smoke re-run took 5.1 s and the official run above took 28.7 s. The aborted attempt is not counted as a RUN and no app change was made in response.
+- `docs/TEST-CASES.md` stays **v0.11** (unmodified in this run): the case text already covers the fixed behaviour via E2E-P6-02's invariants plus the tracked warning, so no ID or expected value needed to change.
+- Gate status: every phase case green, F-01 and F-02 green, no open P0/P1 and no open P2; BUG-2 (P3) is closed, so the P6 waiver item is resolved.
+- Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-11 line and the BUG-2 closure; `TRACEABILITY.md` should record F-02 and E2E-P6-01/02.
+- The Tester did not edit `app/`. App checksums at verification time: `app/index.html bd38d3cedfef…`, `app/app.js a62699796a9e…` (BUG-2 fix), `app/styles.css 8b799aa1e618…`.
