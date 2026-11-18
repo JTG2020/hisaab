@@ -50,7 +50,7 @@ Useful routes:
 
 To see data immediately, open [`sample-data.json`](sample-data.json), paste its contents into the `Import shop JSON` box, and press **Import**. Import replaces the current shop; it never merges. Data is stored in the browser's `localStorage` (`hisaab.v1`), so clear this site's data to reset.
 
-To add an entry from the list page, either choose the customer in the **Customer** dropdown inside the entry form, or press **Add entry** on that customer's row. Both select the customer and scroll to the form.
+To add an entry from the list page, either choose the customer in the **Customer** dropdown inside the entry form, or press **Add entry** on that customer's row. Both select the customer and scroll to the form. The home page shows the total, search and customer list; the customer view opens only on `?customer=<phone>` or when you press **Open** on a row.
 
 ## Test
 
@@ -71,4 +71,4 @@ Deploy `app/` as a static site. On Vercel choose **Root Directory = `app`**, fra
 
 ## Current status
 
-All technical gates G0–G6.1 are green; the final suite is 57/57 and the final model score is 100/100 (floor 97 under the strict B6-placeholder reading). The only remaining step is the human deployment/submission: deploy `app/`, paste the live URL into the judges' note in `docs/IMPLEMENTATION-PLAN.md` §3, and submit before **Sun 22 Nov 2026, 10:00 IST**.
+All technical gates G0–G6.2 are green; the final suite is 58/58 and the final model score is 100/100 (floor 97 under the strict B6-placeholder reading). The only remaining step is the human deployment/submission: deploy `app/`, paste the live URL into the judges' note in `docs/IMPLEMENTATION-PLAN.md` §3, and submit before **Sun 22 Nov 2026, 10:00 IST**.

@@ -1431,6 +1431,14 @@
     var emptyNode = byId('entries-empty');
 
     var routePhone = STATE.customerPhone;
+    var view = byId('customer-view');
+    if (view) {
+      if (routePhone === null) {
+        view.setAttribute('hidden', 'hidden');
+      } else {
+        view.removeAttribute('hidden');
+      }
+    }
     var customer = routePhone ? findCustomer(routePhone) : null;
     var name;
     var balance = 0;

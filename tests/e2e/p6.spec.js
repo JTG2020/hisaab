@@ -560,3 +560,120 @@ test('E2E-P6-03 post-G6 UX: search empty state, customer picker, add-entry butto
 
   await expectClean(diagnostics, expect);
 });
+
+test('E2E-P6-04 post-G6.2 layout: home order, hidden customer view, search above overdue, routes and 375', async ({ page }) => {
+  test.setTimeout(90000);
+  const { diagnostics } = await open(page, '/');
+  await importPaste(page, SAMPLE);
+  await expect(page.locator('[data-customer]')).toHaveCount(8);
+
+  // 1. Home: the customer view is hidden and the list precedes the overdue section.
+  await expect(page.locator('#customer-view')).toBeHidden();
+  expect(await page.locator('#customer-view').evaluate((element) => element.hasAttribute('hidden'))).toBe(true);
+  expect(await machineTotal(page)).toBe('11820');
+
+  const order = await page.evaluate(() => {
+    const customers = document.getElementById('customers');
+    const overdue = document.getElementById('overdue');
+    const following = Node.DOCUMENT_POSITION_FOLLOWING;
+    return {
+      customersBeforeOverdue: Boolean(customers.compareDocumentPosition(overdue) & following),
+      overdueTop: overdue.getBoundingClientRect().top,
+      searchBottom: document.getElementById('search').getBoundingClientRect().bottom,
+      customersBottom: customers.getBoundingClientRect().bottom,
+      rowBottoms: Array.from(document.querySelectorAll('[data-customer]')).map((row) =>
+        Math.round(row.getBoundingClientRect().bottom)
+      ),
+    };
+  });
+  expect(order.customersBeforeOverdue, '#customers must precede #overdue in document order').toBe(true);
+  expect(order.searchBottom, '#search must sit above #overdue').toBeLessThanOrEqual(order.overdueTop);
+  expect(order.customersBottom, '#customers must sit above #overdue').toBeLessThanOrEqual(order.overdueTop);
+  for (const bottom of order.rowBottoms) {
+    expect(bottom, 'every customer row must sit above #overdue').toBeLessThanOrEqual(order.overdueTop);
+  }
+
+  // 2. Search still filters, keeps the list above overdue, and shows the empty state.
+  const visiblePhones = () =>
+    page.locator('[data-customer]').evaluateAll((nodes) =>
+      nodes
+        .filter((node) => !node.hasAttribute('hidden') && node.getClientRects().length > 0)
+        .map((node) => node.getAttribute('data-customer'))
+        .sort()
+    );
+  const rowBottom = (phone) =>
+    page.locator('[data-customer="' + phone + '"]').evaluate((row) => ({
+      bottom: row.getBoundingClientRect().bottom,
+      overdueTop: document.getElementById('overdue').getBoundingClientRect().top,
+    }));
+
+  await page.fill('#search', 'ravi');
+  expect(await visiblePhones()).toEqual(['9000000101']);
+  await expect(page.locator('#search-empty')).toBeHidden();
+  const match = await rowBottom('9000000101');
+  expect(match.bottom).toBeLessThanOrEqual(match.overdueTop);
+  expect(await machineTotal(page)).toBe('11820');
+
+  await page.fill('#search', 'zzz-no-match');
+  expect(await visiblePhones()).toEqual([]);
+  await expect(page.locator('#search-empty')).toBeVisible();
+  expect(await page.locator('[data-customer]').count(), 'rows stay in the DOM').toBe(8);
+  expect(await machineTotal(page)).toBe('11820');
+
+  await page.fill('#search', '');
+  expect((await visiblePhones()).length).toBe(8);
+  await expect(page.locator('#search-empty')).toBeHidden();
+
+  // 3. Customer route shows the view; unknown phone shows the not-found state.
+  await page.goto('/?customer=9000000101');
+  await expect(page.locator('#customer-view')).toBeVisible();
+  await expect(page.locator('#cust-name')).toHaveText('Ravi Kumar');
+  await expect(page.locator('#cust-balance')).toHaveText('670');
+  for (const selector of ['#total-outstanding', '#customers', '#import-box', '#import-go', '#shot-input']) {
+    await expect(page.locator(selector), selector + ' must stay in the DOM on the customer route').toHaveCount(1);
+  }
+  await expect(page.locator('[data-customer]')).toHaveCount(8);
+
+  await page.goto('/?customer=9000000199');
+  await expect(page.locator('#customer-view')).toBeVisible();
+  await expect(page.locator('#cust-name')).toHaveText('Customer not found');
+  await expect(page.locator('#cust-balance')).toHaveText('0');
+
+  // 4. 375 px: no sideways scroll, the add-entry button is a tap target, and the view fits.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(375);
+  const addButton = await page
+    .locator('button[data-add-entry-for="9000000102"]')
+    .evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return { height: rect.height, right: rect.right };
+    });
+  expect(addButton.height, 'add-entry button height at 375').toBeGreaterThanOrEqual(40);
+  expect(addButton.right).toBeLessThanOrEqual(376);
+
+  await page.goto('/?customer=9000000101');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(375);
+  const view = await page.locator('#customer-view').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { visible: rect.width > 0 && rect.height > 0, right: Math.round(rect.right), width: Math.round(rect.width) };
+  });
+  expect(view.visible, 'the customer view must fit and be visible at 375').toBe(true);
+  expect(view.right).toBeLessThanOrEqual(376);
+
+  await page.screenshot({ path: path.join(ARTIFACTS, 'p6-layout-375-customer.png') });
+  fs.writeFileSync(
+    path.join(ARTIFACTS, 'p6-layout-fix.txt'),
+    [
+      'home: #customer-view hidden; #customers before #overdue; search/customers/8 rows above overdue; total 11820',
+      'search ravi: 1 visible row above overdue, #search-empty hidden',
+      'search zzz-no-match: 0 visible, #search-empty visible, 8 in DOM, total 11820',
+      'customer route: view visible, "Ravi Kumar" / "670"; unknown phone -> "Customer not found" / "0"',
+      '375 px: add-entry button ' + JSON.stringify(addButton) + '; customer view ' + JSON.stringify(view),
+    ].join('\n')
+  );
+
+  await expectClean(diagnostics, expect);
+});

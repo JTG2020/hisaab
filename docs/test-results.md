@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.13
+Version: 0.14
 Updated: 2026-11-18
 Owner: Tester
-Supersedes: test-results.md v0.12
+Supersedes: test-results.md v0.13
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -860,3 +860,56 @@ Notes:
 - `docs/TEST-CASES.md` v0.12 adds E2E-P6-03 and the P6.1 mapping (search empty state, add-entry button, picker, hint, cache-busting). No existing ID or expected value changed.
 - Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-12 line and the P6.1 note; `TRACEABILITY.md` should record E2E-P6-03.
 - The Tester did not edit `app/`. App checksums at verification time: `app/index.html ea598661a31a…`, `app/app.js 6d990115fff4…`, `app/styles.css 1a9e3c1e4059…`.
+
+### RUN-13 | 2026-11-18 06:18 EST | phase P6 | post-G6.2 layout verification
+
+Command: `cd tests && npx playwright test`
+
+Environment: local `http://localhost:4173` served by `python3 -m http.server 4173 --directory app` from the working tree at run time; `@playwright/test` 1.65.1; Chromium 159.0.8154.6 (Chrome for Testing, Playwright build 1255, headless); default viewport 1280×800; 375×812 for the P5 cases, the journey's phone step, E2E-P6-03 and E2E-P6-04; light plus emulated `prefers-color-scheme: dark` where required; locale `en-IN`; timezone `Asia/Kolkata`; 1 worker; 11 spec files.
+
+Cases: 58/58 passed | Failing: none
+- P0 23/23, P1 8/8, P2 5/5, P3 5/5, P4 7/7, P5 4/4
+- F-01 50 datasets (seed `20261117`) and F-02 200 datasets (seed `20261118`) green
+- P6: E2E-P6-01, E2E-P6-02, E2E-P6-03, **E2E-P6-04 (new)**
+
+Bugs filed: none | Bugs closed: none (BUG-1, BUG-2 remain closed)
+
+Evidence:
+
+```
+$ npx playwright test
+Running 58 tests using 1 worker
+  ✓ [chromium] › e2e/p6.spec.js › E2E-P6-04 post-G6.2 layout: home order, hidden customer view, search above overdue, routes and 375 (451ms)
+  ... all other 57 cases green ...
+  58 passed (29.2s)
+
+$ npx playwright test --list | tail -1
+Total: 58 tests in 11 files
+```
+
+Layout and search evidence (`tests/artifacts/p6-layout-fix.txt`, `tests/artifacts/p6-layout-375-customer.png`):
+
+```
+home:              #customer-view hidden (hidden attribute); #customers precedes #overdue in document order;
+                   bottom of #search, #customers and each of the 8 rows <= top of #overdue; total 11820
+search ravi:       1 visible row (9000000101) above #overdue, #search-empty hidden, total 11820
+search zzz-no-match: 0 visible rows, #search-empty visible, 8 rows still in the DOM, total 11820
+clear:             8 visible, #search-empty hidden
+?customer=9000000101: #customer-view visible, #cust-name "Ravi Kumar", #cust-balance "670",
+                   #total-outstanding / #customers / #import-box / #import-go / #shot-input and 8 rows retained
+?customer=9000000199: #customer-view visible, "Customer not found", "0"
+375 px:            add-entry button {"height":45.19,"right":329}; customer view {"visible":true,"right":359,"width":343};
+                   document and body scrollWidth <= 375 on both routes
+```
+
+Verdict: PASS
+
+Notes:
+
+- The layout change is purely presentational: `#customer-view` keeps its DOM position (first in `main`) and is toggled with the `hidden` attribute, so every existing selector-level case (C-17, C-09, C-16, E2E-P0-01/02) is unaffected and stayed green.
+- The home order is asserted structurally, not by eye: `#customers` must precede `#overdue` in `compareDocumentPosition` terms, and the rendered bottom of `#search`, `#customers` and every row must be at or above the top of `#overdue` — also verified with an active filter that leaves a single row.
+- On the customer route the list stays present (8 rows plus `#total-outstanding`, `#customers`, `#import-box`, `#import-go`, `#shot-input`), so CONTRACT §1.7's "do not remove the list" rule still holds now that the view is shown and the list is below it.
+- At 375 px the customer view measures 343 px wide with a right edge of 359 and the add-entry button 45.19 px tall inside 329 px; no sideways scroll on `/` or `?customer=`.
+- `docs/TEST-CASES.md` v0.13 adds E2E-P6-04 and the P6.2 mapping. No existing ID or expected value changed.
+- Doc-sync leftovers the Tester may not write: `worklog.md` needs the RUN-13 line and the P6.2 note; `TRACEABILITY.md` should record E2E-P6-04.
+- The Tester did not edit `app/`. App checksums at verification time: `app/index.html 0ee9383e5398…`, `app/app.js 138320ebdde9…`, `app/styles.css 1a9e3c1e4059…`.

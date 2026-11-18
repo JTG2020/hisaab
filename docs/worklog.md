@@ -331,3 +331,27 @@ Evidence: `docs/scorecards.md` GATE G6.1; RUN-12 **57/57**; CRITIC-RUN-8 **57/57
 README: `python3 -m http.server 4173 --directory app`; routes; sample import; `cd tests && npm install && npx playwright install chromium && npx playwright test`; Vercel Root Directory `app`, no build; localStorage reset note.
 Remaining human steps: deploy `app/` to Vercel, paste the live URL into `IMPLEMENTATION-PLAN.md` §3, approve/submit before **Sun 22 Nov 2026, 10:00 IST**; re-run the suite if `app/` changes.
 Next: awaits human deployment/live URL and submission approval; do not submit automatically.
+
+## 2026-11-18 11:05 — P6.2 — Coder
+Action: fixed the home layout the screenshots exposed. `#customer-view` is hidden on `/` and shown on `?customer=`; `#customers` now precedes `#overdue`; home order is Total → Search → Customers → Overdue → Add customer → entry form → Import → Shop UPI. Search results and selectable rows are now adjacent and visible; Add entry/picker unchanged. No contract node renamed/removed.
+Evidence: `app/index.html`, `app/app.js`; fresh browser `/` hides the customer view, search `ravi`/`zzz`/clear works above Overdue, `?customer=` shows the view, 375 px no sideways scroll; 57/57.
+Result: PASS (Coder handoff)
+Next: Tester P6.2
+
+## 2026-11-18 11:15 — P6.2 — Tester
+Action: added E2E-P6-04 (home order, hidden customer view, search above Overdue, routes, 375); `TEST-CASES.md` v0.13. RUN-13 **58/58**, no bugs.
+Evidence: `cd tests && npx playwright test` → 58/58 (29.1s), re-run by the Orchestrator; `#customers` before `#overdue`; 8 rows above Overdue; `?customer=` view/not-found; Add entry; 375/375.
+Result: PASS (RUN-13)
+Next: Planner sync + Critic G6.2
+
+## 2026-11-18 11:20 — P6.2 — Planner
+Action: `TRACEABILITY.md` v1.11 and `IMPLEMENTATION-PLAN.md` v1.11 record the home layout and E2E-P6-04; `IMPLEMENTATION-PLAN.md` v1.12 corrects the judges' note evidence to 58/58. No CONTRACT change.
+Evidence: 23 rows, 0 TBD; 23/0/0; 29/29; headers 4/4; note `pending deployment`, 58/58, no OCR claim.
+Result: PASS (docs)
+Next: Critic G6.2
+
+## 2026-11-18 11:30 — P6.2 — Orchestrator — GATE G6.2
+Action: recorded **G6.2 technical PASS** after the user's screenshots exposed the home layout problem. Updated `README.md` local run/test/deploy instructions and current status. Committed/tagged the corrected build as `g6.2`.
+Evidence: `docs/scorecards.md` GATE G6.2; RUN-13 **58/58**; CRITIC-RUN-9 **58/58**; independent CRITIC-G62 **78/78** (home order, hidden/shown customer view, search above Overdue, picker/Add entry, 375); contract 100%; F-02 200-shop green; Vercel PASS; final **100/100** (floor 97 strict B6); B7 0.
+Remaining human steps: deploy `app/` to Vercel, paste the live URL into `IMPLEMENTATION-PLAN.md` §3, approve/submit before **Sun 22 Nov 2026, 10:00 IST**; re-run the suite if `app/` changes.
+Next: awaits human deployment/live URL and submission approval; do not submit automatically.

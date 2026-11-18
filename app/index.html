@@ -27,7 +27,7 @@
   <main class="wrap">
     <p id="storage-msg" class="msg" role="status" aria-live="polite"></p>
 
-    <section id="customer-view" class="card customer-view" aria-labelledby="cust-view-title">
+    <section id="customer-view" class="card customer-view" aria-labelledby="cust-view-title" hidden>
       <h2 class="section-title" id="cust-view-title" data-i18n="customerViewTitle">Customer</h2>
       <p class="cust-name" id="cust-name">Select a customer</p>
       <p class="muted small" id="cust-phone">Open a customer from the list to see their ledger.</p>
@@ -58,17 +58,17 @@
       <p class="empty small search-empty" id="search-empty" data-i18n="searchEmpty" hidden>No customers match your search.</p>
     </section>
 
-    <section id="overdue" class="card" aria-labelledby="overdue-title">
-      <h2 class="section-title" id="overdue-title" data-i18n="overdueTitle">Overdue (30+ days)</h2>
-      <ul id="overdue-list" class="overdue-list"></ul>
-      <p class="empty small" id="overdue-empty" data-i18n="overdueEmpty">No customers overdue right now.</p>
-    </section>
-
     <section class="card" aria-labelledby="customers-title">
       <h2 class="section-title" id="customers-title" data-i18n="customersTitle">Customers</h2>
       <div id="customers" class="customers">
         <p class="empty" id="customers-empty">No customers yet. Add one, or import a shop file.</p>
       </div>
+    </section>
+
+    <section id="overdue" class="card" aria-labelledby="overdue-title">
+      <h2 class="section-title" id="overdue-title" data-i18n="overdueTitle">Overdue (30+ days)</h2>
+      <ul id="overdue-list" class="overdue-list"></ul>
+      <p class="empty small" id="overdue-empty" data-i18n="overdueEmpty">No customers overdue right now.</p>
     </section>
 
     <section class="card" aria-labelledby="new-customer-title">

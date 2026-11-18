@@ -1,11 +1,11 @@
 # TRACEABILITY — Hisaab
 
-Version: 1.10
+Version: 1.11
 Updated: 2026-11-18
 Owner: Planner
-Supersedes: TRACEABILITY.md v1.9
+Supersedes: TRACEABILITY.md v1.10
 
-Rules: every requirement ID from `PRD.md` appears exactly once. Every row has a phase before G0. Selector strings appear verbatim in `CONTRACT.md`. Test case IDs come from `docs/TEST-CASES.md` v0.12 (Tester-owned); each cited case is executed at the phase gate named by that row and case, and the Status column stays `planned` until that gate runs. Every contract selector has at least one case in `TEST-CASES.md`; every test-case cell is filled.
+Rules: every requirement ID from `PRD.md` appears exactly once. Every row has a phase before G0. Selector strings appear verbatim in `CONTRACT.md`. Test case IDs come from `docs/TEST-CASES.md` v0.13 (Tester-owned); each cited case is executed at the phase gate named by that row and case, and the Status column stays `planned` until that gate runs. Every contract selector has at least one case in `TEST-CASES.md`; every test-case cell is filled.
 
 Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean oracle is `C-39`; the P6 full-journey oracle is `N-06`.
 
@@ -14,7 +14,7 @@ Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean or
 | R1 | Add customer | P1 | `[data-customer="<phone>"]`, `[data-balance]`, `#new-name`, `#new-phone`, `#add-customer` | C-24, C-31, E2E-P1-01 | planned |
 | R2 | Add entry (credit/payment) | P1 | `[data-customer="<phone>"]`, `[data-balance]`, `#entries`, `[data-entry-id]`, `[data-amount]`, `#entry-form`, `#entry-type`, `#entry-amount`, `#entry-date`, `#entry-note`, `#entry-save` | C-09, C-12, C-18, C-19, C-25, C-32, U-12, E2E-P1-01, E2E-P1-04, E2E-P1-06, E2E-P6-03 | planned |
 | R3 | Balances and total | P1, P2 | `#total-outstanding`, `[data-balance]`, `#cust-balance` | C-04, C-05, C-06, C-10, C-24, U-01, U-05, U-08, F-01, F-02, E2E-P1-01, E2E-P1-06, E2E-P1-07, E2E-P2-01, E2E-P2-04 | planned |
-| R4 | Customer page, newest first | P1 | `#cust-name`, `#cust-balance`, `#entries`, `[data-entry-id]`, `[data-amount]`, `img[data-shot]`, `a[href="?customer=<phone>"]` | C-17, C-25, C-26, C-27, C-37, U-04, U-14, E2E-P0-02, E2E-P1-03, E2E-P1-07 | planned |
+| R4 | Customer page, newest first | P1 | `#cust-name`, `#cust-balance`, `#entries`, `[data-entry-id]`, `[data-amount]`, `img[data-shot]`, `a[href="?customer=<phone>"]` | C-17, C-25, C-26, C-27, C-37, U-04, U-14, E2E-P0-02, E2E-P1-03, E2E-P1-07, E2E-P6-04 | planned |
 | R5 | Payment screenshot | P3 | `#shot-input`, `img[data-shot]`, `[data-entry-id]` | C-03, C-11, C-16, I-03, I-08, N-03, E2E-P3-02, E2E-P3-03, E2E-P3-04, E2E-P3-05 | planned |
 | R6 | WhatsApp reminder | P3 | `a[data-remind="<phone>"]`, `[data-balance]` | C-07, E2E-P3-01 | planned |
 | R7 | Persistence after reload | P1 | `#total-outstanding`, `[data-customer="<phone>"]`, `[data-balance]`, `#entries` | I-02, I-09, E2E-P1-02, E2E-P1-08, E2E-P2-02, E2E-P3-02 | planned |
@@ -24,7 +24,7 @@ Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean or
 | B1 | Overdue list | P4 | `#overdue`, `[data-overdue="<phone>"]`, `[data-days]` | C-14, C-28, E2E-P4-01 | planned |
 | B2 | Edit/delete with recalculation | P4 | `[data-entry-id]`, `button[data-edit-entry]`, `button[data-delete-entry]`, `[data-amount]`, `#total-outstanding`, `[data-balance]` | C-36, E2E-P4-02 | planned |
 | B3 | CSV export | P4 | `#export-csv` | C-29, E2E-P4-03 | planned |
-| B4 | Search | P4 | `#search`, `[data-customer="<phone>"]` | C-30, E2E-P4-04, E2E-P6-03 | planned |
+| B4 | Search | P4 | `#search`, `[data-customer="<phone>"]` | C-30, E2E-P4-04, E2E-P6-03, E2E-P6-04 | planned |
 | B5 | UPI pay link | P4 | `a[href^="upi://pay?pa="]`, `[data-balance]` | C-35, E2E-P4-05 | planned |
 | B6 | Hindi/Telugu labels | P4 | `#lang-switch`, `#total-outstanding`, `[data-balance]` | C-13, N-06, E2E-P4-06 | planned |
 | B7 | OCR amount | P4 | `#shot-input`, `#entry-amount`, `#entry-save` | C-38, E2E-P3-02, E2E-P3-03, E2E-P3-04, E2E-P3-05, E2E-P4-07 | planned |
@@ -42,4 +42,4 @@ Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean or
 - Every contract selector is claimed above: form ids by R1/R2, import status by R8, customer-view and entry nodes by R4/B2, bonus hooks by B1–B7, machine nodes by R3/N4.
 - B7: `C-38` and `E2E-P4-07` exercise the D5 manual fallback path because the OCR engine is unavailable; B7 is declared failed, not faked, and manual entry remains.
 - P0 cases C-01–C-03 and C-09–C-23, plus C-39 and E2E-P0-01–03, run at G0. Cases C-24–C-38, U-05–U-14, I-04–I-10, E2E-P1-01–08, E2E-P2-01–05, E2E-P3-01–05, E2E-P4-01–07, E2E-P5-01–04, F-01/F-02, N-01–N-04 and N-06 are planned oracles and run at their named phase gates; no P1/P2/P4/P5/P6 case is claimed as executed here.
-- P6 final gate: `E2E-P6-01` (full journey; tagged R1–R10, B1–B6, N1–N4), `E2E-P6-02` (R8/D9 empty-name duplicate warning), `E2E-P6-03` (search empty state and the per-row Add-entry customer picker; tagged R4/B4 and cited for R2 entry creation), `F-02` (200 shops, seed recorded) and the full 57-test regression together exercise R1–R10, B1–B7, N1–N6 end-to-end (B7 via the D5 manual fallback `C-38`/`E2E-P4-07`; N5/N6 via their P1/P3/P0 cases). `F-01`/`F-02` are the hidden-data oracles (50/200 shops, seeds recorded in the Tester's RUN records). The post-G6 UX fix (search empty state, per-row Add entry, cache-busted assets) changed no contract node.
+- P6 final gate: `E2E-P6-01` (full journey; tagged R1–R10, B1–B6, N1–N4), `E2E-P6-02` (R8/D9 empty-name duplicate warning), `E2E-P6-03` (search empty state and the per-row Add-entry customer picker; tagged R4/B4 and cited for R2 entry creation), `E2E-P6-04` (home layout and customer-view routing; tagged R4/R9/B1 and cited for B4 search adjacency), `F-02` (200 shops, seed recorded) and the full 58-test regression together exercise R1–R10, B1–B7, N1–N6 end-to-end (B7 via the D5 manual fallback `C-38`/`E2E-P4-07`; N5/N6 via their P1/P3/P0 cases). `F-01`/`F-02` are the hidden-data oracles (50/200 shops, seeds recorded in the Tester's RUN records). The post-G6 UX fix (search empty state, per-row Add entry, cache-busted assets) and the post-G6.2 layout fix (customer view only on `?customer=`; home order total → search → customers → overdue → add customer → entry form → import → shop UPI) changed no contract node.
