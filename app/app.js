@@ -67,12 +67,14 @@
       ownerNameLabel: 'Owner name',
       ownerAddressLabel: 'Shop address',
       yourShop: 'Your shop',
+      importedShopPrefix: 'Imported shop: ',
       demoUpiBadge: 'Demo UPI ID',
       shopUpiTitle: 'Shop UPI ID',
       shopUpiLabel: 'Your UPI ID (for pay links)',
       shopUpiPlaceholder: 'yourname@bank',
       upiDemoNote: 'Demo UPI ID — set your shop UPI ID',
       payUpi: 'Pay via UPI',
+      upiOpenHint: 'Opening UPI app. If nothing opens, pay to ',
       edit: 'Edit',
       delete: 'Delete',
       remind: 'WhatsApp reminder',
@@ -160,12 +162,14 @@
       ownerNameLabel: 'मालिक का नाम',
       ownerAddressLabel: 'दुकान का पता',
       yourShop: 'आपकी दुकान',
+      importedShopPrefix: 'आयातित दुकान: ',
       demoUpiBadge: 'डेमो UPI ID',
       shopUpiTitle: 'दुकान UPI ID',
       shopUpiLabel: 'आपकी UPI ID (भुगतान लिंक के लिए)',
       shopUpiPlaceholder: 'yourname@bank',
       upiDemoNote: 'डेमो UPI ID — अपनी दुकान की UPI ID सेट करें',
       payUpi: 'UPI से भुगतान करें',
+      upiOpenHint: 'UPI ऐप खुल रहा है। अगर न खुले तो यहाँ भुगतान करें: ',
       edit: 'संपादित करें',
       delete: 'हटाएँ',
       remind: 'WhatsApp रिमाइंडर',
@@ -253,12 +257,14 @@
       ownerNameLabel: 'యజమాని పేరు',
       ownerAddressLabel: 'షాప్ చిరునామా',
       yourShop: 'మీ షాప్',
+      importedShopPrefix: 'దిగుమతి చేసిన షాప్: ',
       demoUpiBadge: 'డెమో UPI ID',
       shopUpiTitle: 'షాప్ UPI ID',
       shopUpiLabel: 'మీ UPI ID (చెల్లింపు లింక్‌ల కోసం)',
       shopUpiPlaceholder: 'yourname@bank',
       upiDemoNote: 'డెమో UPI ID — మీ షాప్ UPI ID సెట్ చేయండి',
       payUpi: 'UPI ద్వారా చెల్లించండి',
+      upiOpenHint: 'UPI యాప్ తెరుస్తోంది. తెరవకపోతే ఇక్కడ చెల్లించండి: ',
       edit: 'సవరించండి',
       delete: 'తొలగించండి',
       remind: 'WhatsApp రిమైండర్',
@@ -1784,6 +1790,26 @@
     }
   }
 
+  function renderLedgerShop() {
+    var nodes = document.querySelectorAll('.imported-shop-display');
+    if (!nodes.length) {
+      return;
+    }
+    var ledgerShop = typeof state.shop === 'string' ? state.shop.trim() : '';
+    var active = currentStore();
+    var activeName = active ? String(active.name || '').trim() : '';
+    var show = ledgerShop !== '' && ledgerShop.toLowerCase() !== activeName.toLowerCase();
+    for (var index = 0; index < nodes.length; index += 1) {
+      if (show) {
+        nodes[index].textContent = t('importedShopPrefix') + ledgerShop;
+        nodes[index].removeAttribute('hidden');
+      } else {
+        nodes[index].textContent = '';
+        nodes[index].setAttribute('hidden', 'hidden');
+      }
+    }
+  }
+
   function profilePayload(includeLogo) {
     return JSON.stringify({
       version: 1,
@@ -2895,7 +2921,7 @@
       if (days === null || days < OVERDUE_DAYS) {
         continue;
       }
-      rows.push({ customer: customer, days: days });
+      rows.push({ customer: customer, days: days, balance: balance });
     }
     rows.sort(function (left, right) {
       if (left.days !== right.days) {
@@ -2925,6 +2951,9 @@
       daysNode.setAttribute('data-days', String(overdue.days));
       row.appendChild(daysNode);
       row.appendChild(makeElement('span', 'overdue-days-text', daysSinceText(overdue.days)));
+      var reminderLink = makeElement('a', 'btn ghost overdue-remind', t('remind'));
+      reminderLink.setAttribute('href', buildReminderHref(overdue.customer, overdue.balance));
+      row.appendChild(reminderLink);
       fragment.appendChild(row);
     }
     list.appendChild(fragment);
@@ -3042,6 +3071,7 @@
     renderEntryCustomerSelect();
     renderUpiState();
     renderProfile();
+    renderLedgerShop();
     updateEditModeUi();
     syncLayoutOffsets();
   }
@@ -4377,6 +4407,18 @@
         if (addEntryButton) {
           event.preventDefault();
           startEntryFor(addEntryButton.getAttribute('data-add-entry-for'));
+          return;
+        }
+        var payLink = event.target.closest('a[data-upi-pay]');
+        if (payLink) {
+          var payRow = payLink.closest('[data-customer]');
+          var payBalance = payRow ? payRow.querySelector('[data-balance]') : null;
+          var payAmount = payBalance ? String(payBalance.textContent || '0').trim() : '0';
+          setMessage(
+            byId('pay-msg'),
+            t('upiOpenHint') + (shopUpi || DEMO_UPI) + ' — Rs ' + payAmount + '.',
+            false
+          );
           return;
         }
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {

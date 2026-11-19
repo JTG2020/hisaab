@@ -137,6 +137,16 @@ a {
   overflow-wrap: anywhere;
 }
 
+.imported-shop-display {
+  font-size: 12px;
+  color: var(--brand-muted);
+  overflow-wrap: anywhere;
+}
+
+.imported-shop-display[hidden] {
+  display: none;
+}
+
 .shop-profile-line {
   font-size: 12px;
   color: var(--brand-muted);
@@ -934,6 +944,12 @@ input[type="file"]::file-selector-button {
   color: var(--muted);
 }
 
+.overdue-remind {
+  flex: 0 0 auto;
+  justify-self: start;
+  padding: 8px 14px;
+}
+
 .customer-back {
   margin: 0;
 }
@@ -1049,5 +1065,10 @@ input[type="file"]::file-selector-button {
 
   .overdue-days-text {
     grid-column: 1 / -1;
+  }
+
+  .overdue-remind {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
