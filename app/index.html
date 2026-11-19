@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Hisaab — Shop ledger</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css?v=6.4">
+  <link rel="stylesheet" href="./styles.css?v=6.5">
   <style id="brand-theme"></style>
 </head>
 <body>
@@ -19,6 +19,7 @@
       <img id="shop-logo" class="shop-logo" alt="" hidden>
       <div class="shop-profile-text">
         <span class="active-shop-display">My Store</span>
+        <span class="imported-shop-display" hidden></span>
         <span id="owner-display-name" class="shop-profile-name">Your shop</span>
         <span id="owner-display-address" class="shop-profile-line"></span>
         <span id="owner-display-upi" class="shop-profile-line">Demo UPI ID</span>
@@ -152,6 +153,7 @@
       <div id="customers" class="customers">
         <p class="empty" id="customers-empty">No customers yet. Add one, or import a shop file.</p>
       </div>
+      <p class="msg pay-msg" id="pay-msg" role="status" aria-live="polite"></p>
     </section>
 
     <section id="overdue" class="card" aria-labelledby="overdue-title">
@@ -253,6 +255,6 @@
   </main>
 
   <script src="./vendor/d3.min.js?v=6.4" defer></script>
-  <script src="./app.js?v=6.4" defer></script>
+  <script src="./app.js?v=6.5" defer></script>
 </body>
 </html>
