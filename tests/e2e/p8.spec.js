@@ -261,7 +261,7 @@ test('E2E-P8-05 import only active ledger and preserves portfolio/profile', asyn
   await page.fill('#store-name', 'B');
   await page.click('#store-create');
   await page.fill('#shop-upi', 'b@upi');
-  await page.dispatchEvent('#shop-upi', 'change');
+  await page.click('#store-rename');
   await importShop(page, { shop: 'Should Not Rename B', customers: [{ name: 'B', phone: '9000000606' }], entries: [{ phone: '9000000606', type: 'credit', amount: 606, date: '2026-10-02' }] });
   await page.reload();
   await expect(page.locator('#active-store-name')).toHaveText('B');

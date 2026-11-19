@@ -94,7 +94,7 @@ The suite covers the contract selector smoke, the sample import (`11820`, 8 rows
 
 ## Deploy
 
-Deploy `app/` as a static site. No build step, dependency install, environment variable, serverless function, rewrite, or `vercel.json` is required.
+Deploy `app/` as a static site. No build step, dependency install, environment variable, serverless function, rewrite, or `vercel.json` is required. `app/vendor/d3.min.js` (d3 7.9.2) is a vendored static asset used by the customer balance-history chart; commit it with `app/` so Vercel serves it.
 
 ### Deploy with the Vercel dashboard
 
@@ -113,4 +113,4 @@ This is a static, browser-local app: shop ledgers and profiles are saved in that
 
 ## Current status
 
-All technical gates G0–G7 are green; the final suite is 63/63 and the final model score is 100/100 (floor 97 under the strict B6-placeholder reading). The P7 owner extras (file/CSV import, UPI in the reminder, shop profile/logo/brand) are non-scored additions; the frozen contract and the scored 60/30/10 blocks are unchanged.
+All technical gates G0–G7 are green; the P12 shop-profile draft/Update behavior and the customer balance-history chart (d3, vendored) are merged, and the full suite is 112/112 locally. The scored 60/30/10 blocks are unchanged and the live score stays 100/100; the G12 Critic scorecard and a Vercel redeploy are pending. The P7 owner extras (file/CSV import, UPI in the reminder, shop profile/logo/brand) are non-scored additions.

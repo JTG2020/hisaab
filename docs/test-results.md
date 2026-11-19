@@ -1,9 +1,9 @@
 # TEST RESULTS — Hisaab
 
-Version: 0.21
-Updated: 2026-11-18
+Version: 0.22
+Updated: 2026-11-19
 Owner: Tester
-Supersedes: test-results.md v0.20
+Supersedes: test-results.md v0.21
 
 Append-only. One entry per run. Never edit a past run; add a new one. Cite run IDs in `scorecards.md`.
 
@@ -1332,3 +1332,19 @@ F-02 seed 20261118 datasets 200 :: 0 mismatches
 Bugs filed: none | Bugs closed: none.
 Verdict: **P11 TEST SUITE GREEN**. G11 is not claimed; Critic/Orchestrator phase-gate evidence remains required.
 Notes: RUN-1 through RUN-21 remain preserved unchanged. TEST-CASES.md is at v0.22 with C-60 and E2E-P11-01–02; test-results is at v0.21. No app, Planner-owned doc, README, scorecard, worklog, or TRACEABILITY file was changed in this Tester run. P11 test code changed only `tests/e2e/p11.spec.js`; no P0–P10 assertion was weakened or skipped.
+
+### RUN-23 | 2026-11-19 01:59 EST | phase P12 | merge + P12 reconciliation verification
+Command: `HISAAB_BASE_URL=http://localhost:4173 npx playwright test` (merged `app/` from the aistudio 3-way merge, d3 7.9.2 vendored at `app/vendor/d3.min.js`)
+- Merged the aistudio customer balance-history chart and nav-section highlighting into `app/` with zero conflict markers; contract machine nodes and all scoring selectors were unchanged.
+- Reconciled ten stale P8–P10 oracles that still encoded autosave behavior superseded by CONTRACT §10.7 (P12): E2E-P4-05, E2E-P7-03, E2E-P7-04, C-45 via the shared profile helper, E2E-P8-04/05, I-12, C-59, E2E-P10-03, and C-23's deployable-shape whitelist for `app/vendor`.
+- Authored and executed the planned P12 cases: `C-61`, `E2E-P12-01`, `E2E-P12-02`, `E2E-P12-03` (draft isolation, atomic Update/blank clear/logo preserve, duplicate and invalid-logo rejection, Create-from-draft isolation, dirty-switch and P9 activation cancel/confirm, en/hi/te copy, unchanged delete confirmation).
+Evidence:
+```
+$ cd tests && npx playwright test
+F-01 seed 20261117 datasets 50 :: 0 mismatches
+F-02 seed 20261118 datasets 200 :: 0 mismatches
+112 passed (46.5s)
+```
+Bugs filed: none | Bugs closed: none.
+Verdict: **FULL SUITE GREEN (112/112)**. G12 is not claimed; Critic/Orchestrator gate evidence and a full re-score remain required.
+Notes: RUN-1 through RUN-22 remain preserved unchanged. TEST-CASES.md is at v0.24; test-results is at v0.22. No assertion threshold, selector, or exact-value oracle was weakened; the changed expectations follow the human-approved P12 contract text.

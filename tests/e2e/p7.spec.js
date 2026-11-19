@@ -288,7 +288,7 @@ test('E2E-P7-03 reminder message carries name, Rs balance and the exact UPI URI;
 
   // The owner UPI replaces the default in both the anchor and the reminder message.
   await page.fill('#shop-upi', 'myshop@bank');
-  await page.dispatchEvent('#shop-upi', 'change');
+  await page.click('#store-rename');
   for (const item of cases) {
     const reminder = await readReminder(item.phone);
     expect(reminder.text).toContain('upi://pay?pa=myshop@bank&am=' + item.amount + '&cu=INR&tn=' + encodeURIComponent(item.name));
@@ -312,8 +312,10 @@ test('E2E-P7-04 profile and logo: header, persistence, brand contrast light/dark
   const defaultRatios = await page.evaluate(contrastFor, ['#import-go']);
   expect(defaultRatios[0].ratio, 'default accent text contrast').toBeGreaterThanOrEqual(4.5);
 
-  // Upload a strongly coloured logo.
+  // Upload a strongly coloured logo. P12: the selected file stays a draft until Update.
   await page.setInputFiles('#logo-input', { name: 'logo.png', mimeType: 'image/png', buffer: await makeLogo(page, '#B0006A') });
+  await expect(page.locator('#shop-logo')).toBeHidden();
+  await page.click('#store-rename');
   await expect(page.locator('#shop-logo')).toBeVisible({ timeout: 20000 });
   const logo = await page.evaluate(() => {
     const image = document.getElementById('shop-logo');
@@ -327,7 +329,7 @@ test('E2E-P7-04 profile and logo: header, persistence, brand contrast light/dark
   await page.fill('#owner-name', 'Sharma Store');
   await page.fill('#owner-address', '12 Market Road');
   await page.fill('#shop-upi', 'profile@bank');
-  await page.dispatchEvent('#shop-upi', 'change');
+  await page.click('#store-rename');
 
   await expect(page.locator('#owner-display-name')).toHaveText('Sharma Store');
   await expect(page.locator('#owner-display-address')).toHaveText('12 Market Road');
@@ -369,8 +371,9 @@ test('E2E-P7-04 profile and logo: header, persistence, brand contrast light/dark
     };
   });
   await page.setInputFiles('#logo-input', { name: 'logo2.png', mimeType: 'image/png', buffer: await makeLogo(page, '#0055CC') });
-  await expect(page.locator('#profile-msg')).toBeVisible({ timeout: 20000 });
-  expect(((await page.locator('#profile-msg').textContent()) || '').trim().length).toBeGreaterThan(0);
+  await page.click('#store-rename');
+  await expect(page.locator('#store-msg')).toHaveText('Could not save shop changes.', { timeout: 20000 });
+  expect(((await page.locator('#store-msg').textContent()) || '').trim().length).toBeGreaterThan(0);
   const secondLogo = await page.locator('#shop-logo').evaluate((image) => image.getAttribute('src'));
   expect(secondLogo.startsWith('data:image/')).toBe(true);
   expect(secondLogo).not.toBe(logo.src);

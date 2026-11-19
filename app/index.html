@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Hisaab — Shop ledger</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css?v=6.2">
+  <link rel="stylesheet" href="./styles.css?v=6.4">
   <style id="brand-theme"></style>
 </head>
 <body>
@@ -112,6 +112,14 @@
       <div class="total-row">
         <div id="cust-balance" class="total" data-balance="0">0</div>
         <span class="human" id="cust-balance-human">Rs 0</span>
+      </div>
+      <div id="cust-chart-section" class="cust-chart-section" hidden>
+        <div class="cust-chart-header">
+          <h3 class="sub-title cust-chart-title" id="cust-chart-title" data-i18n="balanceHistoryTitle">Balance history</h3>
+          <span class="small muted cust-chart-range" id="cust-chart-range"></span>
+        </div>
+        <div id="cust-chart" class="cust-chart" role="img" aria-labelledby="cust-chart-title"></div>
+        <div id="cust-chart-tooltip" class="cust-chart-tooltip" hidden></div>
       </div>
       <h3 class="sub-title" data-i18n="entriesTitle">Entries</h3>
       <ul id="entries" class="entries"></ul>
@@ -244,6 +252,7 @@
     </section>
   </main>
 
-  <script src="./app.js?v=6.2" defer></script>
+  <script src="./vendor/d3.min.js?v=6.4" defer></script>
+  <script src="./app.js?v=6.4" defer></script>
 </body>
 </html>

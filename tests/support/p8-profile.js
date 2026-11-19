@@ -11,6 +11,7 @@ async function setProfile(page, profile) {
     mimeType: 'image/png',
     buffer: await makeLogo(page, profile.logoColor),
   });
+  await page.click('#store-rename');
   await expect(page.locator('#shop-logo')).toBeVisible({ timeout: 20000 });
   await expect.poll(() => page.locator('#shop-logo').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
   return readVisibleProfile(page);

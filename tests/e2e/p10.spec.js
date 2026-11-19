@@ -5,9 +5,9 @@ const { test, expect } = require('@playwright/test');
 const copy = {
   en: {
     heading: 'Shop Manager', active: 'Active shop', select: 'Select Shop', name: 'Shop name',
-    create: 'Create Shop', rename: 'Rename Shop', delete: 'Delete Shop',
+    create: 'Create Shop', rename: 'Update Shop', delete: 'Delete Shop',
     prompt: 'Delete this shop?', confirm: 'Confirm delete', cancel: 'Cancel',
-    created: 'Shop created.', renamed: 'Shop renamed.', deleted: 'Shop deleted.',
+    created: 'Shop created.', renamed: 'Shop profile updated.', deleted: 'Shop deleted.',
     blank: 'Enter a shop name.', tooLong: 'Shop name must be 60 characters or fewer.',
     duplicate: 'A shop with this name already exists.',
     last: 'The last shop cannot be deleted.',
@@ -15,9 +15,9 @@ const copy = {
   },
   hi: {
     heading: 'दुकान प्रबंधन', active: 'सक्रिय दुकान', select: 'दुकान चुनें', name: 'दुकान का नाम',
-    create: 'दुकान बनाएँ', rename: 'दुकान का नाम बदलें', delete: 'दुकान हटाएँ',
+    create: 'दुकान बनाएँ', rename: 'दुकान अपडेट करें', delete: 'दुकान हटाएँ',
     prompt: 'क्या इस दुकान को हटाएँ?', confirm: 'हटाने की पुष्टि करें', cancel: 'रद्द करें',
-    created: 'दुकान बनाई गई।', renamed: 'दुकान का नाम बदला गया।', deleted: 'दुकान हटाई गई।',
+    created: 'दुकान बनाई गई।', renamed: 'दुकान की प्रोफ़ाइल अपडेट की गई।', deleted: 'दुकान हटाई गई।',
     blank: 'दुकान का नाम दर्ज करें।', tooLong: 'दुकान का नाम 60 अक्षरों से अधिक नहीं होना चाहिए।',
     duplicate: 'इस नाम की दुकान पहले से मौजूद है।',
     last: 'आख़िरी दुकान नहीं हटाई जा सकती।',
@@ -25,9 +25,9 @@ const copy = {
   },
   te: {
     heading: 'దుకాణం నిర్వహణ', active: 'ప్రస్తుత దుకాణం', select: 'దుకాణాన్ని ఎంచుకోండి', name: 'దుకాణం పేరు',
-    create: 'దుకాణాన్ని సృష్టించండి', rename: 'దుకాణం పేరు మార్చండి', delete: 'దుకాణాన్ని తొలగించండి',
+    create: 'దుకాణాన్ని సృష్టించండి', rename: 'దుకాణాన్ని నవీకరించండి', delete: 'దుకాణాన్ని తొలగించండి',
     prompt: 'ఈ దుకాణాన్ని తొలగించాలా?', confirm: 'తొలగింపును నిర్ధారించండి', cancel: 'రద్దు చేయండి',
-    created: 'దుకాణం సృష్టించబడింది.', renamed: 'దుకాణం పేరు మార్చబడింది.', deleted: 'దుకాణం తొలగించబడింది.',
+    created: 'దుకాణం సృష్టించబడింది.', renamed: 'దుకాణం ప్రొఫైల్ నవీకరించబడింది.', deleted: 'దుకాణం తొలగించబడింది.',
     blank: 'దుకాణం పేరు నమోదు చేయండి.', tooLong: 'దుకాణం పేరు 60 అక్షరాలకు మించకూడదు.',
     duplicate: 'ఈ పేరుతో దుకాణం ఇప్పటికే ఉంది.',
     last: 'చివరి దుకాణాన్ని తొలగించలేరు.',
@@ -151,7 +151,7 @@ test('E2E-P10-02 top selector bottom action group and top-left owner display', a
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
-test('E2E-P10-03 manual blank profile autosave and reload isolation', async ({ page }) => {
+test('E2E-P10-03 manual blank profile draft isolation and explicit Update', async ({ page }) => {
   await page.goto('/');
   await importShop(page, { shop: 'A', customers: [{ name: 'A User', phone: '9000001001' }], entries: [{ phone: '9000001001', type: 'credit', amount: 101, date: '2026-10-01' }] });
   await page.fill('#store-name', 'Manual B');
@@ -163,6 +163,18 @@ test('E2E-P10-03 manual blank profile autosave and reload isolation', async ({ p
   await page.fill('#owner-name', 'B Owner');
   await page.fill('#owner-address', 'B Address');
   await page.fill('#shop-upi', 'b@upi');
+  // P12: draft edits never mutate the header or generated links before Update.
+  await expect(page.locator('#owner-display-name')).not.toHaveText('B Owner');
+  await expect(page.locator('#owner-display-address')).not.toHaveText('B Address');
+  await expect(page.locator('#owner-display-upi')).not.toHaveText('b@upi');
+  await page.reload();
+  await expect(page.locator('#active-store-name')).toHaveText('Manual B');
+  await expect(page.locator('#owner-display-name')).not.toHaveText('B Owner');
+  await expect(page.locator('#owner-name')).toHaveValue('');
+  await page.fill('#owner-name', 'B Owner');
+  await page.fill('#owner-address', 'B Address');
+  await page.fill('#shop-upi', 'b@upi');
+  await page.click('#store-rename');
   await expect(page.locator('#owner-display-name')).toHaveText('B Owner');
   await expect(page.locator('#owner-display-address')).toHaveText('B Address');
   await expect(page.locator('#owner-display-upi')).toHaveText('b@upi');

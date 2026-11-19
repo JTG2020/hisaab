@@ -24,6 +24,9 @@
       navMore: 'More',
       customerViewTitle: 'Customer',
       balanceLabel: 'Balance (Rs)',
+      balanceHistoryTitle: 'Balance history',
+      chartTooltipBalance: 'Balance',
+      chartEmpty: 'Add an entry to see the balance trend.',
       entriesTitle: 'Entries',
       noEntriesYet: 'No entries yet.',
       backAll: 'All customers',
@@ -114,6 +117,9 @@
       navMore: 'और',
       customerViewTitle: 'ग्राहक',
       balanceLabel: 'बाकी (रु.)',
+      balanceHistoryTitle: 'बाकी का इतिहास',
+      chartTooltipBalance: 'बाकी',
+      chartEmpty: 'बाकी का रुझान देखने के लिए एक प्रविष्टि जोड़ें।',
       entriesTitle: 'प्रविष्टियाँ',
       noEntriesYet: 'अभी कोई प्रविष्टि नहीं।',
       backAll: 'सभी ग्राहक',
@@ -204,6 +210,9 @@
       navMore: 'మరిన్ని',
       customerViewTitle: 'కస్టమర్',
       balanceLabel: 'బాకీ (రూ.)',
+      balanceHistoryTitle: 'బాకీ చరిత్ర',
+      chartTooltipBalance: 'బాకీ',
+      chartEmpty: 'బాకీ ధోరణిని చూడటానికి ఒక నమోదును జోడించండి.',
       entriesTitle: 'నమోదులు',
       noEntriesYet: 'ఇంకా నమోదులు లేవు.',
       backAll: 'అందరు కస్టమర్లు',
@@ -2449,6 +2458,350 @@
         emptyNode.setAttribute('hidden', 'hidden');
       }
     }
+
+    renderCustomerChart(customer, entries);
+  }
+
+  function parseIsoLocal(iso) {
+    var parts = String(iso || '').split('-');
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+
+  function buildBalanceHistory(entriesNewestFirst) {
+    if (!entriesNewestFirst || !entriesNewestFirst.length) {
+      return [];
+    }
+    var chronological = entriesNewestFirst.slice().reverse();
+    var runningPaise = 0;
+    var series = [];
+    for (var i = 0; i < chronological.length; i += 1) {
+      var entry = chronological[i];
+      var isPayment = entry.type === 'payment';
+      var delta = isPayment ? -entry.amountPaise : entry.amountPaise;
+      runningPaise += delta;
+      if (!isIsoShaped(entry.date) || !isValidCalendarDate(entry.date)) {
+        continue;
+      }
+      var last = series.length ? series[series.length - 1] : null;
+      if (last && last.dateStr === entry.date) {
+        last.balancePaise = runningPaise;
+        if (isPayment) {
+          last.paymentPaise += entry.amountPaise;
+        } else {
+          last.creditPaise += entry.amountPaise;
+        }
+        last.count += 1;
+      } else {
+        series.push({
+          dateStr: entry.date,
+          dateObj: parseIsoLocal(entry.date),
+          balancePaise: runningPaise,
+          creditPaise: isPayment ? 0 : entry.amountPaise,
+          paymentPaise: isPayment ? entry.amountPaise : 0,
+          count: 1
+        });
+      }
+    }
+    return series;
+  }
+
+  function formatChartAxisTick(rupeesValue) {
+    var paise = Math.round(Number(rupeesValue) * 100);
+    if (!paise) {
+      return '0';
+    }
+    var parts = splitPaise(paise);
+    var out = groupDigits(parts.rupees);
+    if (parts.paise !== '00') {
+      out += '.' + parts.paise;
+    }
+    return (parts.negative ? '-' : '') + out;
+  }
+
+  function renderCustomerChart(customer, entriesNewestFirst) {
+    var section = byId('cust-chart-section');
+    var container = byId('cust-chart');
+    var rangeNode = byId('cust-chart-range');
+    var tooltip = byId('cust-chart-tooltip');
+    if (!section || !container) {
+      return;
+    }
+    if (tooltip) {
+      tooltip.setAttribute('hidden', 'hidden');
+      tooltip.textContent = '';
+    }
+    container.textContent = '';
+
+    var d3 = window.d3;
+    if (!customer || !d3) {
+      section.setAttribute('hidden', 'hidden');
+      if (rangeNode) {
+        rangeNode.textContent = '';
+      }
+      return;
+    }
+
+    var series = buildBalanceHistory(entriesNewestFirst);
+    section.removeAttribute('hidden');
+    if (!series.length) {
+      if (rangeNode) {
+        rangeNode.textContent = '';
+      }
+      container.appendChild(makeElement('p', 'empty small', t('chartEmpty')));
+      return;
+    }
+
+    if (rangeNode) {
+      rangeNode.textContent =
+        series.length === 1
+          ? series[0].dateStr
+          : series[0].dateStr + ' \u2013 ' + series[series.length - 1].dateStr;
+    }
+
+    var measuredWidth = container.clientWidth || 300;
+    var width = Math.max(240, Math.min(680, measuredWidth));
+    var height = 190;
+
+    var valuesRupees = series.map(function (d) {
+      return d.balancePaise / 100;
+    });
+    var rawMin = d3.min(valuesRupees);
+    var rawMax = d3.max(valuesRupees);
+    var yMin = Math.min(0, rawMin);
+    var yMax = Math.max(0, rawMax);
+    if (yMin === yMax) {
+      yMin = -10;
+      yMax = 10;
+    } else {
+      var span = yMax - yMin;
+      if (rawMin < 0) {
+        yMin -= span * 0.1;
+      }
+      if (rawMax > 0) {
+        yMax += span * 0.12;
+      }
+    }
+
+    var yScaleTemp = d3.scaleLinear().domain([yMin, yMax]).nice(4);
+    var sampleTicks = yScaleTemp.ticks(4);
+    var maxTickChars = 1;
+    for (var ti = 0; ti < sampleTicks.length; ti += 1) {
+      var len = formatChartAxisTick(sampleTicks[ti]).length;
+      if (len > maxTickChars) {
+        maxTickChars = len;
+      }
+    }
+    var marginLeft = Math.max(38, Math.min(72, maxTickChars * 7 + 14));
+    var margin = { top: 12, right: 14, bottom: 26, left: marginLeft };
+    var innerW = Math.max(120, width - margin.left - margin.right);
+    var innerH = Math.max(80, height - margin.top - margin.bottom);
+
+    var xDomain;
+    if (series.length === 1) {
+      xDomain = [
+        d3.timeDay.offset(series[0].dateObj, -1),
+        d3.timeDay.offset(series[0].dateObj, 1)
+      ];
+    } else {
+      xDomain = [series[0].dateObj, series[series.length - 1].dateObj];
+    }
+
+    var xScale = d3.scaleTime().domain(xDomain).range([0, innerW]);
+    var yScale = d3.scaleLinear().domain([yMin, yMax]).nice(4).range([innerH, 0]);
+
+    var svg = d3
+      .select(container)
+      .append('svg')
+      .attr('class', 'cust-chart-svg')
+      .attr('viewBox', '0 0 ' + width + ' ' + height)
+      .attr('width', width)
+      .attr('height', height)
+      .attr('aria-hidden', 'true');
+
+    var g = svg
+      .append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+    g.append('g')
+      .attr('class', 'cust-chart-grid')
+      .call(
+        d3
+          .axisLeft(yScale)
+          .ticks(4)
+          .tickSize(-innerW)
+          .tickFormat('')
+      );
+
+    var yDom = yScale.domain();
+    if (yDom[0] <= 0 && yDom[1] >= 0) {
+      g.append('line')
+        .attr('class', 'cust-chart-zero')
+        .attr('x1', 0)
+        .attr('x2', innerW)
+        .attr('y1', yScale(0))
+        .attr('y2', yScale(0));
+    }
+
+    var spanDays =
+      series.length > 1
+        ? (series[series.length - 1].dateObj - series[0].dateObj) / 86400000
+        : 0;
+    var xTickCount = innerW < 320 ? 3 : 5;
+    var xFormat = spanDays > 330 ? d3.timeFormat('%b %y') : d3.timeFormat('%d %b');
+    var xAxis = d3.axisBottom(xScale).ticks(xTickCount).tickFormat(xFormat);
+    if (series.length === 1) {
+      xAxis.tickValues([series[0].dateObj]);
+    }
+
+    g.append('g')
+      .attr('class', 'cust-chart-axis cust-chart-axis-x')
+      .attr('transform', 'translate(0,' + innerH + ')')
+      .call(xAxis);
+
+    g.append('g')
+      .attr('class', 'cust-chart-axis cust-chart-axis-y')
+      .call(d3.axisLeft(yScale).ticks(4).tickFormat(formatChartAxisTick));
+
+    var baselineY = yScale(Math.max(yDom[0], Math.min(yDom[1], 0)));
+
+    if (series.length >= 2) {
+      var areaGen = d3
+        .area()
+        .x(function (d) {
+          return xScale(d.dateObj);
+        })
+        .y0(baselineY)
+        .y1(function (d) {
+          return yScale(d.balancePaise / 100);
+        })
+        .curve(d3.curveLinear);
+
+      var lineGen = d3
+        .line()
+        .x(function (d) {
+          return xScale(d.dateObj);
+        })
+        .y(function (d) {
+          return yScale(d.balancePaise / 100);
+        })
+        .curve(d3.curveLinear);
+
+      g.append('path')
+        .datum(series)
+        .attr('class', 'cust-chart-area')
+        .attr('d', areaGen);
+
+      g.append('path')
+        .datum(series)
+        .attr('class', 'cust-chart-line')
+        .attr('d', lineGen);
+    }
+
+    var crosshair = g
+      .append('line')
+      .attr('class', 'cust-chart-crosshair')
+      .attr('y1', 0)
+      .attr('y2', innerH)
+      .style('display', 'none');
+
+    var baseRadius = series.length > 24 ? 2.5 : 3.5;
+    var dots = g
+      .selectAll('.cust-chart-dot')
+      .data(series)
+      .enter()
+      .append('circle')
+      .attr('class', 'cust-chart-dot')
+      .attr('cx', function (d) {
+        return xScale(d.dateObj);
+      })
+      .attr('cy', function (d) {
+        return yScale(d.balancePaise / 100);
+      })
+      .attr('r', baseRadius);
+
+    var bisectDate = d3.bisector(function (d) {
+      return d.dateObj;
+    }).left;
+
+    function hideHover() {
+      crosshair.style('display', 'none');
+      dots.classed('is-active', false).attr('r', baseRadius);
+      if (tooltip) {
+        tooltip.setAttribute('hidden', 'hidden');
+      }
+    }
+
+    function showPoint(point) {
+      if (!point) {
+        hideHover();
+        return;
+      }
+      var px = xScale(point.dateObj);
+      crosshair.style('display', null).attr('x1', px).attr('x2', px);
+      dots
+        .classed('is-active', function (d) {
+          return d === point;
+        })
+        .attr('r', function (d) {
+          return d === point ? 5.5 : baseRadius;
+        });
+
+      if (!tooltip) {
+        return;
+      }
+      tooltip.textContent = '';
+      tooltip.appendChild(makeElement('div', 'cust-chart-tooltip-date', point.dateStr));
+      tooltip.appendChild(
+        makeElement(
+          'div',
+          'cust-chart-tooltip-bal',
+          t('chartTooltipBalance') + ': ' + humanMoney(point.balancePaise)
+        )
+      );
+      var parts = [];
+      if (point.creditPaise > 0) {
+        parts.push(t('credit') + ' +' + humanMoney(point.creditPaise));
+      }
+      if (point.paymentPaise > 0) {
+        parts.push(t('payment') + ' -' + humanMoney(point.paymentPaise));
+      }
+      if (parts.length) {
+        tooltip.appendChild(makeElement('div', 'cust-chart-tooltip-meta', parts.join(' \u00b7 ')));
+      }
+      tooltip.removeAttribute('hidden');
+
+      var sectionW = section.clientWidth || width;
+      var tipW = tooltip.offsetWidth || 160;
+      var anchorX = margin.left + px + 12;
+      var leftPos = anchorX + 10;
+      if (leftPos + tipW > sectionW - 8) {
+        leftPos = anchorX - tipW - 10;
+      }
+      if (leftPos < 8) {
+        leftPos = 8;
+      }
+      tooltip.style.left = Math.round(leftPos) + 'px';
+    }
+
+    function handlePointer(event) {
+      var coords = d3.pointer(event, g.node());
+      var x0 = xScale.invert(coords[0]);
+      var idx = bisectDate(series, x0, 1);
+      var d0 = series[idx - 1];
+      var d1 = series[idx];
+      var chosen = !d1 ? d0 : !d0 ? d1 : x0 - d0.dateObj > d1.dateObj - x0 ? d1 : d0;
+      showPoint(chosen);
+    }
+
+    g.append('rect')
+      .attr('class', 'cust-chart-overlay')
+      .attr('width', innerW)
+      .attr('height', innerH)
+      .on('mouseenter', handlePointer)
+      .on('mousemove', handlePointer)
+      .on('touchstart', handlePointer, { passive: true })
+      .on('touchmove', handlePointer, { passive: true })
+      .on('mouseleave', hideHover);
   }
 
   function renderEntryCustomerSelect() {
@@ -2690,6 +3043,7 @@
     renderUpiState();
     renderProfile();
     updateEditModeUi();
+    syncLayoutOffsets();
   }
 
   function setMessage(element, text, isError) {
@@ -4056,6 +4410,154 @@
       }
       renderAll();
     });
+
+    var chartResizeTimer = null;
+    window.addEventListener('resize', function () {
+      syncLayoutOffsets();
+      if (STATE.customerPhone === null) {
+        return;
+      }
+      if (chartResizeTimer) {
+        window.clearTimeout(chartResizeTimer);
+      }
+      chartResizeTimer = window.setTimeout(function () {
+        var customer = findCustomer(STATE.customerPhone);
+        var entries = customer ? sortedEntriesFor(customer.phone) : [];
+        renderCustomerChart(customer, entries);
+      }, 120);
+    });
+
+    wireSectionNav();
+  }
+
+  var lastDesktopNavState = null;
+  function syncLayoutOffsets() {
+    var topbar = document.querySelector('.topbar');
+    if (topbar && document.documentElement && document.documentElement.style) {
+      document.documentElement.style.setProperty('--topbar-h', topbar.offsetHeight + 'px');
+    }
+    var isDesktop = typeof window.innerWidth === 'number' && window.innerWidth >= 960;
+    var moreDetails = document.querySelector('.section-nav-more');
+    if (moreDetails && isDesktop !== lastDesktopNavState) {
+      if (isDesktop) {
+        moreDetails.setAttribute('open', 'open');
+      } else {
+        moreDetails.removeAttribute('open');
+      }
+      lastDesktopNavState = isDesktop;
+    }
+  }
+
+  function wireSectionNav() {
+    var nav = document.querySelector('.section-nav');
+    if (!nav) {
+      return;
+    }
+    var links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
+    if (!links.length) {
+      return;
+    }
+
+    function resolveSectionTarget(hash) {
+      var id = hash && hash.charAt(0) === '#' ? hash.slice(1) : '';
+      var anchor = id ? byId(id) : null;
+      if (!anchor) {
+        return { scrollTarget: null, card: null };
+      }
+      var card = anchor.closest ? anchor.closest('.card') : null;
+      var subSection = anchor.closest ? anchor.closest('#store-profile-editor') : null;
+      return {
+        scrollTarget: subSection || card || anchor,
+        card: card || anchor
+      };
+    }
+
+    function setActiveNav(activeLink, activeCard) {
+      for (var i = 0; i < links.length; i += 1) {
+        var isCurrent = links[i] === activeLink;
+        if (isCurrent) {
+          links[i].classList.add('is-active');
+          links[i].setAttribute('aria-current', 'location');
+        } else {
+          links[i].classList.remove('is-active');
+          links[i].removeAttribute('aria-current');
+        }
+      }
+      var cards = document.querySelectorAll('.card.is-section-active');
+      for (var j = 0; j < cards.length; j += 1) {
+        if (cards[j] !== activeCard) {
+          cards[j].classList.remove('is-section-active');
+        }
+      }
+      if (activeCard && activeCard.classList) {
+        activeCard.classList.add('is-section-active');
+      }
+    }
+
+    var manualScrollUntil = 0;
+    nav.addEventListener('click', function (event) {
+      var link = event.target && event.target.closest ? event.target.closest('a[href^="#"]') : null;
+      if (!link) {
+        return;
+      }
+      var resolved = resolveSectionTarget(link.getAttribute('href'));
+      if (!resolved.scrollTarget) {
+        return;
+      }
+      event.preventDefault();
+      manualScrollUntil = Date.now() + 700;
+      setActiveNav(link, resolved.card);
+      syncLayoutOffsets();
+      try {
+        resolved.scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) {
+        resolved.scrollTarget.scrollIntoView();
+      }
+      if (window.innerWidth < 960) {
+        var moreDetails = nav.querySelector('.section-nav-more');
+        if (moreDetails) {
+          moreDetails.removeAttribute('open');
+        }
+      }
+    });
+
+    if (typeof window.IntersectionObserver === 'function') {
+      var pairs = [];
+      for (var k = 0; k < links.length; k += 1) {
+        var info = resolveSectionTarget(links[k].getAttribute('href'));
+        if (info.scrollTarget) {
+          pairs.push({ link: links[k], target: info.scrollTarget, card: info.card });
+        }
+      }
+      if (pairs.length) {
+        setActiveNav(pairs[0].link, null);
+        var visibleTargets = new Set();
+        var observer = new window.IntersectionObserver(
+          function (entries) {
+            for (var idx = 0; idx < entries.length; idx += 1) {
+              if (entries[idx].isIntersecting) {
+                visibleTargets.add(entries[idx].target);
+              } else {
+                visibleTargets.delete(entries[idx].target);
+              }
+            }
+            if (Date.now() < manualScrollUntil) {
+              return;
+            }
+            for (var p = 0; p < pairs.length; p += 1) {
+              if (visibleTargets.has(pairs[p].target)) {
+                setActiveNav(pairs[p].link, null);
+                break;
+              }
+            }
+          },
+          { rootMargin: '-90px 0px -55% 0px', threshold: 0 }
+        );
+        for (var m = 0; m < pairs.length; m += 1) {
+          observer.observe(pairs[m].target);
+        }
+      }
+    }
   }
 
   function boot() {

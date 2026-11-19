@@ -1,18 +1,19 @@
 # TRACEABILITY — Hisaab
 
-Version: 1.23
-Updated: 2026-11-18
+Version: 1.24
+Updated: 2026-11-19
 Owner: Planner
-Supersedes: TRACEABILITY.md v1.22
+Supersedes: TRACEABILITY.md v1.23
 
-Rules: every requirement ID from `PRD.md` appears exactly once. Every row has a phase before G0. Selector strings appear verbatim in `CONTRACT.md` except that R14 also cites an explicitly ordinary, non-contract class-only display node. Test case IDs through P11 come from `docs/TEST-CASES.md` v0.22 (Tester-owned). P10 IDs `C-59` and `E2E-P10-01–04` are recorded and executed in RUN-21. P11 IDs `C-60` and `E2E-P11-01–02` are recorded and executed in RUN-22. P12 IDs `C-61` and `E2E-P12-01–03` are planned for Tester authorship and are not yet evidence. Each cited case is executed at the phase gate named by that row and case, and the Status column remains `planned` until that gate runs. Every contract selector has at least one case in `TEST-CASES.md`; no P12 pass or evidence is claimed here.
+Rules: every requirement ID from `PRD.md` appears exactly once. Every row has a phase before G0. Selector strings appear verbatim in `CONTRACT.md` except that R14 also cites an explicitly ordinary, non-contract class-only display node. Test case IDs through P12 come from `docs/TEST-CASES.md` v0.24 (Tester-owned). P10 IDs `C-59` and `E2E-P10-01–04` are recorded and executed in RUN-21. P11 IDs `C-60` and `E2E-P11-01–02` are recorded and executed in RUN-22. P12 IDs `C-61` and `E2E-P12-01–03` are authored and executed in RUN-23. Each cited case is executed at the phase gate named by that row and case, and the Status column remains `planned` until that gate runs. Every contract selector has at least one case in `TEST-CASES.md`; no G12 pass is claimed here; R15 remains `planned` until the G12 gate runs.
 
 v1.18 changes: marks R12 `passed` after G9 execution and updates the P9 evidence note to RUN-19/CRITIC-RUN-G9; the TEST-CASES reference is v0.19.
 v1.19 changes: maps human-approved P10 requirement R13 to the existing contract selectors and planned focused tests; R13 remains `planned` until Tester evidence exists.
 v1.20 changes: updates the TEST-CASES reference to v0.21 and records RUN-21 P10 evidence; marks R13 `passed` after C-59 and E2E-P10-01–04 pass with the targeted and full suites green, BUG-5 closed.
 v1.21 changes: maps strictly additive R14/P11 to focused cases C-60 and E2E-P11-01–02. CONTRACT.md remains unchanged; R14 uses existing display nodes and an ordinary non-machine presentation node.
 v1.22 changes: updates the TEST-CASES reference to v0.22, records RUN-22 P11 evidence, and marks R14 `passed`; this is Tester evidence only and does not claim G11 PASS.
-v1.23 changes: maps human-approved R15/P12 to existing profile/store controls and planned C-61/E2E-P12-01–03. R15 remains `planned`; Tester-authored tests and gate evidence are pending.
+v1.23 changes: maps human-approved R15/P12 to existing profile/store controls and planned C-61/E2E-P12-01–03.
+v1.24 changes: updates the TEST-CASES reference to v0.24 and records RUN-23 P12 authoring/execution (112/112 green). R15 remains `planned` until G12; Critic/Orchestrator gate evidence and a full re-score are still required.
 
 Notation: `N6` is a **requirement ID, never a case ID**. The P0 console-clean oracle is `C-39`; the P6 full-journey oracle is `N-06`.
 
