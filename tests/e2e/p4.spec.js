@@ -464,7 +464,9 @@ test('E2E-P4-05 (C-35) UPI pay links: one per row, am = max(balance,0), cu=INR o
 
   // A shop VPA replaces the documented default for every row and hides the demo note.
   await page.fill('#shop-upi', 'myshop@bank');
-  await page.dispatchEvent('#shop-upi', 'change');
+  // P12: the typed draft alone must not change generated links until Update.
+  expect(await page.locator('[data-customer="9000000501"] a[href^="upi://pay?pa="]').getAttribute('href')).toContain('pa=hisaab@upi');
+  await page.click('#store-rename');
   for (const phone of expected.keys()) {
     const href = await page.locator('[data-customer="' + phone + '"] a[href^="upi://pay?pa="]').getAttribute('href');
     const query = new URLSearchParams(href.slice(href.indexOf('?') + 1));

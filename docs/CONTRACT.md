@@ -1,13 +1,15 @@
 # CONTRACT — Hisaab (machine interface)
 
-Version: 1.7
+Version: 1.8
 Updated: 2026-11-18
 Owner: Planner
-Supersedes: CONTRACT.md v1.6
+Supersedes: CONTRACT.md v1.7
 
 Human approval note (2026-11-18): the P10 Shop terminology/workspace amendment explicitly permits the scoped visual repositioning described in §10.6 and requires full regression plus Critic re-score. This amendment does not authorize changing IDs or semantics.
 
-This file is the score. The grader reads these exact nodes. The Coder may not rename, move, wrap, hide, or conditionally render any machine node except where a post-G0 amendment expressly permits a scoped visual move without changing its ID or semantics (P9 in §9, P10 in §10.6). Any other change requires a version bump + full regression + human sign-off (`AGENTS.md` §5–§7).
+Human approval note (2026-11-18): the human explicitly approved the post-G11 P12 contract amendment in D27, including staged profile drafts, Update Shop using existing `#store-rename`, Create Shop from the current profile draft, confirmation before discarding drafts, and full regression plus Critic re-score. The scoped P12 supersessions are defined in §10.7; all other P0–P11 machine nodes and behavior remain protected.
+
+This file is the score. The grader reads these exact nodes. The Coder may not rename, move, wrap, hide, or conditionally render any machine node except where a post-G0 amendment expressly permits a scoped visual move without changing its ID or semantics (P9 in §9, P10 in §10.6). P12 in §10.7 changes only the approved visible label and operation of existing `#store-rename`; it does not rename or move the machine node. Any other change requires a version bump + full regression + human sign-off (`AGENTS.md` §5–§7).
 
 ## Post-G0 P8 contract note
 
@@ -462,3 +464,40 @@ The brief fixes the selectors in §0.1 and §1.1–§1.6. The following are Hisa
 - In the workspace layout, the shop selector and its label stay at the top. The existing `#store-name` field and `#store-create`, `#store-rename`, `#store-delete` actions form the bottom action group in the Shop profile workspace. No other node may be moved or hidden to achieve this layout.
 - The read-only owner name, address, and UPI display and related shop identity remain at the top-left; they continue to update from the active shop only. `#active-store-name` text remains exactly the active shop name, without a translated prefix.
 - Manual `#store-create` still creates and activates an empty ledger and `{ownerName:"", address:"", upi:"", logo:"", brand:null}` profile. Editing the existing profile inputs after creation continues to autosave to that active shop, with no change to other shops. Import replacement/add-shop flows, ledger calculations, scoring, storage keys/schema, and profile defaults are unchanged.
+
+### 10.7 P12 staged Shop Profile edits and explicit save (post-G11, human-approved)
+
+This subsection is the current normative profile-editing rule. It explicitly supersedes the P8 blank-profile-on-manual-create rule in §9.2 and R11's corresponding profile default; P9/P10 autosave-on-input and blank-profile-on-create clauses in §10.1/§10.6 and R12/R13; and the P10 `Rename Shop` visible action/rename-only operation. These clauses describe historical P8–P10 behavior and evidence; they do not require autosaving, a blank profile for P12's Create-from-draft action, or a rename-only button after P12. P12 Create still starts with an empty ledger. P11's top-left active-shop name behavior and all other P0–P11 contract nodes, storage schema, data semantics, delete behavior, and scoring selectors remain intact.
+
+#### 10.7.1 Existing controls and draft-only editing
+- Preserve all existing IDs and nodes. `#store-rename` remains the same visible, enabled button in the existing workspace, but its visible label is `Update Shop` in English, `दुकान अपडेट करें` in Hindi, and `దుకాణాన్ని నవీకరించండి` in Telugu. It is the explicit profile-save action and may also rename the active Shop atomically.
+- `#owner-name`, `#owner-address`, and `#shop-upi` load the active Shop's saved profile values when the workspace loads or a confirmed switch completes. `#logo-input` remains a file input and is never prefilled. The active P11 shop-name line and `#owner-display-name`, `#owner-display-address`, and `#owner-display-upi` continue to show committed active-Shop values, not draft values.
+- Input/change events on profile controls update only the visible draft and dirty state. They do not mutate persisted or in-memory saved profile values, header display nodes, logo display, or generated UPI links. `#profile-msg` and `#upi-msg` remain available; no save control or other machine ID is added.
+- The dirty state includes changed owner/address/UPI draft values, a newly selected logo file, and a changed `#store-name` value. A draft is cleared only by a successful Update/Create or an explicitly confirmed discard.
+
+#### 10.7.2 Update Shop transaction
+- `#store-name` may be initialized with the active portfolio Shop name for Update. On Update, an exactly empty string means “leave this Shop's name unchanged”; it does not invalidate the profile update. Any non-empty value, including whitespace-only, is supplied and is NFC-normalized, trimmed, and internal-whitespace-collapsed under D19; a whitespace-only name is invalid and rejects the whole update. A valid supplied name must be 1–60 characters and case-insensitively unique among other Shops. The unchanged active name is a no-op, not a collision.
+- Update commits `ownerName`, `address`, `upi`, optional logo, and optional valid name as one transaction against the active Shop. The three text values are committed from their current inputs; an empty input is intentionally saved as `""` and clears that saved field. Do not substitute prior values or header fallback labels.
+- If no new logo file is selected on Update, preserve the current stored logo exactly; the empty, unprefillable file input is not a request to clear it. A selected logo must satisfy the existing P9 validation: successfully decode as an image and store as a bounded `data:image/...` value at or below `LOGO_STORE_MAX_CHARS`. Invalid, external, non-image, or over-limit logo data rejects the entire operation.
+- Validate the complete candidate profile, logo, and optional name before changing saved state. A blank/invalid supplied name, duplicate name, or invalid selected logo leaves every persisted profile field and the active Shop name unchanged; no partial profile update or rename is allowed. Show a readable validation result in the existing `#profile-msg` or `#store-msg`.
+- On valid Update, commit the profile and optional portfolio name together; do not touch ledger/shop import label, customers, entries, balances, or another Shop. Only after the in-memory state commit update the P11 shop-name line, owner/address/UPI displays, logo display, and UPI links. Brand behavior remains the existing derived/default logic; do not add a brand editor or alter the profile schema.
+- If storage writes fail, retain the complete committed candidate in the existing in-memory state for the tab, keep header/UPI rendering consistent with that committed in-memory state, and show the existing visible storage warning (`#profile-msg` or `#store-msg`). Never leave a partial profile/name write or blank the page. A successful update reports a visible success status.
+
+#### 10.7.3 Create Shop from the current draft
+- `#store-create` reads the entered `#store-name` and current profile draft at activation time. It validates the name under D19 and validates a newly selected logo under §10.7.2 before mutating anything.
+- A successful Create creates and activates one new Shop with a new empty ledger and the current `ownerName`, `address`, and `upi` draft values. An empty value is stored as `""`. A newly selected valid logo is captured in the new profile. If no new logo is selected, the new Shop gets the existing blank/default logo and never inherits another Shop's logo. Brand follows existing derived/default behavior. Existing Shops and their ledger/profile/UPI/logo remain isolated and unchanged.
+- Invalid/duplicate names or an invalid selected logo reject Create without creating a partial Shop or changing the active Shop. Display readable validation/storage status through existing `#store-msg` and/or `#profile-msg`. P9/P10's blank-profile-on-manual-create rule is superseded only for this Create-from-current-draft behavior.
+- A successful Create is an intentional draft commit, not a discard: it creates the new Shop from the current profile values, activates it, and clears the draft state after commit. Its ledger is empty even if the draft was entered while viewing a populated Shop.
+
+#### 10.7.4 Discard confirmation and P9 activation
+- When `#store-select` attempts to switch Shops while dirty, show a confirmation using the current language. Exact prompt text: English `Discard unsaved shop profile changes?`; Hindi `दुकान की बिना सहेजी प्रोफ़ाइल के बदलाव छोड़ दें?`; Telugu `సేవ్ చేయని దుకాణ ప్రొఫైల్ మార్పులను వదిలివేయాలా?`.
+- Cancel restores `#store-select` to the current active Shop and preserves every draft and active value. Confirm discards the draft, switches to the selected Shop, and loads that Shop's saved profile values. A clean switch does not prompt.
+- Apply the same guard before a valid P9 `#import-add-store` operation creates/populates and activates a Shop. Run it before any portfolio mutation; cancellation leaves all Shops, the active Shop, URL, and profile drafts unchanged. Parsing/validation failures that cannot activate a Shop do not discard drafts. Successful confirmation proceeds with the existing P9 add/bootstrap rules, then loads the newly activated Shop's committed profile.
+- P9 add-import activation must not silently discard a dirty draft. Existing P7 replacement imports do not activate or switch Shops and keep their P7 behavior.
+- Preserve the existing P8 inline delete confirmation semantics exactly: `#store-delete` still exposes `#store-confirm-delete` and `#store-cancel-delete`, deletion still requires the explicit confirm control, cancel changes nothing, and the last Shop remains protected. Do not replace delete confirmation with the profile-discard prompt.
+- The Update success, profile-logo validation, and storage statuses are visible in existing status nodes. The existing D25 localized storage status remains valid: `Could not save shop changes.` / `दुकान के बदलाव सहेजे नहीं जा सके।` / `దుకాణం మార్పులను సేవ్ చేయలేకపోయాము.` No new status selector is introduced.
+- Update success text is localized as `Shop profile updated.` / `दुकान की प्रोफ़ाइल अपडेट की गई।` / `దుకాణం ప్రొఫైల్ నవీకరించబడింది.`; invalid-logo text is localized as `Choose a valid logo image.` / `कृपया मान्य लोगो छवि चुनें।` / `చెల్లుబాటు అయ్యే లోగో చిత్రాన్ని ఎంచుకోండి.`. Existing D19/D25 localized name-validation and storage-warning copy continues to apply.
+
+#### 10.7.5 Test and regression gate
+- Tester authors `C-61` and `E2E-P12-01–03` in `TEST-CASES.md`; they are planned until recorded evidence exists. Cover draft isolation before save, Update atomic validation/blank clearing/logo preservation, Create isolation/empty ledger/logo capture, dirty switch cancel/confirm, P9 add-import activation guard, en/hi/te prompt/action text, existing delete confirmation, P11 header synchronization, storage failure, and unchanged P0–P11 selectors/contracts.
+- P12 requires the 10-second contract smoke and affected unit tests on each change. At the P12 gate, Tester runs the P12 E2E cases and the full P0–P12 regression; after any fix, rerun the full suite. Critic independently audits the contract, full regression, doc sync, and score, and records a full re-score before G12. No P12 PASS is claimed until these checks are green. G11/P11 historical evidence is not edited.

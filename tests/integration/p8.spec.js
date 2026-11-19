@@ -35,7 +35,9 @@ test('I-12 ledger and per-store owner name/address/UPI/logo/brand remain isolate
   await page.click('#store-create');
   await expect(page.locator('[data-customer]')).toHaveCount(0);
   await expect(page.locator('#total-outstanding')).toHaveText('0');
-  await expect(page.locator('#shop-upi')).toHaveValue('');
+  // P12 Create captures the current text draft but never inherits another Shop's logo.
+  await expect(page.locator('#shop-upi')).toHaveValue('storea@bank');
+  await expect(page.locator('#shop-logo')).toBeHidden();
   const profileB = {
     ownerName: 'Owner B',
     address: '22 Cobalt Avenue',

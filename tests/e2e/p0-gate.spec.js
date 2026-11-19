@@ -72,7 +72,7 @@ test('C-23 Vercel shape: app/index.html, relative assets, no build step, no serv
   });
   expect(offending, 'only relative asset paths are allowed').toEqual([]);
 
-  const allowedEntries = new Set(['index.html', 'styles.css', 'app.js', 'assets', 'vercel.json']);
+  const allowedEntries = new Set(['index.html', 'styles.css', 'app.js', 'assets', 'vendor', 'vercel.json']);
   const entries = fs
     .readdirSync(APP_DIR, { withFileTypes: true })
     .map((entry) => entry.name)

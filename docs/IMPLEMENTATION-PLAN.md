@@ -1,14 +1,15 @@
 # IMPLEMENTATION-PLAN — Hisaab
 
-Version: 1.21
+Version: 1.22
 Updated: 2026-11-18
 Owner: Planner
-Supersedes: IMPLEMENTATION-PLAN.md v1.20
-Depends on: `PRD.md` v1.10, `TECH-STACK.md` v1.7, `CONTRACT.md` v1.7
+Supersedes: IMPLEMENTATION-PLAN.md v1.21
+Depends on: `PRD.md` v1.11, `TECH-STACK.md` v1.7, `CONTRACT.md` v1.8
 
 v1.19 changes: reconciles every planning dependency reference with the current PRD v1.8, TECH-STACK v1.6, and CONTRACT v1.6 after the G9 documentation HOLD resolution.
 v1.20 changes: adds the human-approved P10 Shop terminology/workspace presentation amendment (R13), preserving data behavior and requiring full P0–P9 regression plus a G10 Critic re-score.
 v1.21 changes: adds strictly additive P11/R14 header presentation planning. `CONTRACT.md` remains frozen and unchanged; no new machine node or existing node move/rename/formatting change is authorized.
+v1.22 changes: adds human-approved post-G11 P12/R15 staged profile drafts and explicit Update/Create behavior; supersedes the earlier blank-profile-on-Create default, P9/P10 autosave-on-input, and Rename Shop behavior, while preserving P11 and all other P0–P11 contracts. Requires full regression and Critic re-score at G12.
 
 Phases are sequential. No phase starts before the previous gate is recorded in `worklog.md`. E2E runs only at phase gates; every change runs the contract smoke plus the affected unit tests.
 
@@ -16,7 +17,7 @@ Phases are sequential. No phase starts before the previous gate is recorded in `
 
 - One phase at a time. Each phase ends with a Tester run, a Critic scorecard, and an Orchestrator gate entry.
 - The Coder writes only `app/`; the Tester only `tests/`, `TEST-CASES.md`, `test-results.md`; the Planner only the six planning docs; the Critic only `scorecards.md`; the Orchestrator only `worklog.md`.
-- Any change to `CONTRACT.md` stops the phase and escalates to the human (`AGENTS.md` §5, §7).
+- Any unapproved change to `CONTRACT.md` stops the phase and escalates to the human (`AGENTS.md` §5, §7). The human has explicitly approved the scoped P12 amendment recorded in `CONTRACT.md` §10.7; no other post-G0 contract change is authorized by that approval.
 - Adding a dependency, framework, build step, backend, or external service is a human gate (`AGENTS.md` §7). OCR (B7) ships only with an approved, self-hosted asset; otherwise it is a graceful no-op and B7 is declared failed.
 - Deploy the `app/` directory at every gate. Local verification uses `python3 -m http.server 4173 --directory app`.
 - Derived values are recomputed from state on every render; nothing derived is cached or persisted.
@@ -37,6 +38,7 @@ Phases are sequential. No phase starts before the previous gate is recorded in `
 | P9 | Post-G8 store-workspace/profile UI and explicit add-as-new-store JSON/CSV import; pristine-bootstrap population and safe name resolution | R12 | E2E-P9-01–10 |
 | P10 | Post-G9 Shop terminology/localization and existing workspace placement; no data-semantic or import changes | R13 | E2E-P10-01–04 + full P0–P9 regression |
 | P11 | Strictly additive top-left active-shop name line alongside the unchanged owner name/address/UPI display; portfolio-name source only | R14 | C-60 + E2E-P11-01–02 + smoke, targeted unit/regression, full suite, 375/light/dark, Critic G11 |
+| P12 | Post-G11 staged Shop Profile drafts, atomic Update Shop and Create Shop, localized discard guard; P9/P10 autosave superseded | R15 | C-61 + E2E-P12-01–03 + contract smoke, affected unit tests, full P0–P12 regression, Critic full re-score G12 |
 
 ## 2. Phase details
 
@@ -237,6 +239,25 @@ The layout fix changes presentation only: the customer view is hidden on `/` and
   - Critic independently re-runs the contract smoke, P11 gate E2E, relevant fuzz/regression checks, and full-suite evidence, re-scores, and confirms no open P0/P1. G11 PASS requires phase acceptance 100%, full regression 100%, doc sync, and a PASS scorecard.
 - **Risks:** sourcing the line from an imported ledger label instead of the active portfolio shop; duplicating or repurposing `#active-store-name`; moving or hiding owner display nodes; inventing owner/UPI fallback values; changing P9 replacement behavior or P10 copy/layout.
 - **Rollback:** revert only P11 app presentation/synchronization changes. Preserve P10 copy/layout, P8/P9 portfolio state semantics, and all existing machine nodes; do not rename or migrate any store or profile.
+
+### P12 — Staged Shop Profile edits with explicit save (post-G11, human-approved contract amendment)
+
+- **Goal:** replace P9/P10 profile autosave with draft-only edits and explicit Update Shop; create and activate a new Shop from current profile drafts; confirm before discarding drafts on a Shop switch or P9 add-import activation.
+- **R-IDs:** R15. P12 supersedes the earlier P8–P10 blank-profile-on-Create default, P9/P10 autosave-on-input, and the P10 Rename Shop action/rename-only semantics. Create still starts with an empty ledger. It preserves P11's active-shop header and all other P0–P11 behavior, selectors, data contracts, and historical G11 evidence.
+- **Selectors:** existing `#store-workspace`, `#store-select`, `#store-name`, `#store-create`, `#store-rename` (label changes to Update Shop; ID preserved), `#store-msg`, `#owner-name`, `#owner-address`, `#shop-upi`, `#logo-input`, `#profile-msg`, `#upi-msg`, `#active-store-name`, `#owner-display-name`, `#owner-display-address`, `#owner-display-upi`, `#shop-logo`, `#brand-theme`, `#import-add-store`, `#import-store-confirm`, `#import-store-cancel`, `#store-delete`, `#store-confirm-delete`, `#store-cancel-delete`, and `a[href^="upi://pay?pa="]`. Add no machine ID.
+- **Files allowed:** Coder: `app/index.html`, `app/styles.css`, `app/app.js`; Tester: `tests/**`, `docs/TEST-CASES.md`, `docs/test-results.md`; Critic: `docs/scorecards.md`; Orchestrator: `docs/worklog.md`. No schema, dependency, build step, backend, or external service change.
+- **Acceptance:**
+  - Existing profile controls load the active Shop's saved fields. Input/change only stages a draft: no persisted or in-memory saved profile mutation, header update, logo change, or UPI-link update occurs before an explicit commit.
+  - `#store-rename` is presented as Update Shop in en/hi/te and commits current profile fields with an optional portfolio-name change as one validated operation. An exactly empty-string `#store-name` on Update leaves the name unchanged; a whitespace-only supplied name is invalid under D19. Existing name validation/uniqueness and bounded data-image logo validation apply; invalid/duplicate name or invalid selected logo rejects all fields atomically.
+  - Empty owner/address/UPI values intentionally commit as `""`. No new logo file on Update preserves the stored logo. Brand remains on existing derived/default logic. Successful Update leaves ledger, customers, entries, and balances untouched; committed header, logo, and UPI-link values update only after the in-memory commit.
+  - Create Shop supersedes the earlier blank-profile-on-create behavior: it uses the entered name and current profile drafts, creates an empty ledger, captures a newly chosen valid logo, and activates the isolated Shop. With no new logo selected it starts with the existing blank/default logo and never copies another Shop's logo. Invalid inputs create no partial Shop.
+  - Storage failures retain the existing complete in-memory commit with a visible warning. Status is visible using existing status nodes.
+  - Dirty profile/name drafts trigger a localized discard prompt before switching: cancel preserves the active Shop and draft and restores the selector; confirm discards and loads the target Shop. Apply the same guard before successful P9 add-import activation; cancellation leaves all state and drafts unchanged. Parsing/validation failures do not discard drafts. Keep existing inline shop-delete confirm/cancel semantics unchanged.
+  - The exact prompt is English `Discard unsaved shop profile changes?`, Hindi `दुकान की बिना सहेजी प्रोफ़ाइल के बदलाव छोड़ दें?`, and Telugu `సేవ్ చేయని దుకాణ ప్రొఫైల్ మార్పులను వదిలివేయాలా?`. The Update Shop action is localized in English/Hindi/Telugu as `Update Shop` / `दुकान अपडेट करें` / `దుకాణాన్ని నవీకరించండి`.
+- **Focused cases required from Tester:** author `C-61` and `E2E-P12-01–03` in `TEST-CASES.md`. Cover draft-only behavior; Update validation, atomicity, blank clearing, and logo preservation; Create draft capture, logo choice, empty ledger, and store isolation; switch and P9 activation cancel/confirm; en/hi/te copy; unchanged delete confirmation; storage failure; P11 header behavior; and regression selectors/data.
+- **Test and gate order:** every change runs the contract smoke and affected unit tests. E2E runs only at G12. Tester runs all P12 cases then the full P0–P12 suite; after any fix, rerun the full suite. Critic independently audits the amended contract, full regression, doc sync, and score, and records a full re-score. Require 100% P12 acceptance and regression, no open P0/P1, and a passing G12 scorecard before advancing. Keep G11/P11 historical evidence unchanged.
+- **Risks:** autosave survives in one event path; header or UPI links reflect drafts; a duplicate/invalid name partially commits profile; a logo is accidentally cleared or copied across Shops; cancellation mutates P9 portfolio state; delete confirmation changes; P11 name line diverges.
+- **Rollback:** revert only P12 implementation to the G11 build, restoring P9/P10 profile behavior only as part of this phase's rollback. Preserve P11 header behavior, all P0–P11 contracts/evidence, store data, and existing storage schema; do not rewrite historical gate evidence.
 
 ### G0 sync note (v1.1)
 
